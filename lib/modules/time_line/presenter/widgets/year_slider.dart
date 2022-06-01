@@ -1,0 +1,63 @@
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
+
+class TextSlider extends StatefulWidget {
+  final Function(String) onChangeItem;
+  final List<String> carrouselItems;
+
+  const TextSlider({
+    Key? key,
+    required this.onChangeItem,
+    required this.carrouselItems,
+  }) : super(key: key);
+
+  @override
+  State<TextSlider> createState() => _TextSliderState();
+}
+
+class _TextSliderState extends State<TextSlider> {
+  final _carrouselController = CarouselController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        IconButton(
+          onPressed: () => _carrouselController.previousPage(),
+          icon: const Icon(CupertinoIcons.left_chevron),
+        ),
+        SizedBox(
+          height: 50,
+          child: CarouselSlider(
+            options: CarouselOptions(
+              viewportFraction: 1,
+              aspectRatio: 16 / 6,
+              enlargeCenterPage: true,
+              onPageChanged: (index, reason) {
+                widget.onChangeItem(widget.carrouselItems[index]);
+              },
+            ),
+            carouselController: _carrouselController,
+            items: widget.carrouselItems
+                .map(
+                  (item) => Center(
+                    child: Text(
+                      item,
+                      style: AppThemes.kLightHeadLineStyle,
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+        IconButton(
+          onPressed: () => _carrouselController.nextPage(),
+          icon: const Icon(CupertinoIcons.right_chevron),
+        ),
+      ],
+    );
+  }
+}

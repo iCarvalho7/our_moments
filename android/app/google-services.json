@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "258810302381",
+    "project_id": "nossosmomentos-22",
+    "storage_bucket": "nossosmomentos-22.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:258810302381:android:80bce144dd1e6ff7481b24",
+        "android_client_info": {
+          "package_name": "br.com.lovestudios.nossosmomentos.nossos_momentos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "258810302381-vb1d8t46e24onp2bp9rdr0kigqb21vs4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhtcdjW51vhA3ht_8JnENemT6-gCnmCmU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "258810302381-vb1d8t46e24onp2bp9rdr0kigqb21vs4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "258810302381-vlpq2or1f9kr45bvjp5fp4f33rtu4745.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "br.com.lovestudios.nossosmomentos.nossosMomentos"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

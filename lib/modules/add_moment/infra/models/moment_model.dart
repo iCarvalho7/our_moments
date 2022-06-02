@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:nossos_momentos/modules/time_line/domain/entities/moment.dart';
+import 'package:nossos_momentos/modules/add_moment/domain/entities/moment.dart';
 
 class MomentModel extends Moment {
   MomentModel({
@@ -9,6 +9,7 @@ class MomentModel extends Moment {
     required super.title,
     required super.body,
     required super.type,
+    required super.photosList,
   });
 
   static MomentModel fromJson(Map<String, dynamic> json) {
@@ -18,6 +19,7 @@ class MomentModel extends Moment {
       title: json['title'],
       body: json['body'],
       type: json['type'],
+      photosList: json['photosList']
     );
   }
 
@@ -38,6 +40,7 @@ class MomentModel extends Moment {
       'body': body,
       'dateTime': dateTime,
       'type': type,
+      'photosList' : photosList
     };
   }
 
@@ -50,6 +53,7 @@ class MomentModel extends Moment {
       title: title,
       body: body,
       type: type,
+      photosList: photosList
     );
   }
 }

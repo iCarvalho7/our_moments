@@ -1,4 +1,4 @@
-import 'package:nossos_momentos/modules/time_line/domain/entities/moment.dart';
+import 'package:nossos_momentos/modules/time_line/domain/entity/time_line_moment.dart';
 
 abstract class TimeLineState {
   const TimeLineState();
@@ -9,7 +9,7 @@ class TimeLineStateLoading extends TimeLineState {
 }
 
 class TimeLineStateLoaded extends TimeLineState {
-  final List<Moment> momentsList;
+  final List<TimeLineMoment> momentsList;
 
   const TimeLineStateLoaded({
     required this.momentsList,

@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:nossos_momentos/modules/add_moment/domain/entities/moment_type.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
-import 'package:nossos_momentos/modules/time_line/domain/entities/moment.dart';
-import 'package:nossos_momentos/modules/time_line/domain/entities/moment_type.dart';
+import 'package:nossos_momentos/modules/time_line/domain/entity/time_line_moment.dart';
 
 class CardMoment extends StatelessWidget {
-  final Moment moment;
+  final TimeLineMoment moment;
 
   const CardMoment({
     Key? key,

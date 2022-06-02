@@ -15,7 +15,7 @@ import '../modules/time_line/external/firebase/firebase_timeline_data_sourse.dar
     as _i6;
 import '../modules/time_line/infra/data_source/time_line_data_source.dart'
     as _i5;
-import '../modules/time_line/infra/models/moment_model.dart' as _i4;
+import '../modules/time_line/infra/models/time_line_moment_model.dart' as _i4;
 import '../modules/time_line/infra/repository/time_line_repository_impl.dart'
     as _i8;
 import '../modules/time_line/presenter/bloc/time_line_bloc.dart' as _i10;
@@ -28,11 +28,11 @@ _i1.GetIt $initGetIt(_i1.GetIt get,
     {String? environment, _i2.EnvironmentFilter? environmentFilter}) {
   final gh = _i2.GetItHelper(get, environment, environmentFilter);
   final firebaseModule = _$FirebaseModule();
-  gh.factory<_i3.CollectionReference<_i4.MomentModel>>(
+  gh.factory<_i3.CollectionReference<_i4.TimeLineMomentModel>>(
       () => firebaseModule.momentsDBRef,
       instanceName: 'momentsDBRef');
   gh.factory<_i5.TimeLineDataSource>(() => _i6.FirebaseTimeLineDataSource(
-      get<_i3.CollectionReference<_i4.MomentModel>>(
+      get<_i3.CollectionReference<_i4.TimeLineMomentModel>>(
           instanceName: 'momentsDBRef')));
   gh.factory<_i7.TimeLineRepository>(() =>
       _i8.TimeLineRepositoryImpl(dataSource: get<_i5.TimeLineDataSource>()));

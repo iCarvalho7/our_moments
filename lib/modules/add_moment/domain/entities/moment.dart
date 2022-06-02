@@ -1,4 +1,4 @@
-import 'package:nossos_momentos/modules/time_line/domain/entities/moment_type.dart';
+import 'package:nossos_momentos/modules/add_moment/domain/entities/moment_type.dart';
 
 class Moment {
   final String id;
@@ -6,6 +6,7 @@ class Moment {
   final String title;
   final String body;
   final MomentType type;
+  final List<String> photosList;
 
   const Moment({
     required this.id,
@@ -13,5 +14,6 @@ class Moment {
     required this.title,
     required this.body,
     required this.type,
+    required this.photosList,
   });
 }

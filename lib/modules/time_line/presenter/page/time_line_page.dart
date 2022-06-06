@@ -94,15 +94,13 @@ class _TimeLinePageState extends State<TimeLinePage> {
         startConnectorBuilder: (_, index) => pinkLineConnector,
         endConnectorBuilder: (_, index) => pinkLineConnector,
         indicatorBuilder: (_, index) {
-          if(_isFirstItem(index)){
+          if (_isFirstItem(index)) {
             return Assets.iconAddMoments;
           }
-          return Indicator.dot(
-            color: AppThemes.pinkAccent,
-          );
+          return Indicator.dot(color: AppColors.romanticColor);
         },
         contentsBuilder: (context, index) {
-          if(_isFirstItem(index)){
+          if (_isFirstItem(index)) {
             return const CardAddMoment();
           }
           return CardMoment(moment: state.momentsList[index]);
@@ -184,14 +182,14 @@ class _TimeLinePageState extends State<TimeLinePage> {
   }
 
   SolidLineConnector get pinkLineConnector => const SolidLineConnector(
-    color: AppThemes.pinkAccent,
-    thickness: 3,
-  );
+        color: AppColors.romanticColor,
+        thickness: 3,
+      );
 
   IndicatorThemeData get defaultIndicator => const IndicatorThemeData(
-    color: Colors.pink,
-    position: 3,
-  );
+        color: Colors.pink,
+        position: 3,
+      );
 
   bool _isFirstItem(int index) => index == 0;
 }

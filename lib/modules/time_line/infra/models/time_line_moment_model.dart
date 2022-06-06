@@ -4,6 +4,7 @@ import 'package:nossos_momentos/modules/time_line/domain/entity/time_line_moment
 
 class TimeLineMomentModel extends TimeLineMoment {
   TimeLineMomentModel({
+    required super.id,
     required super.title,
     required super.body,
     required super.type,
@@ -11,16 +12,17 @@ class TimeLineMomentModel extends TimeLineMoment {
 
   static TimeLineMomentModel fromJson(Map<String, dynamic> json) {
     return TimeLineMomentModel(
-        title: json['title'],
-        body: json['body'],
-        type: json['type'],
+      id: json['id'],
+      title: json['title'],
+      body: json['body'],
+      type: json['type'],
     );
   }
 
   static List<TimeLineMomentModel> fromListJson(dynamic result) {
     final List<TimeLineMomentModel> momentsList = [];
     result.map(
-          (key, value) => momentsList.add(
+      (key, value) => momentsList.add(
         fromJson(value),
       ),
     );
@@ -29,6 +31,7 @@ class TimeLineMomentModel extends TimeLineMoment {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'title': title,
       'body': body,
       'type': type,
@@ -39,9 +42,10 @@ class TimeLineMomentModel extends TimeLineMoment {
 
   TimeLineMoment toEntity() {
     return TimeLineMoment(
-        title: title,
-        body: body,
-        type: type,
+      id: id,
+      title: title,
+      body: body,
+      type: type,
     );
   }
 }

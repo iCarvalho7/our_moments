@@ -25,7 +25,7 @@ class AddOrEditMomentStateEdit extends AddOrEditMomentState {
 }
 
 class AddOrEditMomentStateLoading extends AddOrEditMomentState {
-  const AddOrEditMomentStateLoading();
+  AddOrEditMomentStateLoading();
 }
 
 class AddOrEditMomentStateLoaded extends AddOrEditMomentState {

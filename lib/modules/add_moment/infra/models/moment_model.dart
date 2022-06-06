@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
 import 'package:nossos_momentos/modules/add_moment/domain/entities/moment.dart';
+import 'package:nossos_momentos/modules/add_moment/domain/entities/moment_type.dart';
 
 class MomentModel extends Moment {
   MomentModel({
@@ -15,10 +17,10 @@ class MomentModel extends Moment {
   static MomentModel fromJson(Map<String, dynamic> json) {
     return MomentModel(
       id: json['id'],
-      dateTime: json['dateTime'],
+      dateTime: DateFormat().parse(json['dateTime']),
       title: json['title'],
       body: json['body'],
-      type: json['type'],
+      type: MomentType.values.firstWhere((e) => e.value == json['type']),
       photosList: json['photosList']
     );
   }
@@ -38,8 +40,8 @@ class MomentModel extends Moment {
       'id': id,
       'title': title,
       'body': body,
-      'dateTime': dateTime,
-      'type': type,
+      'dateTime': dateTime.toIso8601String(),
+      'type': type.value,
       'photosList' : photosList
     };
   }
@@ -54,6 +56,17 @@ class MomentModel extends Moment {
       body: body,
       type: type,
       photosList: photosList
+    );
+  }
+
+  static MomentModel fromEntity(Moment moment) {
+    return MomentModel(
+      id: moment.id,
+      dateTime: moment.dateTime,
+      title: moment.title,
+      body: moment.body,
+      type: moment.type,
+      photosList: moment.photosList
     );
   }
 }

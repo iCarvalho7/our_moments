@@ -24,6 +24,12 @@ class AppThemes {
 
   static final TextStyle kTitleStyle = Fonts.interBold.copyWith(fontSize: 32);
 
+  static final BoxDecoration circularBorder = BoxDecoration(
+    border: Border.all(),
+    color: Colors.white,
+    shape: BoxShape.circle
+  );
+
   static final BoxDecoration roundedBorder = BoxDecoration(
     border: Border.all(),
     color: Colors.white,

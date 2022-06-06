@@ -8,7 +8,7 @@ class FirebaseTimeLineDataSource extends TimeLineDataSource {
   final CollectionReference<TimeLineMomentModel> momentsDBRef;
 
   FirebaseTimeLineDataSource(
-    @Named(momentsDBParam) this.momentsDBRef,
+    @Named(timelineDBParam) this.momentsDBRef,
   );
 
   @override
@@ -23,7 +23,7 @@ class FirebaseTimeLineDataSource extends TimeLineDataSource {
     return result.docs.map((e) => e.data()).toList();
   }
 
-  static const momentsDBParam = 'momentsDBRef';
+  static const timelineDBParam = 'timelineDBParam';
   static const yearQuery = 'year';
   static const monthQuery = 'month';
   static const titleParam = 'title';

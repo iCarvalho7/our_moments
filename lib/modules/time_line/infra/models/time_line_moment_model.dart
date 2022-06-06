@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:nossos_momentos/modules/add_moment/domain/entities/moment_type.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line_moment.dart';
 
 class TimeLineMomentModel extends TimeLineMoment {
@@ -15,7 +16,7 @@ class TimeLineMomentModel extends TimeLineMoment {
       id: json['id'],
       title: json['title'],
       body: json['body'],
-      type: json['type'],
+      type: MomentType.values.firstWhere((e) => e.value == json['type']),
     );
   }
 
@@ -34,7 +35,7 @@ class TimeLineMomentModel extends TimeLineMoment {
       'id': id,
       'title': title,
       'body': body,
-      'type': type,
+      'type': type.value,
     };
   }
 

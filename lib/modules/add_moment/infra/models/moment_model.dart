@@ -40,7 +40,7 @@ class MomentModel extends Moment {
       'id': id,
       'title': title,
       'body': body,
-      'dateTime': dateTime.toIso8601String(),
+      'dateTime': DateFormat(DateFormat.YEAR_MONTH_DAY).format(dateTime),
       'type': type.value,
       'photosList' : photosList
     };

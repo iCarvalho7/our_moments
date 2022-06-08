@@ -44,12 +44,12 @@ dependencies:
   cloud_firestore: ^3.1.14
   dotted_line: ^3.1.0
   wechat_assets_picker: ^7.3.0
-  timelines: ^0.1.0
   shimmer: ^2.0.0
   flutter_svg: ^1.1.0
   google_fonts: ^3.0.1
   uuid: ^3.0.6
   image_picker: ^0.8.5+3
+  timeline_tile: ^2.0.0
 
 dev_dependencies:
   flutter_test:
@@ -77,6 +77,9 @@ flutter:
     - assets/images/heart.png
     - assets/images/icon_add_moments.png
     - assets/images/icon_add_date_time.png
+    - assets/images/ic_bad.png
+    - assets/images/ic_done.png
+    - assets/images/ic_love.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

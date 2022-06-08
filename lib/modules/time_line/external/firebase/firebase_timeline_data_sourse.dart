@@ -17,8 +17,6 @@ class FirebaseTimeLineDataSource extends TimeLineDataSource {
     required String month,
   }) async {
     final result = await momentsDBRef
-        .where(yearQuery, isEqualTo: year.toString())
-        .where(monthQuery, isEqualTo: month)
         .get(const GetOptions(source: Source.server));
     return result.docs.map((e) => e.data()).toList();
   }

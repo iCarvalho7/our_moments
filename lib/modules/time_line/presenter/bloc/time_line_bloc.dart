@@ -47,13 +47,14 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     TimeLineEventChangeDate event,
     Emitter<TimeLineState> emit,
   ) async {
+
     final filteredMoments = await getMomentsUseCase.call(
       year: event.year != null ? int.parse(event.year!) : year,
       month: event.month ?? month,
     );
 
     if (filteredMoments.isEmpty) {
-      emit(const TimeLineStateEmpty());
+      //emit(const TimeLineStateEmpty());
     } else {
       emit(
         TimeLineStateLoaded(

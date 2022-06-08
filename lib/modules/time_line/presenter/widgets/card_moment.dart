@@ -12,52 +12,52 @@ class CardMoment extends StatelessWidget {
     required this.moment,
   }) : super(key: key);
 
-  Icon get _fetchIconColorByMomentType {
+  Widget get _fetchIconColorByMomentType {
     switch (moment.type) {
       case MomentType.good:
-        return const Icon(
-          Icons.done,
-          color: Colors.green,
-        );
+        return Assets.iconGoodMoment;
       case MomentType.bad:
-        return const Icon(
-          Icons.close,
-          color: Colors.red,
-        );
+        return Assets.iconBadMoment;
       case MomentType.romantic:
-        return const Icon(
-          CupertinoIcons.heart_fill,
-          color: Colors.pinkAccent,
-        );
+        return Assets.iconRomanticMoment;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      elevation: 8,
-      child: Container(
-        decoration: AppThemes.roundedBorder,
-        child: Column(
-          children: [
-            Row(
-              children: [
-                _fetchIconColorByMomentType,
-                Text(
-                  moment.title,
-                  style: AppThemes.kTitleStyle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              ],
-            ),
-            Text(
-              moment.body,
-              style: AppThemes.kBodyStyle,
-              maxLines: 5,
-              overflow: TextOverflow.ellipsis,
-            )
-          ],
+    return Container(
+      margin: const EdgeInsets.all(8),
+      alignment: Alignment.topCenter,
+      child: Material(
+        elevation: 8,
+        color: Colors.transparent,
+        child: Container(
+          decoration: AppThemes.roundedBorder,
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  _fetchIconColorByMomentType,
+                  const SizedBox(width: 10,),
+                  Text(
+                    moment.title,
+                    style: AppThemes.kTitleStyle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                  )
+                ],
+              ),
+              Text(
+                moment.body,
+                style: AppThemes.kBodyStyle,
+                maxLines: 5,
+                overflow: TextOverflow.ellipsis,
+              )
+            ],
+          ),
         ),
       ),
     );

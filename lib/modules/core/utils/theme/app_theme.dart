@@ -25,13 +25,13 @@ class AppThemes {
   static final TextStyle kTitleStyle = Fonts.interBold.copyWith(fontSize: 32);
 
   static final BoxDecoration circularBorder = BoxDecoration(
-    border: Border.all(),
+    border: Border.all(color: Colors.transparent),
     color: Colors.white,
     shape: BoxShape.circle
   );
 
   static final BoxDecoration roundedBorder = BoxDecoration(
-    border: Border.all(),
+    border: Border.all(color: Colors.white),
     color: Colors.white,
     borderRadius: const BorderRadius.all(
       Radius.circular(10),
@@ -48,6 +48,7 @@ class AppThemes {
 }
 
 class AppColors {
+  static const Color timeLineColor = Color(0xFFF6A3A3);
   static const Color romanticColor = Color(0xFFF308EA);
   static const Color badColor = Color(0xFFF30808);
   static const Color goodColor = Color(0xFF08F312);
@@ -65,6 +66,9 @@ class Assets {
   static final Widget iconAddPhoto = Image.asset('assets/images/add_photo.png');
   static final Widget iconAddMoments = Image.asset('assets/images/icon_add_moments.png');
   static final Widget iconAddDateTime = Image.asset('assets/images/icon_add_date_time.png');
+  static final Widget iconBadMoment = Image.asset('assets/images/ic_bad.png');
+  static final Widget iconGoodMoment = Image.asset('assets/images/ic_done.png');
+  static final Widget iconRomanticMoment = Image.asset('assets/images/ic_love.png');
 }
 
 class Fonts {

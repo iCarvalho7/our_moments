@@ -14,7 +14,7 @@ class AddOrEditMomentBloc
     extends Bloc<AddOrEditMomentEvent, AddOrEditMomentState> {
   final RegisterMomentsUseCase useCase;
 
-  MomentType type = MomentType.romantic;
+  MomentType type = MomentType.bad;
   DateTime date = defaultDateTime;
   List<String> photos = [];
   String title = '';

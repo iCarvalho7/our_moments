@@ -43,16 +43,17 @@ class CardMoment extends StatelessWidget {
                   const SizedBox(width: 10,),
                   Text(
                     moment.title,
-                    style: AppThemes.kTitleStyle,
+                    style: AppThemes.kLightTitleStyle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.right,
                   )
                 ],
               ),
+              const SizedBox(height: 20,),
               Text(
                 moment.body,
-                style: AppThemes.kBodyStyle,
+                style: AppThemes.kLightBodyStyle,
                 maxLines: 5,
                 overflow: TextOverflow.ellipsis,
               )

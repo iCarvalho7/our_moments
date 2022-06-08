@@ -23,7 +23,7 @@ class CardAddMoment extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Text(
               'Adcionar Momento ...',
-              style: AppThemes.kBodyLargeLineStyle,
+              style: AppThemes.kLightHeadLineStyle,
               maxLines: 1,
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,

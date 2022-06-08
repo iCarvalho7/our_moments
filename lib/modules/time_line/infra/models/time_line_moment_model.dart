@@ -14,8 +14,10 @@ class TimeLineMomentModel extends TimeLineMoment {
   });
 
   static TimeLineMomentModel fromJson(Map<String, dynamic> json) {
-    final newDate = DateFormat(DateFormat.YEAR_MONTH_DAY).parse(json['dateTime']);
-    final String date = "${newDate.day}\n" + DateFormat(DateFormat.ABBR_MONTH).format(newDate);
+    final newDate =
+        DateFormat(DateFormat.YEAR_MONTH_DAY).parse(json['dateTime']);
+    final String date =
+        "${newDate.day}\n" + DateFormat(DateFormat.ABBR_MONTH).format(newDate);
     return TimeLineMomentModel(
       id: json['id'],
       title: json['title'],
@@ -48,6 +50,11 @@ class TimeLineMomentModel extends TimeLineMoment {
 
   TimeLineMoment toEntity() {
     return TimeLineMoment(
-        id: id, title: title, body: body, type: type, dateTime: dateTime);
+      id: id,
+      title: title,
+      body: body,
+      type: type,
+      dateTime: dateTime,
+    );
   }
 }

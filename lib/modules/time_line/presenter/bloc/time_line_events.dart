@@ -16,6 +16,10 @@ class TimeLineEventChangeDate extends TimeLineEvent {
   });
 }
 
+class TimeLineEventChangeEyeToggle extends TimeLineEvent {
+  const TimeLineEventChangeEyeToggle();
+}
+
 class TimeLineEventDisableMonth extends TimeLineEvent {
   const TimeLineEventDisableMonth();
 }

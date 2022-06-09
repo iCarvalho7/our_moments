@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nossos_momentos/modules/core/presenter/routes.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
 class CardAddMoment extends StatelessWidget {
@@ -8,6 +9,7 @@ class CardAddMoment extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        Navigator.pushNamed(context, AppRoute.addMoment.tag);
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -21,7 +23,7 @@ class CardAddMoment extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Text(
               'Adcionar Momento ...',
-              style: AppThemes.kBodyLargeLineStyle,
+              style: AppThemes.kLightHeadLineStyle,
               maxLines: 1,
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,

@@ -5,8 +5,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nossos_momentos/dependencie_injection/injection.dart';
 import 'package:nossos_momentos/firebase_options.dart';
+import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_bloc.dart';
+import 'package:nossos_momentos/modules/core/presenter/routes.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
-import 'package:nossos_momentos/modules/time_line/presenter/page/time_line_page.dart';
 
 void main() async {
   configureDependencies();
@@ -28,6 +29,9 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider<TimeLineBloc>(
           create: (_) => getIt<TimeLineBloc>(),
+        ),
+        BlocProvider<AddOrEditMomentBloc>(
+          create: (_) => getIt<AddOrEditMomentBloc>(),
         )
       ],
       child: MaterialApp(
@@ -42,7 +46,8 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           textTheme: GoogleFonts.interTextTheme(),
         ),
-        home: const TimeLinePage(),
+        routes: AppRoute.allRoutes,
+        initialRoute: AppRoute.timeLine.tag,
       ),
     );
   }

@@ -6,11 +6,13 @@ import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 class TextSlider extends StatefulWidget {
   final Function(String) onChangeItem;
   final List<String> carrouselItems;
+  final bool isEnabled;
 
   const TextSlider({
     Key? key,
     required this.onChangeItem,
     required this.carrouselItems,
+    this.isEnabled = true,
   }) : super(key: key);
 
   @override
@@ -22,42 +24,53 @@ class _TextSliderState extends State<TextSlider> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        IconButton(
-          onPressed: () => _carrouselController.previousPage(),
-          icon: const Icon(CupertinoIcons.left_chevron),
-        ),
-        SizedBox(
-          height: 50,
-          child: CarouselSlider(
-            options: CarouselOptions(
-              viewportFraction: 1,
-              aspectRatio: 16 / 6,
-              enlargeCenterPage: true,
-              onPageChanged: (index, reason) {
-                widget.onChangeItem(widget.carrouselItems[index]);
-              },
+    return DefaultTextStyle(
+      style: TextStyle(
+        color: widget.isEnabled ? Colors.black : Colors.grey,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            onPressed: () => _carrouselController.previousPage(),
+            icon: Icon(
+              CupertinoIcons.left_chevron,
+              color: widget.isEnabled ? Colors.black : Colors.grey,
             ),
-            carouselController: _carrouselController,
-            items: widget.carrouselItems
-                .map(
-                  (item) => Center(
-                    child: Text(
-                      item,
-                      style: AppThemes.kLightHeadLineStyle,
-                    ),
-                  ),
-                )
-                .toList(),
           ),
-        ),
-        IconButton(
-          onPressed: () => _carrouselController.nextPage(),
-          icon: const Icon(CupertinoIcons.right_chevron),
-        ),
-      ],
+          SizedBox(
+            height: 50,
+            child: CarouselSlider(
+              options: CarouselOptions(
+                viewportFraction: 1,
+                aspectRatio: 16 / 6,
+                enlargeCenterPage: true,
+                onPageChanged: (index, reason) {
+                  widget.onChangeItem(widget.carrouselItems[index]);
+                },
+              ),
+              carouselController: _carrouselController,
+              items: widget.carrouselItems
+                  .map(
+                    (item) => Center(
+                      child: Text(
+                        item,
+                        style: AppThemes.kLightHeadLineStyle,
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+          IconButton(
+            onPressed: () => _carrouselController.nextPage(),
+            icon: Icon(
+              CupertinoIcons.right_chevron,
+              color: widget.isEnabled ? Colors.black : Colors.grey,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

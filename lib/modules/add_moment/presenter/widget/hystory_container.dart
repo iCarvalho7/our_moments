@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:nossos_momentos/dependencie_injection/injection.dart';
+import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_event.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_bloc.dart';

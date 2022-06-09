@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:intl/intl.dart';
 import 'package:nossos_momentos/modules/add_moment/domain/entities/moment_type.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line_moment.dart';
 
@@ -10,20 +9,18 @@ class TimeLineMomentModel extends TimeLineMoment {
     required super.title,
     required super.body,
     required super.type,
-    required super.dateTime,
+    required super.monthDay,
+    required super.month,
   });
 
   static TimeLineMomentModel fromJson(Map<String, dynamic> json) {
-    final newDate =
-        DateFormat(DateFormat.YEAR_MONTH_DAY).parse(json['dateTime']);
-    final String date =
-        "${newDate.day}\n" + DateFormat(DateFormat.ABBR_MONTH).format(newDate);
     return TimeLineMomentModel(
       id: json['id'],
       title: json['title'],
       body: json['body'],
       type: MomentType.values.firstWhere((e) => e.value == json['type']),
-      dateTime: date,
+      month: json['month'],
+      monthDay: json['monthDay'],
     );
   }
 
@@ -43,6 +40,8 @@ class TimeLineMomentModel extends TimeLineMoment {
       'title': title,
       'body': body,
       'type': type.value,
+      'monthDay': monthDay,
+      'month': month,
     };
   }
 
@@ -54,7 +53,8 @@ class TimeLineMomentModel extends TimeLineMoment {
       title: title,
       body: body,
       type: type,
-      dateTime: dateTime,
+      monthDay: monthDay,
+      month: month,
     );
   }
 }

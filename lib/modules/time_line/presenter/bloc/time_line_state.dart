@@ -1,7 +1,9 @@
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line_moment.dart';
 
 abstract class TimeLineState {
-  const TimeLineState();
+  final bool isMonthEnabled;
+
+  const TimeLineState({this.isMonthEnabled = true});
 }
 
 class TimeLineStateLoading extends TimeLineState {
@@ -13,10 +15,11 @@ class TimeLineStateLoaded extends TimeLineState {
 
   const TimeLineStateLoaded({
     required this.momentsList,
-  });
+    required bool isMonthEnabled,
+  }) : super(isMonthEnabled: isMonthEnabled);
 }
 
 class TimeLineStateEmpty extends TimeLineState {
-
-  const TimeLineStateEmpty();
+  const TimeLineStateEmpty({required bool isMonthEnabled})
+      : super(isMonthEnabled: isMonthEnabled);
 }

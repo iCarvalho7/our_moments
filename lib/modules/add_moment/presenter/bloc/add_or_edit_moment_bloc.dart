@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:intl/intl.dart';
 import 'package:nossos_momentos/modules/add_moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/add_moment/domain/entities/moment_type.dart';
 import 'package:nossos_momentos/modules/add_moment/domain/use_case/register_moments_use_case.dart';
@@ -89,10 +90,11 @@ class AddOrEditMomentBloc
       photosList: photos,
       type: type,
       dateTime: date,
+      year: date.year.toString(),
+      month: DateFormat(DateFormat.MONTH, 'pt_BR').format(date),
+      monthDay: date.day.toString()
     );
-    emit(AddOrEditMomentStateLoading());
-
-    await Future.delayed(const Duration(seconds: 3));
+    emit(const AddOrEditMomentStateLoading());
 
     final result = await useCase.call(moment);
 

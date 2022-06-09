@@ -2,7 +2,7 @@ import 'package:nossos_momentos/modules/time_line/domain/entity/time_line_moment
 
 abstract class TimeLineRepository {
   Future<List<TimeLineMoment>> getMoments({
-    required int year,
+    required String year,
     required String month,
   });
 }

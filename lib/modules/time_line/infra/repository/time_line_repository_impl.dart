@@ -12,8 +12,21 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
   });
 
   @override
-  Future<List<TimeLineMoment>> getMoments({required int year, required String month}) async {
-    final result = await dataSource.fetchAllMomentsByMonthAndYear(year: year, month: month);
-    return result.map((e) => e.toEntity()).toList();
+  Future<List<TimeLineMoment>> getMoments({
+    required String year,
+    required String month,
+  }) async {
+    if (month.isNotEmpty) {
+      final result = await dataSource.fetchAllMomentsByMonthAndYear(
+        year: year,
+        month: month,
+      );
+      return result.map((e) => e.toEntity()).toList();
+    } else {
+      final result = await dataSource.fetchAllMomentsByYear(
+        year: year.toString(),
+      );
+      return result.map((e) => e.toEntity()).toList();
+    }
   }
 }

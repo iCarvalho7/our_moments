@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nossos_momentos/modules/add_moment/domain/entities/moment_type.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';

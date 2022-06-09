@@ -50,15 +50,35 @@ class _TimeLinePageState extends State<TimeLinePage> {
                               },
                               carrouselItems: TimeLineBloc.enabledYears,
                             ),
-                            TextSlider(
-                              onChangeItem: (month) => {
-                                BlocProvider.of<TimeLineBloc>(context).add(
-                                  TimeLineEventChangeDate(
-                                    month: month,
+                            Row(
+                              children: [
+                                TextSlider(
+                                  isEnabled: state.isMonthEnabled,
+                                  onChangeItem: (month) => {
+                                    BlocProvider.of<TimeLineBloc>(context).add(
+                                      TimeLineEventChangeDate(
+                                        month: month,
+                                      ),
+                                    )
+                                  },
+                                  carrouselItems: TimeLineBloc.monthsName,
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    state.isMonthEnabled
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    size: 40,
                                   ),
-                                )
-                              },
-                              carrouselItems: TimeLineBloc.monthsName,
+                                  onPressed: () {
+                                    BlocProvider.of<TimeLineBloc>(context).add(
+                                        const TimeLineEventChangeEyeToggle());
+
+                                    BlocProvider.of<TimeLineBloc>(context)
+                                        .add(const TimeLineEventChangeDate());
+                                  },
+                                ),
+                              ],
                             ),
                           ],
                         ),

@@ -6,13 +6,17 @@ class TimeLineMoment {
   final String title;
   final String body;
   final MomentType type;
-  final String dateTime;
+  final String monthDay;
+  final String month;
 
   const TimeLineMoment({
     required this.id,
     required this.title,
     required this.body,
     required this.type,
-    required this.dateTime,
+    required this.monthDay,
+    required this.month,
   });
+
+  String get dateTime => "$monthDay ${month.substring(0, 3).replaceFirst(month[0], month[0].toUpperCase())}";
 }

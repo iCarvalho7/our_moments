@@ -13,10 +13,23 @@ class FirebaseTimeLineDataSource extends TimeLineDataSource {
 
   @override
   Future<List<TimeLineMomentModel>> fetchAllMomentsByMonthAndYear({
-    required int year,
+    required String year,
     required String month,
   }) async {
     final result = await momentsDBRef
+        .where(yearQuery, isEqualTo: year)
+        .where(monthQuery, isEqualTo: month)
+    .get(const GetOptions(source: Source.server));
+
+    return result.docs.map((e) => e.data()).toList();
+  }
+
+  @override
+  Future<List<TimeLineMomentModel>> fetchAllMomentsByYear({
+    required String year,
+  }) async {
+    final result = await momentsDBRef
+        .where(yearQuery, isEqualTo: year)
         .get(const GetOptions(source: Source.server));
     return result.docs.map((e) => e.data()).toList();
   }

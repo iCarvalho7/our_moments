@@ -10,34 +10,34 @@ import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_state
 class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final GetMomentsUseCase getMomentsUseCase;
 
-  int year = defaultYear;
+  String year = enabledYears.first;
   String month = monthsName.first;
+  bool isMonthEnabled = true;
 
   TimeLineBloc(this.getMomentsUseCase) : super(const TimeLineStateLoading()) {
     on<TimeLineEventInit>(_init);
     on<TimeLineEventChangeDate>(_handleChangeDate);
+    on<TimeLineEventChangeEyeToggle>(_handleChangeToggle);
   }
 
   FutureOr<void> _init(
     TimeLineEventInit event,
     Emitter<TimeLineState> emit,
   ) async {
-    emit(
-      const TimeLineStateLoading(),
-    );
-
-    Future.delayed(const Duration(seconds: 4));
+    emit(const TimeLineStateLoading());
 
     final result = await getMomentsUseCase.call(
-      year: defaultYear,
+      year: year,
       month: month,
     );
+
     if (result.isEmpty) {
-      emit(const TimeLineStateEmpty());
+      emit(TimeLineStateEmpty(isMonthEnabled: isMonthEnabled,));
     } else {
       emit(
         TimeLineStateLoaded(
           momentsList: result,
+          isMonthEnabled: isMonthEnabled,
         ),
       );
     }
@@ -47,24 +47,34 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     TimeLineEventChangeDate event,
     Emitter<TimeLineState> emit,
   ) async {
+    year = event.year ?? year;
+    month = isMonthEnabled ? event.month ?? month : '';
 
     final filteredMoments = await getMomentsUseCase.call(
-      year: event.year != null ? int.parse(event.year!) : year,
-      month: event.month ?? month,
+      year: year,
+      month: month,
     );
 
     if (filteredMoments.isEmpty) {
-      //emit(const TimeLineStateEmpty());
+      emit(TimeLineStateEmpty(isMonthEnabled: isMonthEnabled));
     } else {
       emit(
         TimeLineStateLoaded(
           momentsList: filteredMoments,
+          isMonthEnabled: isMonthEnabled,
         ),
       );
     }
   }
 
-  static const defaultYear = 2018;
+  FutureOr<void> _handleChangeToggle(
+    TimeLineEventChangeEyeToggle event,
+    Emitter<TimeLineState> emit,
+  ) async {
+    month = '';
+    isMonthEnabled = !isMonthEnabled;
+  }
+
   static const enabledYears = [
     '2018',
     '2019',
@@ -74,6 +84,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     '2023',
     '2024'
   ];
+
   static const monthsName = [
     'Janeiro',
     'Fevereiro',

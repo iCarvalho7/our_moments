@@ -11,6 +11,9 @@ class MomentModel extends Moment {
     required super.title,
     required super.body,
     required super.type,
+    required super.month,
+    required super.monthDay,
+    required super.year,
     required super.photosList,
   });
 
@@ -21,7 +24,10 @@ class MomentModel extends Moment {
       title: json['title'],
       body: json['body'],
       type: MomentType.values.firstWhere((e) => e.value == json['type']),
-      photosList: json['photosList']
+      photosList: json['photosList'],
+      year: json['year'],
+      monthDay: json['monthDay'],
+      month: json['month'],
     );
   }
 
@@ -40,6 +46,9 @@ class MomentModel extends Moment {
       'id': id,
       'title': title,
       'body': body,
+      'year': year,
+      'month': month,
+      'monthDay': monthDay,
       'dateTime': DateFormat(DateFormat.YEAR_MONTH_DAY).format(dateTime),
       'type': type.value,
       'photosList' : photosList
@@ -55,6 +64,9 @@ class MomentModel extends Moment {
       title: title,
       body: body,
       type: type,
+      year: year,
+      monthDay: monthDay,
+      month: month,
       photosList: photosList
     );
   }
@@ -66,7 +78,10 @@ class MomentModel extends Moment {
       title: moment.title,
       body: moment.body,
       type: moment.type,
-      photosList: moment.photosList
+      photosList: moment.photosList,
+      year: moment.year,
+      month: moment.month,
+      monthDay: moment.monthDay,
     );
   }
 }

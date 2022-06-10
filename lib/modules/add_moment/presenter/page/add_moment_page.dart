@@ -76,6 +76,7 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
   }
 
   Widget _buildEmptyPage(AddOrEditMomentState state) {
+
     BlocProvider.of<HistoryBloc>(context).add(HistoryEventInit());
 
     return SingleChildScrollView(
@@ -110,8 +111,10 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
     BlocProvider.of<SelectTypeBloc>(context)
         .add(SelectTypeEventSelectType(index: state.moment!.type.index));
 
-    BlocProvider.of<HistoryBloc>(context)
-        .add(HistoryEventAddPhotos(photos: state.moment!.downloadUrlList));
+    BlocProvider.of<HistoryBloc>(context).add(HistoryEventAddPhotos(
+      photos: state.moment!.downloadUrlList,
+      needClearList: true,
+    ));
 
     BlocProvider.of<AddDateBloc>(context).add(
       AddDateEventAddDateToLabel(

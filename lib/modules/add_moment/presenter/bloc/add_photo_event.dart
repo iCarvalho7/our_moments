@@ -12,8 +12,10 @@ class HistoryEventOpenGallery extends HistoryEvent {
 
 class HistoryEventAddPhotos extends HistoryEvent {
   final List<String> photos;
+  final bool needClearList;
 
   HistoryEventAddPhotos({
     required this.photos,
+    this.needClearList = false,
   });
 }

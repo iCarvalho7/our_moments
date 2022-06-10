@@ -37,6 +37,9 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
     HistoryEventAddPhotos event,
     Emitter<HistoryState> emit,
   ) {
+    if (event.needClearList) {
+      photosList.clear();
+    }
 
     photosList.addAll(event.photos);
 

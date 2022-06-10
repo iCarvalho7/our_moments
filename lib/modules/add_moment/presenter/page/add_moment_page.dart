@@ -30,41 +30,35 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
     return SafeArea(
       child: BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
         builder: (context, state) {
-          if (state is! AddOrEditMomentStateLoading) {
-            return Scaffold(
-              appBar: AppBar(
-                leading: IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(
-                    CupertinoIcons.arrow_left,
-                    color: Colors.black,
-                  ),
+          return Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(
+                  CupertinoIcons.arrow_left,
+                  color: Colors.black,
                 ),
-                backgroundColor: Colors.white10,
-                elevation: 0,
-                actions: [
-                  IconButton(
-                    onPressed: () => state is AddOrEditMomentStateAllFilled
-                        ? _createEvent()
-                        : null,
-                    icon: Icon(
-                      Icons.done,
-                      color: state is AddOrEditMomentStateAllFilled
-                          ? Colors.green
-                          : Colors.grey,
-                    ),
-                  )
-                ],
               ),
-              body: state is! AddOrEditMomentStateLoaded
-                  ? _buildEmptyPage(state)
-                  : _buildFilledPage(state),
-            );
-          } else {
-            return _buildLoadingState();
-          }
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              actions: [
+                IconButton(
+                  onPressed: () => state is AddOrEditMomentStateAllFilled
+                      ? _createEvent()
+                      : null,
+                  icon: Icon(
+                    Icons.done,
+                    color: state is AddOrEditMomentStateAllFilled
+                        ? Colors.green
+                        : Colors.grey,
+                  ),
+                )
+              ],
+            ),
+            body: _buildPage(state),
+          );
         },
       ),
     );
@@ -76,7 +70,6 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
   }
 
   Widget _buildEmptyPage(AddOrEditMomentState state) {
-
     BlocProvider.of<HistoryBloc>(context).add(HistoryEventInit());
 
     return SingleChildScrollView(
@@ -95,7 +88,8 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
   }
 
   Widget _buildLoadingState() {
-    return Padding(
+    return Container(
+      color: Colors.transparent,
       padding: const EdgeInsets.all(10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,5 +131,17 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildPage(AddOrEditMomentState state) {
+    if (state is AddOrEditMomentStateLoading) {
+      return _buildLoadingState();
+    }
+
+    if (state is! AddOrEditMomentStateLoaded) {
+      return _buildEmptyPage(state);
+    } else {
+      return _buildFilledPage(state);
+    }
   }
 }

@@ -29,9 +29,9 @@ class AddOrEditMomentStateLoading extends AddOrEditMomentState {
 }
 
 class AddOrEditMomentStateLoaded extends AddOrEditMomentState {
-  final Moment moment;
+  final Moment? moment;
 
-  const AddOrEditMomentStateLoaded({required this.moment});
+  const AddOrEditMomentStateLoaded({this.moment});
 }
 
 class AddOrEditMomentStateOpenGallery extends AddOrEditMomentState {

@@ -5,7 +5,9 @@ import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_mo
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
 class DescriptionSection extends StatelessWidget {
-  const DescriptionSection({Key? key}) : super(key: key);
+  final String? bodyText;
+
+  const DescriptionSection({Key? key, this.bodyText}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +18,7 @@ class DescriptionSection extends StatelessWidget {
       textCapitalization: TextCapitalization.sentences,
       style: AppThemes.kLightBodyStyle,
       cursorColor: Colors.black,
+      initialValue: bodyText,
       decoration: InputDecoration(
         alignLabelWithHint: true,
         labelText: '...',

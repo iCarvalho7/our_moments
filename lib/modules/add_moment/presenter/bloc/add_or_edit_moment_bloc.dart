@@ -5,6 +5,7 @@ import 'package:injectable/injectable.dart';
 import 'package:intl/intl.dart';
 import 'package:nossos_momentos/modules/add_moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/add_moment/domain/entities/moment_type.dart';
+import 'package:nossos_momentos/modules/add_moment/domain/use_case/get_moment_by_id_use_case.dart';
 import 'package:nossos_momentos/modules/add_moment/domain/use_case/register_moments_use_case.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_event.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_state.dart';
@@ -14,8 +15,9 @@ import 'package:uuid/uuid.dart';
 @injectable
 class AddOrEditMomentBloc
     extends Bloc<AddOrEditMomentEvent, AddOrEditMomentState> {
-  final RegisterMomentsUseCase useCase;
+  final RegisterMomentsUseCase registerMomentsUseCase;
   final UploadPhotoUseCase uploadPhotoUseCase;
+  final GetMomentByIdUseCase getMomentByIdUseCase;
 
   MomentType type = MomentType.bad;
   DateTime date = defaultDateTime;
@@ -23,9 +25,13 @@ class AddOrEditMomentBloc
   String title = '';
   String bodyText = '';
 
-  AddOrEditMomentBloc(this.useCase, this.uploadPhotoUseCase)
-      : super(const AddOrEditMomentStateLoading()) {
+  AddOrEditMomentBloc(
+    this.registerMomentsUseCase,
+    this.uploadPhotoUseCase,
+    this.getMomentByIdUseCase,
+  ) : super(const AddOrEditMomentStateLoading()) {
     on<SetupAddMomentEvent>(_handleShowEmpty);
+    on<SetupEditMomentEvent>(_handleEditMoment);
     on<AddOrEditMomentEventSelectType>(_handleSelectType);
     on<AddOrEditMomentEventAddPhoto>(_handleAddPhoto);
     on<AddOrEditMomentEventAddDateTime>(_handleAddTimeEvent);
@@ -38,6 +44,11 @@ class AddOrEditMomentBloc
     SetupAddMomentEvent event,
     Emitter<AddOrEditMomentState> emit,
   ) {
+    type = MomentType.bad;
+    date = defaultDateTime;
+    photos.clear();
+    title = '';
+    bodyText = '';
     emit(const AddOrEditMomentStateEmpty());
   }
 
@@ -85,7 +96,6 @@ class AddOrEditMomentBloc
     AddOrEditMomentEventCreateMoment event,
     Emitter<AddOrEditMomentState> emit,
   ) async {
-
     emit(const AddOrEditMomentStateLoading());
 
     final momentId = const Uuid().v1();
@@ -103,9 +113,28 @@ class AddOrEditMomentBloc
         month: DateFormat(DateFormat.MONTH, 'pt_BR').format(date),
         monthDay: date.day.toString());
 
-    await useCase.call(moment);
+    await registerMomentsUseCase.call(moment);
+
+    emit(const AddOrEditMomentStateEmpty());
+  }
+
+  FutureOr<void> _handleEditMoment(
+    SetupEditMomentEvent event,
+    Emitter<AddOrEditMomentState> emit,
+  ) async {
+    emit(const AddOrEditMomentStateLoading());
+
+    final moment = await getMomentByIdUseCase.call(event.momentID);
+
+    date = moment.dateTime;
+    photos = moment.downloadUrlList;
+    title = moment.title;
+    bodyText = moment.body;
+
+    _verifyIfFieldsAreFilled(emit);
 
     emit(AddOrEditMomentStateLoaded(moment: moment));
+
   }
 
   bool get _isAllFieldsFilled =>

@@ -5,7 +5,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/firebase_options.dart';
+import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_date_bloc.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_bloc.dart';
+import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_bloc.dart';
+import 'package:nossos_momentos/modules/add_moment/presenter/bloc/select_type_bloc.dart';
 import 'package:nossos_momentos/modules/core/presenter/routes.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
 
@@ -33,7 +36,16 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<AddOrEditMomentBloc>(
           create: (_) => getIt<AddOrEditMomentBloc>(),
-        )
+        ),
+        BlocProvider<SelectTypeBloc>(
+          create: (_) => getIt<SelectTypeBloc>(),
+        ),
+        BlocProvider<HistoryBloc>(
+          create: (_) => getIt<HistoryBloc>(),
+        ),
+        BlocProvider<AddDateBloc>(
+          create: (_) => getIt<AddDateBloc>(),
+        ),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',

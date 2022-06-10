@@ -5,11 +5,12 @@ abstract class AddOrEditMomentEvent {
 }
 
 class SetupAddMomentEvent extends AddOrEditMomentEvent {
-  const SetupAddMomentEvent();
+  SetupAddMomentEvent();
 }
 
 class SetupEditMomentEvent extends AddOrEditMomentEvent {
-  const SetupEditMomentEvent();
+  final String momentID;
+  const SetupEditMomentEvent({required this.momentID});
 }
 
 class AddOrEditMomentEventSelectType extends AddOrEditMomentEvent {

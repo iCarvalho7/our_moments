@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:nossos_momentos/dependencie_injection/injection.dart';
+import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_date_bloc.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_date_event.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_date_state.dart';

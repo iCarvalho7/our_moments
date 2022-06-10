@@ -40,21 +40,24 @@ class CardMoment extends StatelessWidget {
                 children: [
                   _fetchIconColorByMomentType,
                   const SizedBox(width: 10,),
-                  Text(
-                    moment.title,
-                    style: AppThemes.kLightTitleStyle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.right,
+                  Expanded(
+                    child: Text(
+                      moment.title,
+                      style: AppThemes.kLightTitleStyle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
+                    ),
                   )
                 ],
               ),
-              const SizedBox(height: 20,),
-              Text(
-                moment.body,
-                style: AppThemes.kLightBodyStyle,
-                maxLines: 5,
-                overflow: TextOverflow.ellipsis,
+              const SizedBox(height: 15,),
+              Expanded(
+                child: Text(
+                  moment.body,
+                  style: AppThemes.kLightBodyStyle,
+                  maxLines: 5,
+                ),
               )
             ],
           ),

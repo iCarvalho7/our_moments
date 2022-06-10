@@ -8,12 +8,14 @@ import 'package:nossos_momentos/modules/add_moment/domain/entities/moment_type.d
 import 'package:nossos_momentos/modules/add_moment/domain/use_case/register_moments_use_case.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_event.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_state.dart';
+import 'package:nossos_momentos/modules/upload_photo/domain/use_case/upload_photo_use_case.dart';
 import 'package:uuid/uuid.dart';
 
 @injectable
 class AddOrEditMomentBloc
     extends Bloc<AddOrEditMomentEvent, AddOrEditMomentState> {
   final RegisterMomentsUseCase useCase;
+  final UploadPhotoUseCase uploadPhotoUseCase;
 
   MomentType type = MomentType.bad;
   DateTime date = defaultDateTime;
@@ -21,8 +23,8 @@ class AddOrEditMomentBloc
   String title = '';
   String bodyText = '';
 
-  AddOrEditMomentBloc(this.useCase)
-      : super(AddOrEditMomentStateLoading()) {
+  AddOrEditMomentBloc(this.useCase, this.uploadPhotoUseCase)
+      : super(const AddOrEditMomentStateLoading()) {
     on<SetupAddMomentEvent>(_handleShowEmpty);
     on<AddOrEditMomentEventSelectType>(_handleSelectType);
     on<AddOrEditMomentEventAddPhoto>(_handleAddPhoto);
@@ -83,23 +85,27 @@ class AddOrEditMomentBloc
     AddOrEditMomentEventCreateMoment event,
     Emitter<AddOrEditMomentState> emit,
   ) async {
-    final moment = Moment(
-      id: const Uuid().v1(),
-      title: title,
-      body: bodyText,
-      photosList: photos,
-      type: type,
-      dateTime: date,
-      year: date.year.toString(),
-      month: DateFormat(DateFormat.MONTH, 'pt_BR').format(date),
-      monthDay: date.day.toString()
-    );
+
     emit(const AddOrEditMomentStateLoading());
 
-    final result = await useCase.call(moment);
+    final momentId = const Uuid().v1();
+
+    final downloadUrlList = await uploadPhotoUseCase.call(photos, momentId);
+
+    final moment = Moment(
+        id: momentId,
+        title: title,
+        body: bodyText,
+        downloadUrlList: downloadUrlList,
+        type: type,
+        dateTime: date,
+        year: date.year.toString(),
+        month: DateFormat(DateFormat.MONTH, 'pt_BR').format(date),
+        monthDay: date.day.toString());
+
+    await useCase.call(moment);
 
     emit(AddOrEditMomentStateLoaded(moment: moment));
-
   }
 
   bool get _isAllFieldsFilled =>

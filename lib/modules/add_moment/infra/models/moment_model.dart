@@ -14,7 +14,7 @@ class MomentModel extends Moment {
     required super.month,
     required super.monthDay,
     required super.year,
-    required super.photosList,
+    required super.downloadUrlList,
   });
 
   static MomentModel fromJson(Map<String, dynamic> json) {
@@ -24,7 +24,7 @@ class MomentModel extends Moment {
       title: json['title'],
       body: json['body'],
       type: MomentType.values.firstWhere((e) => e.value == json['type']),
-      photosList: json['photosList'],
+      downloadUrlList: json['downloadUrlList'],
       year: json['year'],
       monthDay: json['monthDay'],
       month: json['month'],
@@ -51,7 +51,7 @@ class MomentModel extends Moment {
       'monthDay': monthDay,
       'dateTime': DateFormat(DateFormat.YEAR_MONTH_DAY).format(dateTime),
       'type': type.value,
-      'photosList' : photosList
+      'downloadUrlList' : downloadUrlList
     };
   }
 
@@ -67,7 +67,7 @@ class MomentModel extends Moment {
       year: year,
       monthDay: monthDay,
       month: month,
-      photosList: photosList
+      downloadUrlList: downloadUrlList
     );
   }
 
@@ -78,7 +78,7 @@ class MomentModel extends Moment {
       title: moment.title,
       body: moment.body,
       type: moment.type,
-      photosList: moment.photosList,
+      downloadUrlList: moment.downloadUrlList,
       year: moment.year,
       month: moment.month,
       monthDay: moment.monthDay,

@@ -10,13 +10,14 @@ import 'package:nossos_momentos/modules/core/presenter/routes.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
 
 void main() async {
-  configureDependencies();
 
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     name: 'your_3_years',
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  configureDependencies();
+
   runApp(const MyApp());
 }
 

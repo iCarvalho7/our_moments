@@ -9,7 +9,7 @@ class Moment {
   final String month;
   final String monthDay;
   final MomentType type;
-  final List<String> photosList;
+  final List<String> downloadUrlList;
 
   const Moment({
     required this.id,
@@ -20,6 +20,6 @@ class Moment {
     required this.monthDay,
     required this.month,
     required this.year,
-    required this.photosList,
+    required this.downloadUrlList,
   });
 }

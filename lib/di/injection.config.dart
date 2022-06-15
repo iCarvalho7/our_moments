@@ -29,7 +29,7 @@ import '../modules/add_moment/infra/repository/register_moment_repository_impl.d
 import '../modules/add_moment/presenter/bloc/add_date_bloc.dart' as _i3;
 import '../modules/add_moment/presenter/bloc/add_or_edit_moment_bloc.dart'
     as _i34;
-import '../modules/add_moment/presenter/bloc/stories_bloc.dart' as _i7;
+import '../modules/add_moment/presenter/bloc/photos_bloc.dart' as _i7;
 import '../modules/add_moment/presenter/bloc/select_type_bloc.dart' as _i14;
 import '../modules/edit_moment/domain/repository/edit_moment_repository.dart'
     as _i21;
@@ -78,7 +78,7 @@ _i1.GetIt $initGetIt(_i1.GetIt get,
   gh.factory<_i4.CollectionReference<_i6.MomentModel>>(
       () => firebaseModule.momentsDBRef,
       instanceName: 'momentsDBParam');
-  gh.factory<_i7.StoriesBloc>(() => _i7.StoriesBloc());
+  gh.factory<_i7.PhotosBloc>(() => _i7.PhotosBloc());
   gh.factory<_i8.MomentsDataSource>(() => _i9.FirebaseMomentsDataSource(
       get<_i4.CollectionReference<_i6.MomentModel>>(
           instanceName: 'momentsDBParam')));

@@ -5,28 +5,28 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_event.dart';
-import 'package:nossos_momentos/modules/add_moment/presenter/bloc/stories_bloc.dart';
-import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_event.dart';
-import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_state.dart';
+import 'package:nossos_momentos/modules/add_moment/presenter/bloc/photos_bloc.dart';
+import 'package:nossos_momentos/modules/add_moment/presenter/bloc/photos_event.dart';
+import 'package:nossos_momentos/modules/add_moment/presenter/bloc/photos_state.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/widget/colored_container.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/gradient_mask.dart';
 import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
-class StoriesContainer extends StatefulWidget {
-  const StoriesContainer({Key? key}) : super(key: key);
+class PhotosContainer extends StatefulWidget {
+  const PhotosContainer({Key? key}) : super(key: key);
 
   @override
-  State<StoriesContainer> createState() => _StoriesContainerState();
+  State<PhotosContainer> createState() => _PhotosContainerState();
 }
 
-class _StoriesContainerState extends State<StoriesContainer> {
+class _PhotosContainerState extends State<PhotosContainer> {
   @override
   Widget build(BuildContext context) {
     return Container(
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.only(top: 10.0),
-      child: BlocConsumer<StoriesBloc, StoriesState>(
+      child: BlocConsumer<PhotosBloc, PhotosState>(
           listener: _handleStateChanges,
           builder: (context, state) {
             return SingleChildScrollView(
@@ -44,14 +44,14 @@ class _StoriesContainerState extends State<StoriesContainer> {
     );
   }
 
-  void _handleStateChanges(BuildContext context, StoriesState state) async {
-    if (state is HistoryStateShowGallery) {
+  void _handleStateChanges(BuildContext context, PhotosState state) async {
+    if (state is PhotosStateShowGallery) {
       final _picker = ImagePicker();
       final photos = await _picker.pickMultiImage();
       if (photos != null) {
         final pathList = photos.map((e) => e.path).toList();
-        BlocProvider.of<StoriesBloc>(context).add(
-          HistoryEventAddPhotos(photos: pathList),
+        BlocProvider.of<PhotosBloc>(context).add(
+          PhotosEventAddPhotos(photos: pathList),
         );
 
         BlocProvider.of<AddOrEditMomentBloc>(context)
@@ -60,8 +60,8 @@ class _StoriesContainerState extends State<StoriesContainer> {
     }
   }
 
-  Widget _buildHistoryList(StoriesState state) {
-    if (state is HistoryStateUpdateHistory) {
+  Widget _buildHistoryList(PhotosState state) {
+    if (state is PhotosStateUpdateHistory) {
       return SizedBox(
         height: 55,
         child: ListView.builder(
@@ -103,7 +103,7 @@ class _AddPhotoIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () =>
-          BlocProvider.of<StoriesBloc>(context).add(HistoryEventOpenGallery()),
+          BlocProvider.of<PhotosBloc>(context).add(PhotosEventOpenGallery()),
       child: const ColoredContainer(
         child: GradientMask(
           child: Icon(

@@ -11,9 +11,7 @@ class FirebaseMomentsDataSource extends MomentsDataSource {
 
   @override
   Future registerMoment({required MomentModel moment}) =>
-      momentsDBRef.add(moment);
-
-  static const String momentsDBParam = "momentsDBParam";
+      momentsDBRef.doc(moment.id).set(moment);
 
   @override
   Future<MomentModel> fetchMoment({
@@ -27,4 +25,6 @@ class FirebaseMomentsDataSource extends MomentsDataSource {
 
     return result.docs.first.data();
   }
+
+  static const String momentsDBParam = "momentsDBParam";
 }

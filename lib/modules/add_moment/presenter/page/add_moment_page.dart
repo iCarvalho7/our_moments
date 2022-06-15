@@ -28,23 +28,23 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
-        builder: (context, state) {
-          return Scaffold(
-            appBar: AppBar(
-              leading: IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: const Icon(
-                  CupertinoIcons.arrow_left,
-                  color: Colors.black,
-                ),
-              ),
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              actions: [
-                IconButton(
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: const Icon(
+              CupertinoIcons.arrow_left,
+              color: Colors.black,
+            ),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          actions: [
+            BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
+              builder: (context, state) {
+                return IconButton(
                   onPressed: () => state is AddOrEditMomentStateAllFilled
                       ? _createEvent()
                       : null,
@@ -54,24 +54,44 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
                         ? Colors.green
                         : Colors.grey,
                   ),
-                )
-              ],
-            ),
-            body: _buildPage(state),
-          );
-        },
+                );
+              },
+            )
+          ],
+        ),
+        body: BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
+          buildWhen: (previous, current) {
+            return current is! AddOrEditMomentStateAllFilled;
+          },
+          builder: (context, state) {
+            return _buildPage(state);
+          },
+        ),
       ),
     );
   }
 
-  void _createEvent() {
-    BlocProvider.of<AddOrEditMomentBloc>(context)
-        .add(const AddOrEditMomentEventCreateMoment());
+  Widget _buildPage(AddOrEditMomentState state) {
+    if (state is AddOrEditMomentStateLoading) {
+      return _buildLoadingState();
+    }
+
+    if (state is AddOrEditMomentStateEmpty) {
+      return _buildEmptyPage(state);
+    }
+
+    if (state is AddOrEditMomentStateLoaded) {
+      return _buildFilledPage(state);
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 
   Widget _buildEmptyPage(AddOrEditMomentState state) {
     BlocProvider.of<HistoryBloc>(context).add(HistoryEventInit());
 
+    BlocProvider.of<SelectTypeBloc>(context)
+        .add(const SelectTypeEventSelectType(index: 0));
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -103,16 +123,16 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
 
   Widget _buildFilledPage(AddOrEditMomentStateLoaded state) {
     BlocProvider.of<SelectTypeBloc>(context)
-        .add(SelectTypeEventSelectType(index: state.moment!.type.index));
+        .add(SelectTypeEventSelectType(index: state.moment.type.index));
 
     BlocProvider.of<HistoryBloc>(context).add(HistoryEventAddPhotos(
-      photos: state.moment!.downloadUrlList,
+      photos: state.moment.downloadUrlList,
       needClearList: true,
     ));
 
     BlocProvider.of<AddDateBloc>(context).add(
       AddDateEventAddDateToLabel(
-          dateLabel: DateUtil.getFormattedDate(state.moment!.dateTime)),
+          dateLabel: DateUtil.getFormattedDate(state.moment.dateTime)),
     );
 
     return SingleChildScrollView(
@@ -124,8 +144,8 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
             const Divider(),
             const HistoryContainer(),
             MomentFormSection(
-              title: state.moment?.title,
-              bodyText: state.moment?.body,
+              title: state.moment.title,
+              bodyText: state.moment.body,
             ),
           ],
         ),
@@ -133,15 +153,8 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
     );
   }
 
-  Widget _buildPage(AddOrEditMomentState state) {
-    if (state is AddOrEditMomentStateLoading) {
-      return _buildLoadingState();
-    }
-
-    if (state is! AddOrEditMomentStateLoaded) {
-      return _buildEmptyPage(state);
-    } else {
-      return _buildFilledPage(state);
-    }
+  void _createEvent() {
+    BlocProvider.of<AddOrEditMomentBloc>(context)
+        .add(const AddOrEditMomentEventCreateOrUpdateMoment());
   }
 }

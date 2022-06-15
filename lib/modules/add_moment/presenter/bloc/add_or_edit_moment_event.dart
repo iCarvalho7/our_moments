@@ -53,6 +53,6 @@ class AddOrEditMomentEvenTypeBodyText extends AddOrEditMomentEvent {
   });
 }
 
-class AddOrEditMomentEventCreateMoment extends AddOrEditMomentEvent {
-  const AddOrEditMomentEventCreateMoment();
+class AddOrEditMomentEventCreateOrUpdateMoment extends AddOrEditMomentEvent {
+  const AddOrEditMomentEventCreateOrUpdateMoment();
 }

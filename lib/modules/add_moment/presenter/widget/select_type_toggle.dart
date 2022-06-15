@@ -20,9 +20,6 @@ class SelectTypeToggle extends StatefulWidget {
 class _SelectTypeToggleState extends State<SelectTypeToggle> {
   @override
   Widget build(BuildContext context) {
-    BlocProvider.of<SelectTypeBloc>(context)
-        .add(const SelectTypeEventSelectType(index: 0));
-
     return BlocBuilder<SelectTypeBloc, SelectTypeState>(
         builder: (context, state) {
       if (state is SelectTypeStateLoaded) {

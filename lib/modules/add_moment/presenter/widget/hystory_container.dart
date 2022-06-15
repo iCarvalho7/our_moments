@@ -10,6 +10,7 @@ import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_even
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_state.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/widget/colored_container.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/gradient_mask.dart';
+import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
 class HistoryContainer extends StatefulWidget {
@@ -68,16 +69,21 @@ class _HistoryContainerState extends State<HistoryContainer> {
           itemCount: state.photos.length,
           shrinkWrap: true,
           itemBuilder: (context, index) {
-            return ColoredContainer(
-              child: !state.photos.first.contains('http')
-                  ? Image.file(
-                      File(state.photos[index]),
-                      fit: BoxFit.fitWidth,
-                    )
-                  : Image.network(
-                      state.photos[index],
-                      fit: BoxFit.fitWidth,
-                    ),
+            return GestureDetector(
+              onTap: (){
+
+              },
+              child: ColoredContainer(
+                child: !state.photos[index].isHttpUrl()
+                    ? Image.file(
+                        File(state.photos[index]),
+                        fit: BoxFit.fitWidth,
+                      )
+                    : Image.network(
+                        state.photos[index],
+                        fit: BoxFit.fitWidth,
+                      ),
+              ),
             );
           },
         ),

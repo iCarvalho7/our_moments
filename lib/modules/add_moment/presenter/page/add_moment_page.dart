@@ -6,12 +6,12 @@ import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_date_event
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_event.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_state.dart';
-import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_bloc.dart';
+import 'package:nossos_momentos/modules/add_moment/presenter/bloc/stories_bloc.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_event.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/select_type_bloc.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/select_type_event.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/widget/history_container_loading.dart';
-import 'package:nossos_momentos/modules/add_moment/presenter/widget/hystory_container.dart';
+import 'package:nossos_momentos/modules/add_moment/presenter/widget/stories_container.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/widget/moment_form_section_loading.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/widget/select_type_toggle.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/widget/tile_and_description_section.dart';
@@ -88,7 +88,7 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
   }
 
   Widget _buildEmptyPage(AddOrEditMomentState state) {
-    BlocProvider.of<HistoryBloc>(context).add(HistoryEventInit());
+    BlocProvider.of<StoriesBloc>(context).add(HistoryEventInit());
 
     BlocProvider.of<SelectTypeBloc>(context)
         .add(const SelectTypeEventSelectType(index: 0));
@@ -99,7 +99,7 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
           children: const [
             SelectTypeToggle(),
             Divider(),
-            HistoryContainer(),
+            StoriesContainer(),
             MomentFormSection(),
           ],
         ),
@@ -125,7 +125,7 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
     BlocProvider.of<SelectTypeBloc>(context)
         .add(SelectTypeEventSelectType(index: state.moment.type.index));
 
-    BlocProvider.of<HistoryBloc>(context).add(HistoryEventAddPhotos(
+    BlocProvider.of<StoriesBloc>(context).add(HistoryEventAddPhotos(
       photos: state.moment.downloadUrlList,
       needClearList: true,
     ));
@@ -142,7 +142,7 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
           children: [
             const SelectTypeToggle(),
             const Divider(),
-            const HistoryContainer(),
+            const StoriesContainer(),
             MomentFormSection(
               title: state.moment.title,
               bodyText: state.moment.body,

@@ -1,16 +1,16 @@
-abstract class HistoryEvent {
-  const HistoryEvent();
+abstract class StoriesEvent {
+  const StoriesEvent();
 }
 
-class HistoryEventInit extends HistoryEvent {
+class HistoryEventInit extends StoriesEvent {
   HistoryEventInit();
 }
 
-class HistoryEventOpenGallery extends HistoryEvent {
+class HistoryEventOpenGallery extends StoriesEvent {
   HistoryEventOpenGallery();
 }
 
-class HistoryEventAddPhotos extends HistoryEvent {
+class HistoryEventAddPhotos extends StoriesEvent {
   final List<String> photos;
   final bool needClearList;
 

@@ -1,16 +1,16 @@
-abstract class HistoryState {
-  const HistoryState();
+abstract class StoriesState {
+  const StoriesState();
 }
 
-class HistoryStateInit extends HistoryState {
+class HistoryStateInit extends StoriesState {
   const HistoryStateInit();
 }
 
-class HistoryStateShowGallery extends HistoryState {
+class HistoryStateShowGallery extends StoriesState {
   HistoryStateShowGallery();
 }
 
-class HistoryStateUpdateHistory extends HistoryState {
+class HistoryStateUpdateHistory extends StoriesState {
   final List<String> photos;
 
   const HistoryStateUpdateHistory({required this.photos});

@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_event.dart';
-import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_bloc.dart';
+import 'package:nossos_momentos/modules/add_moment/presenter/bloc/stories_bloc.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_event.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_state.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/widget/colored_container.dart';
@@ -13,20 +13,20 @@ import 'package:nossos_momentos/modules/core/presenter/widgets/gradient_mask.dar
 import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
-class HistoryContainer extends StatefulWidget {
-  const HistoryContainer({Key? key}) : super(key: key);
+class StoriesContainer extends StatefulWidget {
+  const StoriesContainer({Key? key}) : super(key: key);
 
   @override
-  State<HistoryContainer> createState() => _HistoryContainerState();
+  State<StoriesContainer> createState() => _StoriesContainerState();
 }
 
-class _HistoryContainerState extends State<HistoryContainer> {
+class _StoriesContainerState extends State<StoriesContainer> {
   @override
   Widget build(BuildContext context) {
     return Container(
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.only(top: 10.0),
-      child: BlocConsumer<HistoryBloc, HistoryState>(
+      child: BlocConsumer<StoriesBloc, StoriesState>(
           listener: _handleStateChanges,
           builder: (context, state) {
             return SingleChildScrollView(
@@ -44,13 +44,13 @@ class _HistoryContainerState extends State<HistoryContainer> {
     );
   }
 
-  void _handleStateChanges(BuildContext context, HistoryState state) async {
+  void _handleStateChanges(BuildContext context, StoriesState state) async {
     if (state is HistoryStateShowGallery) {
       final _picker = ImagePicker();
       final photos = await _picker.pickMultiImage();
       if (photos != null) {
         final pathList = photos.map((e) => e.path).toList();
-        BlocProvider.of<HistoryBloc>(context).add(
+        BlocProvider.of<StoriesBloc>(context).add(
           HistoryEventAddPhotos(photos: pathList),
         );
 
@@ -60,7 +60,7 @@ class _HistoryContainerState extends State<HistoryContainer> {
     }
   }
 
-  Widget _buildHistoryList(HistoryState state) {
+  Widget _buildHistoryList(StoriesState state) {
     if (state is HistoryStateUpdateHistory) {
       return SizedBox(
         height: 55,
@@ -103,7 +103,7 @@ class _AddPhotoIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () =>
-          BlocProvider.of<HistoryBloc>(context).add(HistoryEventOpenGallery()),
+          BlocProvider.of<StoriesBloc>(context).add(HistoryEventOpenGallery()),
       child: const ColoredContainer(
         child: GradientMask(
           child: Icon(

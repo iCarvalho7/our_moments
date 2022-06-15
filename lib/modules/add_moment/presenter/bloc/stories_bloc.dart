@@ -6,8 +6,8 @@ import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_even
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_state.dart';
 
 @injectable
-class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
-  HistoryBloc() : super(const HistoryStateInit()) {
+class StoriesBloc extends Bloc<StoriesEvent, StoriesState> {
+  StoriesBloc() : super(const HistoryStateInit()) {
     on<HistoryEventInit>(_init);
     on<HistoryEventOpenGallery>(_handleOpenGallery);
     on<HistoryEventAddPhotos>(_handleAddPhotos);
@@ -17,7 +17,7 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
 
   FutureOr<void> _init(
     HistoryEventInit event,
-    Emitter<HistoryState> emit,
+    Emitter<StoriesState> emit,
   ) {
     photosList.clear();
 
@@ -28,14 +28,14 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
 
   FutureOr<void> _handleOpenGallery(
     HistoryEventOpenGallery event,
-    Emitter<HistoryState> emit,
+    Emitter<StoriesState> emit,
   ) {
     emit(HistoryStateShowGallery());
   }
 
   FutureOr<void> _handleAddPhotos(
     HistoryEventAddPhotos event,
-    Emitter<HistoryState> emit,
+    Emitter<StoriesState> emit,
   ) {
     if (event.needClearList) {
       photosList.clear();

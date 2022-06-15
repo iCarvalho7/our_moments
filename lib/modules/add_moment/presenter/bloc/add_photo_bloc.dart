@@ -8,27 +8,39 @@ import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_photo_stat
 @injectable
 class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
   HistoryBloc() : super(const HistoryStateInit()) {
-    on<AddPhotoEventOpenGallery>(_handleOpenGallery);
-    on<AddPhotoEventAddPhotos>(_handleAddPhotos);
+    on<HistoryEventInit>(_init);
+    on<HistoryEventOpenGallery>(_handleOpenGallery);
+    on<HistoryEventAddPhotos>(_handleAddPhotos);
   }
 
   final List<String> photosList = [];
 
-  FutureOr<void> _handleOpenGallery(
-    AddPhotoEventOpenGallery event,
+  FutureOr<void> _init(
+    HistoryEventInit event,
     Emitter<HistoryState> emit,
   ) {
-    emit(HistoryStateShowGallery());
+    photosList.clear();
 
     emit(
       HistoryStateUpdateHistory(photos: photosList),
     );
   }
 
-  FutureOr<void> _handleAddPhotos(
-    AddPhotoEventAddPhotos event,
+  FutureOr<void> _handleOpenGallery(
+    HistoryEventOpenGallery event,
     Emitter<HistoryState> emit,
   ) {
+    emit(HistoryStateShowGallery());
+  }
+
+  FutureOr<void> _handleAddPhotos(
+    HistoryEventAddPhotos event,
+    Emitter<HistoryState> emit,
+  ) {
+    if (event.needClearList) {
+      photosList.clear();
+    }
+
     photosList.addAll(event.photos);
 
     emit(

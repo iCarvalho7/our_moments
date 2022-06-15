@@ -5,7 +5,10 @@ import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_mo
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
 class TitleSection extends StatelessWidget {
+  final String? title;
+
   const TitleSection({
+    this.title,
     Key? key,
   }) : super(key: key);
 
@@ -16,6 +19,7 @@ class TitleSection extends StatelessWidget {
       textCapitalization: TextCapitalization.sentences,
       style: AppThemes.kLightTitleStyle,
       cursorColor: Colors.black,
+      initialValue: title,
       decoration: InputDecoration(
         floatingLabelBehavior: FloatingLabelBehavior.never,
         alignLabelWithHint: true,

@@ -18,13 +18,17 @@ class MomentModel extends Moment {
   });
 
   static MomentModel fromJson(Map<String, dynamic> json) {
+    final date =
+    DateFormat(DateFormat.YEAR_MONTH_DAY).parse(json['dateTime']);
+
+
     return MomentModel(
       id: json['id'],
-      dateTime: DateFormat().parse(json['dateTime']),
+      dateTime: date,
       title: json['title'],
       body: json['body'],
       type: MomentType.values.firstWhere((e) => e.value == json['type']),
-      downloadUrlList: json['downloadUrlList'],
+      downloadUrlList: List.castFrom(json['downloadUrlList']),
       year: json['year'],
       monthDay: json['monthDay'],
       month: json['month'],

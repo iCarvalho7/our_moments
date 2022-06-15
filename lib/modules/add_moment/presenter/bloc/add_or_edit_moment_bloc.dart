@@ -5,39 +5,58 @@ import 'package:injectable/injectable.dart';
 import 'package:intl/intl.dart';
 import 'package:nossos_momentos/modules/add_moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/add_moment/domain/entities/moment_type.dart';
+import 'package:nossos_momentos/modules/add_moment/domain/use_case/get_moment_by_id_use_case.dart';
 import 'package:nossos_momentos/modules/add_moment/domain/use_case/register_moments_use_case.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_event.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_state.dart';
+import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
+import 'package:nossos_momentos/modules/edit_moment/domain/use_case/update_moment_use_case.dart';
 import 'package:nossos_momentos/modules/upload_photo/domain/use_case/upload_photo_use_case.dart';
 import 'package:uuid/uuid.dart';
 
 @injectable
 class AddOrEditMomentBloc
     extends Bloc<AddOrEditMomentEvent, AddOrEditMomentState> {
-  final RegisterMomentsUseCase useCase;
+  final RegisterMomentsUseCase registerMomentsUseCase;
   final UploadPhotoUseCase uploadPhotoUseCase;
+  final GetMomentByIdUseCase getMomentByIdUseCase;
+  final UpdateMomentUseCase updateMomentUseCase;
+
+  bool isAddMoment = false;
 
   MomentType type = MomentType.bad;
   DateTime date = defaultDateTime;
   List<String> photos = [];
   String title = '';
   String bodyText = '';
+  late Moment currentMoment;
 
-  AddOrEditMomentBloc(this.useCase, this.uploadPhotoUseCase)
-      : super(const AddOrEditMomentStateLoading()) {
+  AddOrEditMomentBloc(
+    this.updateMomentUseCase,
+    this.registerMomentsUseCase,
+    this.uploadPhotoUseCase,
+    this.getMomentByIdUseCase,
+  ) : super(const AddOrEditMomentStateLoading()) {
     on<SetupAddMomentEvent>(_handleShowEmpty);
+    on<SetupEditMomentEvent>(_handleEditMoment);
     on<AddOrEditMomentEventSelectType>(_handleSelectType);
     on<AddOrEditMomentEventAddPhoto>(_handleAddPhoto);
     on<AddOrEditMomentEventAddDateTime>(_handleAddTimeEvent);
     on<AddOrEditMomentEventTypeTitle>(_handleTypeTitle);
     on<AddOrEditMomentEvenTypeBodyText>(_handleTypeBodyText);
-    on<AddOrEditMomentEventCreateMoment>(_handleCreateMoment);
+    on<AddOrEditMomentEventCreateOrUpdateMoment>(_handleCreateOrUpdateMoment);
   }
 
   FutureOr<void> _handleShowEmpty(
     SetupAddMomentEvent event,
     Emitter<AddOrEditMomentState> emit,
   ) {
+    type = MomentType.bad;
+    date = defaultDateTime;
+    photos.clear();
+    title = '';
+    bodyText = '';
+    isAddMoment = true;
     emit(const AddOrEditMomentStateEmpty());
   }
 
@@ -81,13 +100,22 @@ class AddOrEditMomentBloc
     _verifyIfFieldsAreFilled(emit);
   }
 
-  FutureOr<void> _handleCreateMoment(
-    AddOrEditMomentEventCreateMoment event,
+  FutureOr<void> _handleCreateOrUpdateMoment(
+    AddOrEditMomentEventCreateOrUpdateMoment event,
     Emitter<AddOrEditMomentState> emit,
   ) async {
-
     emit(const AddOrEditMomentStateLoading());
 
+    if (isAddMoment) {
+      await _createMoment();
+    } else {
+      await _editMoment();
+    }
+
+    emit(const AddOrEditMomentStateEmpty());
+  }
+
+  Future<void> _createMoment() async {
     final momentId = const Uuid().v1();
 
     final downloadUrlList = await uploadPhotoUseCase.call(photos, momentId);
@@ -103,9 +131,26 @@ class AddOrEditMomentBloc
         month: DateFormat(DateFormat.MONTH, 'pt_BR').format(date),
         monthDay: date.day.toString());
 
-    await useCase.call(moment);
+    await registerMomentsUseCase.call(moment);
+  }
 
-    emit(AddOrEditMomentStateLoaded(moment: moment));
+  FutureOr<void> _handleEditMoment(
+    SetupEditMomentEvent event,
+    Emitter<AddOrEditMomentState> emit,
+  ) async {
+    isAddMoment = false;
+    emit(const AddOrEditMomentStateLoading());
+
+    currentMoment = await getMomentByIdUseCase.call(event.momentID);
+
+    date = currentMoment.dateTime;
+    photos = currentMoment.downloadUrlList;
+    title = currentMoment.title;
+    bodyText = currentMoment.body;
+
+    _verifyIfFieldsAreFilled(emit);
+
+    emit(AddOrEditMomentStateLoaded(moment: currentMoment));
   }
 
   bool get _isAllFieldsFilled =>
@@ -123,4 +168,28 @@ class AddOrEditMomentBloc
   }
 
   static final defaultDateTime = DateTime(0, 0, 0);
+
+  FutureOr<void> _editMoment() async {
+    final downloadUrlList = await uploadPhotoUseCase.call(
+      photos.where((element) => !element.isHttpUrl()).toList(),
+      currentMoment.id,
+    );
+
+    downloadUrlList
+        .addAll(photos.where((element) => element.isHttpUrl()).toList());
+
+    final moment = Moment(
+      id: currentMoment.id,
+      title: title,
+      body: bodyText,
+      downloadUrlList: downloadUrlList,
+      type: type,
+      dateTime: date,
+      year: date.year.toString(),
+      month: DateFormat(DateFormat.MONTH, 'pt_BR').format(date),
+      monthDay: date.day.toString(),
+    );
+
+    await updateMomentUseCase.call(moment);
+  }
 }

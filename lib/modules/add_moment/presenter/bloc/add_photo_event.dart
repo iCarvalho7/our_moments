@@ -2,12 +2,20 @@ abstract class HistoryEvent {
   const HistoryEvent();
 }
 
-class AddPhotoEventOpenGallery extends HistoryEvent {
-  AddPhotoEventOpenGallery();
+class HistoryEventInit extends HistoryEvent {
+  HistoryEventInit();
 }
 
-class AddPhotoEventAddPhotos extends HistoryEvent {
-  List<String> photos;
+class HistoryEventOpenGallery extends HistoryEvent {
+  HistoryEventOpenGallery();
+}
 
-  AddPhotoEventAddPhotos({required this.photos});
+class HistoryEventAddPhotos extends HistoryEvent {
+  final List<String> photos;
+  final bool needClearList;
+
+  HistoryEventAddPhotos({
+    required this.photos,
+    this.needClearList = false,
+  });
 }

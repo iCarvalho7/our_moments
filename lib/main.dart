@@ -16,7 +16,6 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    name: 'your_3_years',
     options: DefaultFirebaseOptions.currentPlatform,
   );
   configureDependencies();

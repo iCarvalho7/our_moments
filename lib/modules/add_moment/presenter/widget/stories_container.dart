@@ -9,6 +9,7 @@ import 'package:nossos_momentos/modules/add_moment/presenter/bloc/photos_bloc.da
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/photos_event.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/bloc/photos_state.dart';
 import 'package:nossos_momentos/modules/add_moment/presenter/widget/colored_container.dart';
+import 'package:nossos_momentos/modules/core/presenter/routes.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/gradient_mask.dart';
 import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
@@ -70,8 +71,11 @@ class _PhotosContainerState extends State<PhotosContainer> {
           shrinkWrap: true,
           itemBuilder: (context, index) {
             return GestureDetector(
-              onTap: (){
-
+              onTap: () {
+                Navigator.pushNamed(context, AppRoute.story.tag, arguments: {
+                  'list': state.photos,
+                  'index': index,
+                });
               },
               child: ColoredContainer(
                 child: !state.photos[index].isHttpUrl()

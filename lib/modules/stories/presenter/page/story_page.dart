@@ -1,12 +1,10 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nossos_momentos/di/injection.dart';
-import 'package:nossos_momentos/modules/stories/presenter/bloc/story_bloc.dart';
-import 'package:nossos_momentos/modules/stories/presenter/bloc/story_event.dart';
-import 'package:nossos_momentos/modules/stories/presenter/bloc/story_state.dart';
+
+import '../bloc/story_bloc.dart';
 
 class StoryPage extends StatefulWidget {
   const StoryPage({Key? key}) : super(key: key);
@@ -46,23 +44,24 @@ class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
     return SafeArea(
       child: Scaffold(
         body: BlocConsumer<StoryBloc, StoryState>(
-            bloc: storyBloc,
-            listener: _handleState,
-            buildWhen: (_, state) => state is! StoryStatePause,
-            builder: (context, state) {
-              if (state is StoryStateLoaded) {
-                return _buildPage(state, context);
-              } else {
-                return const SizedBox.shrink();
-              }
-            }),
+          bloc: storyBloc,
+          listener: _handleState,
+          buildWhen: (_, state) => state is! StoryStatePause,
+          builder: (context, state) {
+            if (state is StoryStateLoaded) {
+              return _buildPage(state, context);
+            } else {
+              return const SizedBox.shrink();
+            }
+          },
+        ),
       ),
     );
   }
 
   Widget _buildPage(StoryStateLoaded state, BuildContext context) {
     return GestureDetector(
-      onLongPressUp:() => controller.forward(from: controller.value),
+      onLongPressUp: () => controller.forward(from: controller.value),
       onLongPress: () => controller.stop(canceled: false),
       onTap: () => storyBloc.add(const StoryEventNextStory()),
       child: Stack(
@@ -104,7 +103,10 @@ class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
                       .toList(),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.white,),
+                  icon: const Icon(
+                    Icons.clear,
+                    color: Colors.white,
+                  ),
                   onPressed: () {
                     Navigator.pop(context);
                   },
@@ -122,8 +124,7 @@ class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
       controller.reset();
     }
 
-    if (state is StoryStatePause) {
-    }
+    if (state is StoryStatePause) {}
 
     if (state is StoryStateFinished) {
       Navigator.pop(context);

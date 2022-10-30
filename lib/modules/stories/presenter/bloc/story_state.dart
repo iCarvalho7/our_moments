@@ -1,4 +1,4 @@
-import 'package:nossos_momentos/modules/stories/domain/story.dart';
+part of 'story_bloc.dart';
 
 abstract class StoryState {
   const StoryState();

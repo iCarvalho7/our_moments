@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:injectable/injectable.dart';
-import 'package:nossos_momentos/modules/add_moment/external/firebase/firebase_moments_data_source.dart';
-import 'package:nossos_momentos/modules/add_moment/infra/models/moment_model.dart';
-import 'package:nossos_momentos/modules/time_line/external/firebase/firebase_timeline_data_sourse.dart';
-import 'package:nossos_momentos/modules/time_line/infra/models/time_line_moment_model.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:nossos_momentos/modules/upload_photo/external/firebase_storage_photo_data_source.dart';
+import 'package:injectable/injectable.dart';
+
+import '../../modules/moment/external/firebase/firebase_moments_data_source.dart';
+import '../../modules/moment/infra/models/moment_model.dart';
+import '../../modules/time_line/external/firebase/firebase_timeline_data_sourse.dart';
+import '../../modules/time_line/infra/models/time_line_moment_model.dart';
+import '../../modules/upload_photo/external/firebase_storage_photo_data_source.dart';
 
 @module
 abstract class FirebaseModule {

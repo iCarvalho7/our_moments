@@ -1,3 +1,5 @@
+part of 'story_bloc.dart';
+
 abstract class StoryEvent {
   const StoryEvent();
 }

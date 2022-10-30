@@ -4,8 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
 import 'package:nossos_momentos/modules/stories/domain/story.dart';
-import 'package:nossos_momentos/modules/stories/presenter/bloc/story_event.dart';
-import 'package:nossos_momentos/modules/stories/presenter/bloc/story_state.dart';
+
+part 'story_event.dart';
+part 'story_state.dart';
 
 @injectable
 class StoryBloc extends Bloc<StoryEvent, StoryState> {

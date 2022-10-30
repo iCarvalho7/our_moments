@@ -1,7 +1,8 @@
 import 'dart:convert';
 
-import 'package:nossos_momentos/modules/add_moment/domain/entities/moment_type.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line_moment.dart';
+
+import '../../../moment/domain/entities/moment_type.dart';
 
 class TimeLineMomentModel extends TimeLineMoment {
   TimeLineMomentModel({

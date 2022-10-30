@@ -1,0 +1,33 @@
+import 'dart:async';
+
+import 'package:injectable/injectable.dart';
+import '../../domain/entities/moment.dart';
+import '../../domain/repository/moment_repository.dart';
+import '../data_source/moments_data_source.dart';
+import '../models/moment_model.dart';
+import '../data_source/update_moment_data_source.dart';
+
+@Injectable(as: MomentRepository)
+class MomentRepositoryImpl extends MomentRepository {
+  final MomentsDataSource _dataSource;
+  final UpdateMomentDataSource updateMomentDataSource;
+
+  MomentRepositoryImpl(this._dataSource, this.updateMomentDataSource);
+
+  @override
+  Future registerMoment({required Moment moment}) => _dataSource.registerMoment(
+        moment: MomentModel.fromEntity(moment),
+      );
+
+  @override
+  FutureOr<Moment> fetchMomentById(String id) async {
+    final momentModel = await _dataSource.fetchMoment(momentId: id);
+    return momentModel.toEntity();
+  }
+
+  @override
+  Future editMoment(Moment moment) => updateMomentDataSource.updateMoment(
+        moment.id,
+        MomentModel.fromEntity(moment).toMap(),
+      );
+}

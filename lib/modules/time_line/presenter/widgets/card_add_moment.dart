@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_bloc.dart';
-import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_event.dart';
-import 'package:nossos_momentos/modules/core/presenter/routes.dart';
-import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
+import '../../../core/presenter/routes.dart';
+import '../../../core/utils/theme/app_theme.dart';
+import '../../../moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 
 class CardAddMoment extends StatelessWidget {
   const CardAddMoment({Key? key}) : super(key: key);

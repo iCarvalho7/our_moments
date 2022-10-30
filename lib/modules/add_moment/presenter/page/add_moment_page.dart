@@ -60,9 +60,7 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
           ],
         ),
         body: BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
-          buildWhen: (previous, current) {
-            return current is! AddOrEditMomentStateAllFilled;
-          },
+          buildWhen: (_, current) => current is! AddOrEditMomentStateAllFilled,
           builder: (context, state) {
             return _buildPage(state);
           },
@@ -82,9 +80,9 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
 
     if (state is AddOrEditMomentStateLoaded) {
       return _buildFilledPage(state);
-    } else {
-      return const SizedBox.shrink();
     }
+
+    return const SizedBox.shrink();
   }
 
   Widget _buildEmptyPage(AddOrEditMomentState state) {

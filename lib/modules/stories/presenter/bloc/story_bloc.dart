@@ -2,17 +2,19 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
 import 'package:nossos_momentos/modules/stories/domain/story.dart';
 import 'package:nossos_momentos/modules/stories/presenter/bloc/story_event.dart';
 import 'package:nossos_momentos/modules/stories/presenter/bloc/story_state.dart';
 
 @injectable
 class StoryBloc extends Bloc<StoryEvent, StoryState> {
-  List<Story> _stories = [];
+  List<Story> stories = [];
   int _currentIndex = 0;
 
   StoryBloc() : super(const StoryStateLoading()) {
     on<StoryEventInit>(_init);
+    on<StoryEventPauseStories>(_pauseStories);
     on<StoryEventNextStory>(_handleNextStory);
     on<StoryEventNextFinish>(_finish);
   }
@@ -21,22 +23,31 @@ class StoryBloc extends Bloc<StoryEvent, StoryState> {
     StoryEventInit event,
     Emitter<StoryState> emit,
   ) async {
-    _stories = event.stories;
+    final list = event.stories
+        .map((path) => Story(url: path, isNetwork: path.isHttpUrl()))
+        .toList();
+    stories = list;
     _currentIndex = event.currentIndex;
 
-    emit(StoryStateLoaded(story: _stories[event.currentIndex]));
+    emit(StoryStateLoaded(
+      story: stories[event.currentIndex],
+      stories: stories,
+    ));
   }
 
   FutureOr<void> _handleNextStory(
     StoryEventNextStory event,
     Emitter<StoryState> emit,
   ) {
-    final lastIndex = _stories.length - 1;
+    final lastIndex = stories.length - 1;
     final nextIndex = _currentIndex + 1;
 
-    if (nextIndex < lastIndex) {
+    if (nextIndex <= lastIndex) {
       _currentIndex = nextIndex;
-      emit(StoryStateLoaded(story: _stories[nextIndex]));
+      emit(StoryStateLoaded(
+        story: stories[nextIndex],
+        stories: stories,
+      ));
     } else {
       emit(const StoryStateFinished());
     }
@@ -47,7 +58,14 @@ class StoryBloc extends Bloc<StoryEvent, StoryState> {
     Emitter<StoryState> emit,
   ) {
     _currentIndex = 0;
-    _stories.clear();
+    stories.clear();
     emit(const StoryStateFinished());
+  }
+
+  FutureOr<void> _pauseStories(
+    StoryEventPauseStories event,
+    Emitter<StoryState> emit,
+  ) {
+    emit(const StoryStatePause());
   }
 }

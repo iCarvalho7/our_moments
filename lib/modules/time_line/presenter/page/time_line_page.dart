@@ -34,59 +34,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
                 }
                 return Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Assets.iconHeart,
-                        Column(
-                          children: [
-                            TextSlider(
-                              onChangeItem: (year) => {
-                                BlocProvider.of<TimeLineBloc>(context).add(
-                                  TimeLineEventChangeDate(
-                                    year: year,
-                                  ),
-                                )
-                              },
-                              carrouselItems: TimeLineBloc.enabledYears,
-                            ),
-                            Row(
-                              children: [
-                                TextSlider(
-                                  isEnabled: state.isMonthEnabled,
-                                  onChangeItem: (month) => {
-                                    BlocProvider.of<TimeLineBloc>(context).add(
-                                      TimeLineEventChangeDate(
-                                        month: month,
-                                      ),
-                                    )
-                                  },
-                                  carrouselItems: TimeLineBloc.monthsName,
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    state.isMonthEnabled
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
-                                    size: 40,
-                                  ),
-                                  onPressed: () {
-                                    BlocProvider.of<TimeLineBloc>(context).add(
-                                        const TimeLineEventChangeEyeToggle());
-
-                                    BlocProvider.of<TimeLineBloc>(context)
-                                        .add(const TimeLineEventChangeDate());
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    _TimeLineHeader(state: state),
                     if (state is TimeLineStateEmpty)
                       _buildEmptyState(state)
                     else if (state is TimeLineStateLoaded)
@@ -215,4 +163,67 @@ class _TimeLinePageState extends State<TimeLinePage> {
   }
 
   bool _isFirstItem(int index) => index == 0;
+}
+
+class _TimeLineHeader extends StatelessWidget {
+  const _TimeLineHeader({
+    required this.state,
+    Key? key,
+  }) : super(key: key);
+
+  final TimeLineState state;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Assets.iconHeart,
+        Column(
+          children: [
+            TextSlider(
+              onChangeItem: (year) => {
+                BlocProvider.of<TimeLineBloc>(context).add(
+                  TimeLineEventChangeDate(
+                    year: year,
+                  ),
+                )
+              },
+              carrouselItems: TimeLineBloc.enabledYears,
+            ),
+            Row(
+              children: [
+                TextSlider(
+                  isEnabled: state.isMonthEnabled,
+                  onChangeItem: (month) => {
+                    BlocProvider.of<TimeLineBloc>(context).add(
+                      TimeLineEventChangeDate(
+                        month: month,
+                      ),
+                    )
+                  },
+                  carrouselItems: TimeLineBloc.monthsName,
+                ),
+                IconButton(
+                  icon: Icon(
+                    state.isMonthEnabled
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    size: 30,
+                  ),
+                  onPressed: () {
+                    BlocProvider.of<TimeLineBloc>(context).add(
+                        const TimeLineEventChangeEyeToggle());
+
+                    BlocProvider.of<TimeLineBloc>(context)
+                        .add(const TimeLineEventChangeDate());
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }

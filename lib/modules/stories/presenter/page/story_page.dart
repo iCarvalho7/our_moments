@@ -1,10 +1,9 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nossos_momentos/di/injection.dart';
-import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
-import 'package:nossos_momentos/modules/stories/domain/story.dart';
 import 'package:nossos_momentos/modules/stories/presenter/bloc/story_bloc.dart';
 import 'package:nossos_momentos/modules/stories/presenter/bloc/story_event.dart';
 import 'package:nossos_momentos/modules/stories/presenter/bloc/story_state.dart';
@@ -26,11 +25,7 @@ class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
     controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
-    )
-      ..addListener(() {
-        setState(() {});
-      })
-      ..addStatusListener((status) {
+    )..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           storyBloc.add(const StoryEventNextStory());
         }
@@ -53,9 +48,10 @@ class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
         body: BlocConsumer<StoryBloc, StoryState>(
             bloc: storyBloc,
             listener: _handleState,
+            buildWhen: (_, state) => state is! StoryStatePause,
             builder: (context, state) {
               if (state is StoryStateLoaded) {
-                return _buildPage(state);
+                return _buildPage(state, context);
               } else {
                 return const SizedBox.shrink();
               }
@@ -64,38 +60,72 @@ class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
     );
   }
 
-  Stack _buildPage(StoryStateLoaded state) {
-    return Stack(
-      children: [
-        SizedBox(
-          height: double.infinity,
-          width: double.infinity,
-          child: FittedBox(
-            child: !state.story.isNetwork
-                ? Image.file(File(state.story.url))
-                : Image.network(state.story.url),
-            fit: BoxFit.cover,
+  Widget _buildPage(StoryStateLoaded state, BuildContext context) {
+    return GestureDetector(
+      onLongPressUp:() => controller.forward(from: controller.value),
+      onLongPress: () => controller.stop(canceled: false),
+      onTap: () => storyBloc.add(const StoryEventNextStory()),
+      child: Stack(
+        children: [
+          SizedBox(
+            height: double.infinity,
+            width: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.cover,
+              child: !state.story.isNetwork
+                  ? Image.file(File(state.story.url))
+                  : Image.network(state.story.url)
+                ..image.resolve(const ImageConfiguration()).addListener(
+                      ImageStreamListener((__, _) => controller.forward()),
+                    ),
+            ),
           ),
-        ),
-        Container(
-          margin: const EdgeInsets.only(top: 6),
-          child: LinearProgressIndicator(
-            value: controller.value,
-            color: Colors.white,
-            backgroundColor: const Color(0xFFBFBFBF),
+          Positioned(
+            top: 10.0,
+            left: 5.0,
+            right: 5.0,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  children: state.stories
+                      .asMap()
+                      .map((i, e) {
+                        return MapEntry(
+                          i,
+                          _AnimatedBar(
+                            animController: controller,
+                            position: i,
+                            currentIndex: state.stories.indexOf(state.story),
+                          ),
+                        );
+                      })
+                      .values
+                      .toList(),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.clear, color: Colors.white,),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   void _handleState(BuildContext context, StoryState state) {
     if (state is StoryStateLoaded) {
       controller.reset();
-      controller.forward();
     }
 
-    if(state is StoryStateFinished){
+    if (state is StoryStatePause) {
+    }
+
+    if (state is StoryStateFinished) {
       Navigator.pop(context);
     }
   }
@@ -107,12 +137,69 @@ class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
     storyBloc.add(
       StoryEventInit(
         currentIndex: currentIndex,
-        stories: list.map(
-              (path) => Story(
-                url: path,
-                isNetwork: path.isHttpUrl(),
-              ),
-            ).toList(),
+        stories: list,
+      ),
+    );
+  }
+}
+
+class _AnimatedBar extends StatelessWidget {
+  final AnimationController animController;
+  final int position;
+  final int currentIndex;
+
+  const _AnimatedBar({
+    Key? key,
+    required this.animController,
+    required this.position,
+    required this.currentIndex,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Flexible(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 1.5),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Stack(
+              children: [
+                _buildContainer(
+                  double.infinity,
+                  position < currentIndex
+                      ? Colors.white
+                      : Colors.white.withOpacity(0.5),
+                ),
+                position == currentIndex
+                    ? AnimatedBuilder(
+                        animation: animController,
+                        builder: (context, child) {
+                          return _buildContainer(
+                            constraints.maxWidth * animController.value,
+                            Colors.white,
+                          );
+                        },
+                      )
+                    : const SizedBox.shrink(),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Container _buildContainer(double width, Color color) {
+    return Container(
+      height: 5.0,
+      width: width,
+      decoration: BoxDecoration(
+        color: color,
+        border: Border.all(
+          color: Colors.black26,
+          width: 0.8,
+        ),
+        borderRadius: BorderRadius.circular(3.0),
       ),
     );
   }

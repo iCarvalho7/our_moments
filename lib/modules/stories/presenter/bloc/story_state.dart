@@ -10,8 +10,12 @@ class StoryStateLoading extends StoryState {
 
 class StoryStateLoaded extends StoryState {
   final Story story;
+  final List<Story> stories;
+  const StoryStateLoaded({required this.story, required this.stories});
+}
 
-  const StoryStateLoaded({required this.story});
+class StoryStatePause extends StoryState {
+  const StoryStatePause();
 }
 
 class StoryStateFinished extends StoryState {

@@ -32,7 +32,8 @@ class _TextSliderState extends State<TextSlider> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            onPressed: () => _carrouselController.previousPage(),
+            onPressed: () =>
+                widget.isEnabled ? _carrouselController.previousPage() : null,
             icon: Icon(
               CupertinoIcons.left_chevron,
               color: widget.isEnabled ? Colors.black : Colors.grey,
@@ -43,7 +44,6 @@ class _TextSliderState extends State<TextSlider> {
             child: CarouselSlider(
               options: CarouselOptions(
                 viewportFraction: 1,
-                aspectRatio: 16 / 6,
                 enlargeCenterPage: true,
                 onPageChanged: (index, reason) {
                   widget.onChangeItem(widget.carrouselItems[index]);
@@ -63,7 +63,8 @@ class _TextSliderState extends State<TextSlider> {
             ),
           ),
           IconButton(
-            onPressed: () => _carrouselController.nextPage(),
+            onPressed: () =>
+                widget.isEnabled ? _carrouselController.nextPage() : null,
             icon: Icon(
               CupertinoIcons.right_chevron,
               color: widget.isEnabled ? Colors.black : Colors.grey,

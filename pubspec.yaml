@@ -52,6 +52,7 @@ dependencies:
   timeline_tile: ^2.0.0
   firebase_storage: ^10.2.17
   time_machine: ^0.9.17
+  icons_launcher: ^2.0.5
 
 dev_dependencies:
   flutter_test:

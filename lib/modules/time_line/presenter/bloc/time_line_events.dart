@@ -10,24 +10,15 @@ class TimeLineEventChangeDate extends TimeLineEvent {
   final String? year;
   final String? month;
 
-  const TimeLineEventChangeDate({
-    this.year,
-    this.month,
-  });
+  const TimeLineEventChangeDate({this.year, this.month});
 }
 
 class TimeLineEventChangeEyeToggle extends TimeLineEvent {
   const TimeLineEventChangeEyeToggle();
 }
 
-class TimeLineEventDisableMonth extends TimeLineEvent {
-  const TimeLineEventDisableMonth();
-}
-
 class TimeLineEventDeleteMoment extends TimeLineEvent {
   final String momentId;
 
-  const TimeLineEventDeleteMoment({
-    required this.momentId,
-  });
+  const TimeLineEventDeleteMoment({required this.momentId});
 }

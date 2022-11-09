@@ -114,7 +114,7 @@ class AddOrEditMomentBloc
       await _editMoment();
     }
 
-    emit(const AddOrEditMomentStateEmpty());
+    add(SetupAddMomentEvent());
   }
 
   Future<void> _createMoment() async {
@@ -130,7 +130,7 @@ class AddOrEditMomentBloc
         type: type,
         dateTime: date,
         year: date.year.toString(),
-        month: DateFormat(DateFormat.MONTH, 'pt_BR').format(date),
+        month: DateFormat(DateFormat.ABBR_MONTH, 'pt_BR').format(date),
         monthDay: date.day.toString());
 
     await registerMomentsUseCase.call(moment);
@@ -169,8 +169,6 @@ class AddOrEditMomentBloc
     }
   }
 
-  static final defaultDateTime = DateTime(0, 0, 0);
-
   FutureOr<void> _editMoment() async {
     final downloadUrlList = await uploadPhotoUseCase.call(
       photos.where((element) => !element.isHttpUrl()).toList(),
@@ -194,4 +192,7 @@ class AddOrEditMomentBloc
 
     await updateMomentUseCase.call(moment);
   }
+
+  static final defaultDateTime = DateTime(0, 0, 0);
+
 }

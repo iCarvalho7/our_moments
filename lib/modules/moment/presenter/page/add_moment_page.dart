@@ -1,47 +1,37 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/add_date_bloc.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
-import '../bloc/photos_bloc.dart';
-import '../bloc/select_type_bloc.dart';
 import '../widget/history_container_loading.dart';
-import '../widget/stories_container.dart';
+import '../widget/photos_container.dart';
 import '../widget/moment_form_section_loading.dart';
 import '../widget/select_type_toggle.dart';
 import '../widget/tile_and_description_section.dart';
 import '../../../core/utils/date_util.dart';
 
-class AddOrEditMomentPage extends StatefulWidget {
+class AddOrEditMomentPage extends StatelessWidget {
   const AddOrEditMomentPage({Key? key}) : super(key: key);
 
-  @override
-  State<AddOrEditMomentPage> createState() => _AddOrEditMomentPageState();
-}
-
-class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
           leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
+            onPressed: () => Navigator.pop(context),
             icon: const Icon(
               CupertinoIcons.arrow_left,
               color: Colors.black,
             ),
           ),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
           actions: [
             BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
               builder: (context, state) {
                 return IconButton(
                   onPressed: () => state is AddOrEditMomentStateAllFilled
-                      ? _createEvent()
+                      ? _createEvent(context)
                       : null,
                   icon: Icon(
                     Icons.done,
@@ -57,20 +47,20 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
         body: BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
           buildWhen: (_, current) => current is! AddOrEditMomentStateAllFilled,
           builder: (context, state) {
-            return _buildPage(state);
+            return _buildPage(state, context);
           },
         ),
       ),
     );
   }
 
-  Widget _buildPage(AddOrEditMomentState state) {
+  Widget _buildPage(AddOrEditMomentState state, BuildContext context) {
     if (state is AddOrEditMomentStateLoading) {
       return _buildLoadingState();
     }
 
     if (state is AddOrEditMomentStateEmpty) {
-      return _buildEmptyPage(state);
+      return _buildEmptyPage(state, context);
     }
 
     if (state is AddOrEditMomentStateLoaded) {
@@ -80,23 +70,29 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
     return const SizedBox.shrink();
   }
 
-  Widget _buildEmptyPage(AddOrEditMomentState state) {
-    BlocProvider.of<PhotosBloc>(context).add(PhotosEventInit());
+  Widget _buildEmptyPage(AddOrEditMomentState state, BuildContext context) {
+    return Column(
+      children: const [
+        SelectTypeToggle(),
+        Divider(),
+        PhotosContainer(),
+        MomentFormSection(),
+      ],
+    );
+  }
 
-    BlocProvider.of<SelectTypeBloc>(context)
-        .add(const SelectTypeEventSelectType(index: 0));
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: const [
-            SelectTypeToggle(),
-            Divider(),
-            PhotosContainer(),
-            MomentFormSection(),
-          ],
+  Widget _buildFilledPage(AddOrEditMomentStateLoaded state) {
+    return Column(
+      children: [
+        SelectTypeToggle(index: state.moment.type.index),
+        const Divider(),
+        PhotosContainer(photosUrlList: state.moment.downloadUrlList),
+        MomentFormSection(
+          title: state.moment.title,
+          bodyText: state.moment.body,
+          date: DateUtil.getFormattedDate(state.moment.dateTime),
         ),
-      ),
+      ],
     );
   }
 
@@ -114,39 +110,7 @@ class _AddOrEditMomentPageState extends State<AddOrEditMomentPage> {
     );
   }
 
-  Widget _buildFilledPage(AddOrEditMomentStateLoaded state) {
-    BlocProvider.of<SelectTypeBloc>(context)
-        .add(SelectTypeEventSelectType(index: state.moment.type.index));
-
-    BlocProvider.of<PhotosBloc>(context).add(PhotosEventAddPhotos(
-      photos: state.moment.downloadUrlList,
-      needClearList: true,
-    ));
-
-    BlocProvider.of<AddDateBloc>(context).add(
-      AddDateEventAddDateToLabel(
-          dateLabel: DateUtil.getFormattedDate(state.moment.dateTime)),
-    );
-
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            const SelectTypeToggle(),
-            const Divider(),
-            const PhotosContainer(),
-            MomentFormSection(
-              title: state.moment.title,
-              bodyText: state.moment.body,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _createEvent() {
+  void _createEvent(BuildContext context) {
     BlocProvider.of<AddOrEditMomentBloc>(context)
         .add(const AddOrEditMomentEventCreateOrUpdateMoment());
   }

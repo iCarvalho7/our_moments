@@ -13,7 +13,7 @@ class DescriptionSection extends StatelessWidget {
     return TextFormField(
       textInputAction: TextInputAction.newline,
       keyboardType: TextInputType.multiline,
-      maxLines: 200,
+      maxLines: null,
       textCapitalization: TextCapitalization.sentences,
       style: AppThemes.kLightBodyStyle,
       cursorColor: Colors.black,

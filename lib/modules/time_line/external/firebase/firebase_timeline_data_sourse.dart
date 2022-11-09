@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:injectable/injectable.dart';
 import 'package:nossos_momentos/modules/time_line/infra/data_source/time_line_data_source.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,10 +19,13 @@ class FirebaseTimeLineDataSource extends TimeLineDataSource {
   }) async {
     final result = await momentsDBRef
         .where(yearQuery, isEqualTo: year)
-        .where(monthQuery, isEqualTo: month)
     .get(const GetOptions(source: Source.server));
 
-    return result.docs.map((e) => e.data()).toList();
+    return result.docs
+        .map((e) => e.data())
+        .toList()
+        .where((element){ debugPrint(element.month); return element.month == month;})
+        .toList();
   }
 
   @override

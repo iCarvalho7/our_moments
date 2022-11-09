@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_events.dart';
 import '../../../moment/domain/entities/moment_type.dart';
 import '../../../moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 import '../../../core/presenter/routes.dart';
@@ -29,7 +31,10 @@ class CardMoment extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, AppRoute.addMoment.tag);
+        Navigator.pushNamed(context, AppRoute.addMoment.tag).then(
+          (_) =>
+              context.read<TimeLineBloc>().add(const TimeLineEventChangeDate()),
+        );
 
         BlocProvider.of<AddOrEditMomentBloc>(context)
             .add(SetupEditMomentEvent(momentID: moment.id));

@@ -1,13 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:injectable/injectable.dart';
+import '../../../upload_photo/external/firebase_storage_photo_data_source.dart';
 import '../../infra/data_source/moments_data_source.dart';
 import '../../infra/models/moment_model.dart';
 
 @Injectable(as: MomentsDataSource)
 class FirebaseMomentsDataSource extends MomentsDataSource {
   final CollectionReference<MomentModel> momentsDBRef;
+  final Reference momentsPhotoRef;
 
-  FirebaseMomentsDataSource(@Named(momentsDBParam) this.momentsDBRef);
+  FirebaseMomentsDataSource(
+    @Named(momentsDBParam) this.momentsDBRef,
+    @Named(FirebaseStoragePhotoDataSource.photosStorage) this.momentsPhotoRef,
+  );
 
   @override
   Future registerMoment({required MomentModel moment}) =>
@@ -24,6 +30,21 @@ class FirebaseMomentsDataSource extends MomentsDataSource {
         ));
 
     return result.docs.first.data();
+  }
+
+  @override
+  Future updateMoment(String momentId, Map<String, dynamic> momentModel) async {
+    return await momentsDBRef.doc(momentId).update(momentModel);
+  }
+
+  @override
+  Future deleteMoment(String momentId) async {
+    await momentsPhotoRef.child(momentId).listAll().then((value) {
+      for (var element in value.items) {
+        momentsPhotoRef.child(momentId).child(element.name).delete();
+      }
+    });
+    return await momentsDBRef.doc(momentId).delete();
   }
 
   static const String momentsDBParam = "momentsDBParam";

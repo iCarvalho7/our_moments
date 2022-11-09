@@ -5,14 +5,12 @@ import '../../domain/entities/moment.dart';
 import '../../domain/repository/moment_repository.dart';
 import '../data_source/moments_data_source.dart';
 import '../models/moment_model.dart';
-import '../data_source/update_moment_data_source.dart';
 
 @Injectable(as: MomentRepository)
 class MomentRepositoryImpl extends MomentRepository {
   final MomentsDataSource _dataSource;
-  final UpdateMomentDataSource updateMomentDataSource;
 
-  MomentRepositoryImpl(this._dataSource, this.updateMomentDataSource);
+  MomentRepositoryImpl(this._dataSource);
 
   @override
   Future registerMoment({required Moment moment}) => _dataSource.registerMoment(
@@ -26,8 +24,11 @@ class MomentRepositoryImpl extends MomentRepository {
   }
 
   @override
-  Future editMoment(Moment moment) => updateMomentDataSource.updateMoment(
+  Future editMoment(Moment moment) => _dataSource.updateMoment(
         moment.id,
         MomentModel.fromEntity(moment).toMap(),
       );
+
+  @override
+  Future deleteMoment(String momentId) => _dataSource.deleteMoment(momentId);
 }

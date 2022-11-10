@@ -43,6 +43,7 @@ class AddOrEditMomentBloc
     on<SetupEditMomentEvent>(_handleEditMoment);
     on<AddOrEditMomentEventSelectType>(_handleSelectType);
     on<AddOrEditMomentEventAddPhoto>(_handleAddPhoto);
+    on<AddOrEditMomentEventDeletePhoto>(_handleDeletePhoto);
     on<AddOrEditMomentEventAddDateTime>(_handleAddTimeEvent);
     on<AddOrEditMomentEventTypeTitle>(_handleTypeTitle);
     on<AddOrEditMomentEvenTypeBodyText>(_handleTypeBodyText);
@@ -75,6 +76,14 @@ class AddOrEditMomentBloc
     Emitter<AddOrEditMomentState> emit,
   ) {
     photos.addAll(event.photos);
+    _verifyIfFieldsAreFilled(emit);
+  }
+
+  FutureOr<void> _handleDeletePhoto(
+    AddOrEditMomentEventDeletePhoto event,
+    Emitter<AddOrEditMomentState> emit,
+  ) {
+    photos.remove(event.photo);
     _verifyIfFieldsAreFilled(emit);
   }
 
@@ -163,10 +172,10 @@ class AddOrEditMomentBloc
 
   void _verifyIfFieldsAreFilled(Emitter<AddOrEditMomentState> emit) {
     if (_isAllFieldsFilled) {
-      emit(
-        const AddOrEditMomentStateAllFilled(),
-      );
+      emit(const AddOrEditMomentStateAllFilled());
+      return;
     }
+    emit(const AddOrEditMomentStateEmpty());
   }
 
   FutureOr<void> _editMoment() async {
@@ -186,7 +195,7 @@ class AddOrEditMomentBloc
       type: type,
       dateTime: date,
       year: date.year.toString(),
-      month: DateFormat(DateFormat.MONTH, 'pt_BR').format(date),
+      month: DateFormat(DateFormat.ABBR_MONTH, 'pt_BR').format(date),
       monthDay: date.day.toString(),
     );
 
@@ -194,5 +203,4 @@ class AddOrEditMomentBloc
   }
 
   static final defaultDateTime = DateTime(0, 0, 0);
-
 }

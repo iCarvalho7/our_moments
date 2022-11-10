@@ -10,6 +10,7 @@ class SetupAddMomentEvent extends AddOrEditMomentEvent {
 
 class SetupEditMomentEvent extends AddOrEditMomentEvent {
   final String momentID;
+
   const SetupEditMomentEvent({required this.momentID});
 }
 
@@ -24,9 +25,13 @@ class AddOrEditMomentEventSelectType extends AddOrEditMomentEvent {
 class AddOrEditMomentEventAddPhoto extends AddOrEditMomentEvent {
   final List<String> photos;
 
-  const AddOrEditMomentEventAddPhoto({
-    required this.photos,
-  });
+  const AddOrEditMomentEventAddPhoto({required this.photos});
+}
+
+class AddOrEditMomentEventDeletePhoto extends AddOrEditMomentEvent {
+  final String photo;
+
+  const AddOrEditMomentEventDeletePhoto({required this.photo});
 }
 
 class AddOrEditMomentEventAddDateTime extends AddOrEditMomentEvent {

@@ -21,3 +21,9 @@ class PhotosEventAddPhotos extends PhotosEvent {
     this.needClearList = false,
   });
 }
+
+class PhotosEventDeletePhoto extends PhotosEvent {
+  const PhotosEventDeletePhoto({required this.photo});
+
+  final String photo;
+}

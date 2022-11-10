@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nossos_momentos/di/injection.dart';
+import '../../../core/presenter/widgets/custom_delete_dialog.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
 import '../bloc/photos_bloc.dart';
 import 'colored_container.dart';
@@ -27,6 +28,7 @@ class PhotosContainer extends StatelessWidget {
         margin: const EdgeInsets.only(left: 10.0),
         padding: const EdgeInsets.only(top: 10.0),
         child: BlocConsumer<PhotosBloc, PhotosState>(
+          buildWhen: (_, state) => state is! PhotosStateShowGallery,
             listener: _handleStateChanges,
             builder: (context, state) {
               return SingleChildScrollView(
@@ -47,15 +49,13 @@ class PhotosContainer extends StatelessWidget {
 
   void _handleStateChanges(BuildContext context, PhotosState state) async {
     if (state is PhotosStateShowGallery) {
-      final _picker = ImagePicker();
-      final photos = await _picker.pickMultiImage();
+      final photos = await ImagePicker().pickMultiImage();
       if (photos != null) {
         final pathList = photos.map((e) => e.path).toList();
-        BlocProvider.of<PhotosBloc>(context).add(
-          PhotosEventAddPhotos(photos: pathList),
-        );
+        context.read<PhotosBloc>().add(PhotosEventAddPhotos(photos: pathList));
 
-        BlocProvider.of<AddOrEditMomentBloc>(context)
+        context
+            .read<AddOrEditMomentBloc>()
             .add(AddOrEditMomentEventAddPhoto(photos: pathList));
       }
     }
@@ -71,6 +71,22 @@ class PhotosContainer extends StatelessWidget {
           shrinkWrap: true,
           itemBuilder: (context, index) {
             return GestureDetector(
+              onLongPress: () {
+                CustomDeleteDialog.show(
+                  context,
+                  text: 'Deseja deletar essa foto?',
+                  onTapPositive: () {
+                    final photo = state.photos[index];
+                    context
+                        .read<PhotosBloc>()
+                        .add(PhotosEventDeletePhoto(photo: photo));
+                    context
+                        .read<AddOrEditMomentBloc>()
+                        .add(AddOrEditMomentEventDeletePhoto(photo: photo));
+                    Navigator.pop(context);
+                  },
+                );
+              },
               onTap: () {
                 Navigator.pushNamed(context, AppRoute.story.tag, arguments: {
                   'list': state.photos,

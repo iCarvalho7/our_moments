@@ -14,6 +14,8 @@ import 'package:nossos_momentos/modules/time_line/presenter/widgets/text_slider.
 import 'package:time_machine/time_machine.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 
+import '../../../core/presenter/widgets/custom_delete_dialog.dart';
+
 class TimeLinePage extends StatefulWidget {
   const TimeLinePage({Key? key}) : super(key: key);
 
@@ -30,6 +32,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
         child: Scaffold(
           appBar: AppBar(
             elevation: 0,
+            centerTitle: true,
             title: Text(
               Strings.appName,
               style: Fonts.grandHotelTitle,
@@ -96,11 +99,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
                     color: AppColors.timeLineColor,
                     indicator: _isFirstItem(index)
                         ? Assets.iconAddMoments
-                        : Container(
-                            decoration: AppThemes.circularBorder.copyWith(
-                              color: AppColors.timeLineColor,
-                            ),
-                          ),
+                        : const _CircularIndicator(),
                   ),
                   endChild: _isFirstItem(index)
                       ? const CardAddMoment()
@@ -180,64 +179,33 @@ class _TimeLinePageState extends State<TimeLinePage> {
 
   bool _isFirstItem(int index) => index == 0;
 
-  void _showDeleteMomentDialog(BuildContext parentContext, String momentId) {
-    showDialog(
-      context: parentContext,
-      builder: (context) {
-        return CupertinoAlertDialog(
-          content: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.delete,
-                color: Colors.red,
-                size: 50,
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Você tem certeza que deseja remover esse momento das areias do tempo?',
-                style: TextStyle(fontSize: 15),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateColor.resolveWith((_) => Colors.red),
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Não'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateColor.resolveWith((_) => Colors.white),
-                      ),
-                      onPressed: () {
-                        parentContext
-                            .read<TimeLineBloc>()
-                            .add(TimeLineEventDeleteMoment(momentId: momentId));
-                        Navigator.pop(context);
-                      },
-                      child: const Text(
-                        'Sim',
-                        style: TextStyle(
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            ],
-          ),
-        );
+  void _showDeleteMomentDialog(BuildContext context, String momentId) {
+    CustomDeleteDialog.show(
+      context,
+      text:
+          'Você tem certeza que deseja remover esse momento das areias do tempo?',
+      onTapPositive: () {
+        context
+            .read<TimeLineBloc>()
+            .add(TimeLineEventDeleteMoment(momentId: momentId));
+        Navigator.pop(context);
       },
+    );
+  }
+}
+
+
+class _CircularIndicator extends StatelessWidget {
+  const _CircularIndicator({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: AppThemes.circularBorder.copyWith(
+        color: AppColors.timeLineColor,
+      ),
     );
   }
 }

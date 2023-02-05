@@ -8,4 +8,13 @@ abstract class MomentsDataSource {
   Future registerMoment({required MomentModel moment});
 
   Future<MomentModel> fetchMoment({required String momentId});
+
+  Future<List<MomentModel>> fetchAllMomentsByMonthAndYear({
+    required String year,
+    required String month,
+  });
+
+  Future<List<MomentModel>> fetchAllMomentsByYear({
+    required String year,
+  });
 }

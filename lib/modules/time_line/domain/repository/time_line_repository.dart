@@ -1,7 +1,8 @@
-import 'package:nossos_momentos/modules/time_line/domain/entity/time_line_moment.dart';
+
+import '../../../moment/domain/entities/moment.dart';
 
 abstract class TimeLineRepository {
-  Future<List<TimeLineMoment>> getMoments({
+  Future<List<Moment>> getMoments({
     required String year,
     required String month,
   });

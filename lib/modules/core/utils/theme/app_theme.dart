@@ -14,7 +14,7 @@ class AppThemes {
       Fonts.interLight.copyWith(fontSize: 20);
 
   static final TextStyle kLightTitleStyle =
-      Fonts.interLight.copyWith(fontSize: 32);
+      Fonts.interLight.copyWith(fontSize: 25);
 
   static final TextStyle kHeadLineStyle =
       Fonts.interRegular.copyWith(fontSize: 24);

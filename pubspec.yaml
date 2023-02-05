@@ -53,6 +53,7 @@ dependencies:
   firebase_storage: ^10.2.17
   time_machine: ^0.9.17
   icons_launcher: ^2.0.5
+  json_serializable: ^6.6.1
 
 dev_dependencies:
   flutter_test:

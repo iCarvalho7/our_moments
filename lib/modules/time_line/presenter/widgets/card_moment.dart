@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_events.dart';
 import '../../../moment/domain/entities/moment_type.dart';
 import '../../../moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 import '../../../core/presenter/routes.dart';
 import '../../../core/utils/theme/app_theme.dart';
-import '../../domain/entity/time_line_moment.dart';
 
 class CardMoment extends StatelessWidget {
-  final TimeLineMoment moment;
+  final Moment moment;
 
   const CardMoment({
     Key? key,
@@ -61,16 +61,14 @@ class CardMoment extends StatelessWidget {
                       child: Text(
                         moment.title,
                         style: AppThemes.kLightTitleStyle,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.start,
                       ),
                     )
                   ],
                 ),
-                const SizedBox(
-                  height: 15,
-                ),
+                const SizedBox(height: 15),
                 Expanded(
                   child: Text(
                     moment.body,

@@ -23,4 +23,6 @@ class Moment {
     required this.year,
     required this.downloadUrlList,
   });
+
+  String get dateTimeFormatted => monthDay + "\n" + month.substring(0,3).replaceFirst(month[0], month[0].toUpperCase());
 }

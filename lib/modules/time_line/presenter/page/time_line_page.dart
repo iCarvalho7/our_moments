@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -107,7 +106,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
                   startChild: _isFirstItem(index)
                       ? const SizedBox.shrink()
                       : Text(
-                          state.momentsList[index - 1].dateTime,
+                          state.momentsList[index - 1].dateTimeFormatted,
                           textAlign: TextAlign.center,
                           style: AppThemes.kBodyLargeLineStyle,
                         ),

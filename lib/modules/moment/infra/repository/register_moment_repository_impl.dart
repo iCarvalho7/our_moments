@@ -26,7 +26,7 @@ class MomentRepositoryImpl extends MomentRepository {
   @override
   Future editMoment(Moment moment) => _dataSource.updateMoment(
         moment.id,
-        MomentModel.fromEntity(moment).toMap(),
+        MomentModel.fromEntity(moment).toJson(),
       );
 
   @override

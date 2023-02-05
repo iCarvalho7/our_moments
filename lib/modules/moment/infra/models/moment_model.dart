@@ -1,65 +1,49 @@
-import 'dart:convert';
+// ignore_for_file: overridden_fields
 
 import 'package:intl/intl.dart';
+
 import '../../domain/entities/moment.dart';
 import '../../domain/entities/moment_type.dart';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'moment_model.g.dart';
+
+@JsonSerializable()
 class MomentModel extends Moment {
+
   MomentModel({
     required super.id,
-    required super.dateTime,
+    required this.dateTime,
     required super.title,
     required super.body,
-    required super.type,
+    required this.type,
     required super.month,
     required super.monthDay,
     required super.year,
     required super.downloadUrlList,
-  });
+  }) : super(dateTime: dateTime, type: type);
 
-  static MomentModel fromJson(Map<String, dynamic> json) {
-    final date =
-    DateFormat(DateFormat.YEAR_MONTH_DAY).parse(json['dateTime']);
+  @override
+  @JsonKey(fromJson: _fromJsonDate)
+  final DateTime dateTime;
+
+  @override
+  @JsonKey(fromJson: _fromJsonType)
+  final MomentType type;
 
 
-    return MomentModel(
-      id: json['id'],
-      dateTime: date,
-      title: json['title'],
-      body: json['body'],
-      type: MomentType.values.firstWhere((e) => e.value == json['type']),
-      downloadUrlList: List.castFrom(json['downloadUrlList']),
-      year: json['year'],
-      monthDay: json['monthDay'],
-      month: json['month'],
-    );
+  static _fromJsonDate(String dateTime) {
+    return DateFormat(DateFormat.YEAR_MONTH_DAY).parse(dateTime);
   }
 
-  static List<MomentModel> fromListJson(dynamic result) {
-    final List<MomentModel> momentsList = [];
-    result.map(
-      (key, value) => momentsList.add(
-        fromJson(value),
-      ),
-    );
-    return momentsList;
+  static _fromJsonType(String type) {
+    return MomentType.values.firstWhere((e) => e.value.contains(type));
   }
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'title': title,
-      'body': body,
-      'year': year,
-      'month': month,
-      'monthDay': monthDay,
-      'dateTime': DateFormat(DateFormat.YEAR_MONTH_DAY).format(dateTime),
-      'type': type.value,
-      'downloadUrlList' : downloadUrlList
-    };
-  }
 
-  String toJson() => jsonEncode(toMap());
+  factory MomentModel.fromJson(Map<String, dynamic> json) => _$MomentModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MomentModelToJson(this);
 
   Moment toEntity() {
     return Moment(

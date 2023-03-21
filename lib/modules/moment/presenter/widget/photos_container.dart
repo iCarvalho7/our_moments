@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nossos_momentos/di/injection.dart';
+import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
 import '../../../core/presenter/widgets/custom_delete_dialog.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
 import '../bloc/photos_bloc.dart';
@@ -101,6 +102,16 @@ class PhotosContainer extends StatelessWidget {
                   : Image.network(
                       state.photos[index],
                       fit: BoxFit.fitWidth,
+                      loadingBuilder: (_, widget, event) {
+                        if (event == null) return widget;
+                        return ClipOval(
+                          child: LoadingEffect(
+                            child: Container(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        );
+                      },
                     ),
             ),
           );
@@ -135,7 +146,6 @@ class _AddPhotoIcon extends StatelessWidget {
 }
 
 class _ColoredContainer extends StatelessWidget {
-
   const _ColoredContainer({Key? key, required this.child}) : super(key: key);
 
   final Widget child;
@@ -158,5 +168,4 @@ class _ColoredContainer extends StatelessWidget {
       ),
     );
   }
-
 }

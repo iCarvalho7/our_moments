@@ -73,7 +73,20 @@ class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
               fit: BoxFit.cover,
               child: !state.story.isNetwork
                   ? Image.file(File(state.story.url))
-                  : Image.network(state.story.url)
+                  : Image.network(
+                      state.story.url,
+                      loadingBuilder: (context, widget, event) {
+                        if(event == null) return widget;
+                        return Container(
+                          color: Colors.grey,
+                          padding: const EdgeInsets.all(250),
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2.0,
+                            color: Colors.white,
+                          ),
+                        );
+                      },
+                    )
                 ..image.resolve(const ImageConfiguration()).addListener(
                       ImageStreamListener((__, _) => controller.forward()),
                     ),

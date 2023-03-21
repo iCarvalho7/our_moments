@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:nossos_momentos/modules/add_moment/presenter/page/add_moment_page.dart';
-import 'package:nossos_momentos/modules/time_line/presenter/page/time_line_page.dart';
+
+import '../../moment/presenter/page/add_moment_page.dart';
+import '../../stories/presenter/page/story_page.dart';
+import '../../time_line/presenter/page/time_line_page.dart';
 
 enum AppRoute {
   timeLine(
@@ -10,6 +12,10 @@ enum AppRoute {
   addMoment(
     '//add_moment',
     AddOrEditMomentPage(),
+  ),
+  story(
+    '//story',
+    StoryPage(),
   );
 
   final String tag;

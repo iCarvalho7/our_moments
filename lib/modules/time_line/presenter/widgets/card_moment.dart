@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nossos_momentos/modules/add_moment/domain/entities/moment_type.dart';
-import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_bloc.dart';
-import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_event.dart';
-import 'package:nossos_momentos/modules/core/presenter/routes.dart';
-import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
-import 'package:nossos_momentos/modules/time_line/domain/entity/time_line_moment.dart';
+import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_events.dart';
+import '../../../moment/domain/entities/moment_type.dart';
+import '../../../moment/presenter/bloc/add_or_edit_moment_bloc.dart';
+import '../../../core/presenter/routes.dart';
+import '../../../core/utils/theme/app_theme.dart';
 
 class CardMoment extends StatelessWidget {
-  final TimeLineMoment moment;
+  final Moment moment;
 
   const CardMoment({
     Key? key,
@@ -30,10 +31,11 @@ class CardMoment extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, AppRoute.addMoment.tag);
+        Navigator.pushNamed(context, AppRoute.addMoment.tag).then(
+          (_) => context.read<TimeLineBloc>().add(const TimeLineEventChangeDate()),
+        );
 
-        BlocProvider.of<AddOrEditMomentBloc>(context)
-            .add(SetupEditMomentEvent(momentID: moment.id));
+        BlocProvider.of<AddOrEditMomentBloc>(context).add(SetupEditMomentEvent(moment: moment));
       },
       child: Container(
         margin: const EdgeInsets.all(8),
@@ -57,16 +59,14 @@ class CardMoment extends StatelessWidget {
                       child: Text(
                         moment.title,
                         style: AppThemes.kLightTitleStyle,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.start,
                       ),
                     )
                   ],
                 ),
-                const SizedBox(
-                  height: 15,
-                ),
+                const SizedBox(height: 15),
                 Expanded(
                   child: Text(
                     moment.body,

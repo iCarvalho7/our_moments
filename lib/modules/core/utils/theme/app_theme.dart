@@ -11,10 +11,10 @@ class AppThemes {
       Fonts.interLight.copyWith(fontSize: 18);
 
   static final TextStyle kLightHeadLineStyle =
-      Fonts.interLight.copyWith(fontSize: 24);
+      Fonts.interLight.copyWith(fontSize: 20);
 
   static final TextStyle kLightTitleStyle =
-      Fonts.interLight.copyWith(fontSize: 32);
+      Fonts.interLight.copyWith(fontSize: 25);
 
   static final TextStyle kHeadLineStyle =
       Fonts.interRegular.copyWith(fontSize: 24);
@@ -49,6 +49,8 @@ class AppThemes {
 
 class AppColors {
   static const Color timeLineColor = Color(0xFFF6A3A3);
+  static const Color secondary = Color(0xffFFCFCF);
+  static const Color calendarColor = Color(0xFFEBC8FC);
   static const Color romanticColor = Color(0xFFF308EA);
   static const Color badColor = Color(0xFFF30808);
   static const Color goodColor = Color(0xFF08F312);
@@ -81,4 +83,13 @@ class Fonts {
   static final TextStyle interLight = GoogleFonts.inter(
     fontWeight: FontWeight.w300,
   );
+
+  static final TextStyle grandHotelTitle = GoogleFonts.grandHotel(
+    fontSize: 30,
+    color: Colors.black,
+  );
+}
+
+class Strings {
+  static const appName = 'Nossos Momentos';
 }

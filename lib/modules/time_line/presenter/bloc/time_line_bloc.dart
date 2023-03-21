@@ -6,18 +6,25 @@ import 'package:nossos_momentos/modules/time_line/domain/use_case/get_moments_us
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_events.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_state.dart';
 
+import '../../domain/use_case/delete_moments_use_case.dart';
+
 @injectable
 class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final GetMomentsUseCase getMomentsUseCase;
+  final DeleteMomentsUseCase _deleteMomentsUseCase;
 
   String year = enabledYears.first;
   String month = monthsName.first;
   bool isMonthEnabled = true;
 
-  TimeLineBloc(this.getMomentsUseCase) : super(const TimeLineStateLoading()) {
+  TimeLineBloc(
+    this.getMomentsUseCase,
+    this._deleteMomentsUseCase,
+  ) : super(const TimeLineStateLoading()) {
     on<TimeLineEventInit>(_init);
     on<TimeLineEventChangeDate>(_handleChangeDate);
     on<TimeLineEventChangeEyeToggle>(_handleChangeToggle);
+    on<TimeLineEventDeleteMoment>(_deleteMoment);
   }
 
   FutureOr<void> _init(
@@ -32,38 +39,33 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     );
 
     if (result.isEmpty) {
-      emit(TimeLineStateEmpty(isMonthEnabled: isMonthEnabled,));
+      emit(const TimeLineStateEmpty());
     } else {
       emit(
-        TimeLineStateLoaded(
-          momentsList: result,
-          isMonthEnabled: isMonthEnabled,
-        ),
+        TimeLineStateLoaded(momentsList: result),
       );
     }
+    emit(const TimeLineStateToggleMonth(isMonthEnabled: true));
   }
 
   FutureOr<void> _handleChangeDate(
     TimeLineEventChangeDate event,
     Emitter<TimeLineState> emit,
   ) async {
+    emit(const TimeLineStateLoading());
+
     year = event.year ?? year;
-    month = isMonthEnabled ? event.month ?? month : '';
+    final tempMonth = isMonthEnabled ? event.month ?? month : '';
 
     final filteredMoments = await getMomentsUseCase.call(
       year: year,
-      month: month,
+      month: tempMonth,
     );
 
     if (filteredMoments.isEmpty) {
-      emit(TimeLineStateEmpty(isMonthEnabled: isMonthEnabled));
+      emit(const TimeLineStateEmpty());
     } else {
-      emit(
-        TimeLineStateLoaded(
-          momentsList: filteredMoments,
-          isMonthEnabled: isMonthEnabled,
-        ),
-      );
+      emit(TimeLineStateLoaded(momentsList: filteredMoments));
     }
   }
 
@@ -71,8 +73,17 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     TimeLineEventChangeEyeToggle event,
     Emitter<TimeLineState> emit,
   ) async {
-    month = '';
     isMonthEnabled = !isMonthEnabled;
+    emit(TimeLineStateToggleMonth(isMonthEnabled: isMonthEnabled));
+    add(TimeLineEventChangeDate(year: year));
+  }
+
+  FutureOr<void> _deleteMoment(
+    TimeLineEventDeleteMoment event,
+    Emitter<TimeLineState> emit,
+  ) async {
+    await _deleteMomentsUseCase.call(event.momentId);
+    add(const TimeLineEventChangeDate());
   }
 
   static const enabledYears = [
@@ -86,16 +97,16 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   ];
 
   static const monthsName = [
-    'Janeiro',
-    'Fevereiro',
-    'Março',
-    'Abril',
-    'Maio',
-    'Junho',
-    'Agosto',
-    'Setembro',
-    'Outubro',
-    'Novembro',
-    'Dezembro',
+    'Jan',
+    'Fev',
+    'Mar',
+    'Abr',
+    'Mai',
+    'Jun',
+    'Ago',
+    'Set',
+    'Out',
+    'Nov',
+    'Dez',
   ];
 }

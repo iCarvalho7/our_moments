@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_bloc.dart';
-import 'package:nossos_momentos/modules/add_moment/presenter/bloc/add_or_edit_moment_event.dart';
-import 'package:nossos_momentos/modules/core/presenter/routes.dart';
-import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
+import '../../../core/presenter/routes.dart';
+import '../../../core/utils/theme/app_theme.dart';
+import '../../../moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 
 class CardAddMoment extends StatelessWidget {
   const CardAddMoment({Key? key}) : super(key: key);
@@ -15,7 +14,7 @@ class CardAddMoment extends StatelessWidget {
         Navigator.pushNamed(context, AppRoute.addMoment.tag);
 
         BlocProvider.of<AddOrEditMomentBloc>(context)
-            .add(SetupAddMomentEvent());
+            .add(const SetupAddMomentEvent());
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -26,7 +25,7 @@ class CardAddMoment extends StatelessWidget {
           child: Container(
             decoration: AppThemes.roundedBorder,
             width: MediaQuery.of(context).size.width,
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(15),
             child: Text(
               'Adcionar Momento ...',
               style: AppThemes.kLightHeadLineStyle,

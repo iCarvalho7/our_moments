@@ -1,39 +1,61 @@
 part of 'add_or_edit_moment_bloc.dart';
 
 abstract class AddOrEditMomentState {
-  const AddOrEditMomentState();
+  final Moment moment;
+  final List<String> photos;
+
+  const AddOrEditMomentState({
+    required this.moment,
+    required this.photos,
+  });
 }
 
 class AddOrEditMomentStateEmpty extends AddOrEditMomentState {
-  const AddOrEditMomentStateEmpty();
+  AddOrEditMomentStateEmpty()
+      : super(
+          moment: Moment.empty(),
+          photos: List.empty(),
+        );
+}
+
+class AddOrEditMomentStateUpdate extends AddOrEditMomentState {
+  const AddOrEditMomentStateUpdate({
+    required super.moment,
+    required super.photos,
+  });
 }
 
 class AddOrEditMomentStateAllFilled extends AddOrEditMomentState {
-  const AddOrEditMomentStateAllFilled();
+  const AddOrEditMomentStateAllFilled({
+    required super.moment,
+    required super.photos,
+  });
 }
 
 class AddOrEditMomentStateCreate extends AddOrEditMomentState {
-  final Moment moment;
-
-  const AddOrEditMomentStateCreate({required this.moment});
-}
-
-class AddOrEditMomentStateEdit extends AddOrEditMomentState {
-  final String momentID;
-
-  const AddOrEditMomentStateEdit({required this.momentID});
+  const AddOrEditMomentStateCreate({
+    required super.moment,
+    required super.photos,
+  });
 }
 
 class AddOrEditMomentStateLoading extends AddOrEditMomentState {
-  const AddOrEditMomentStateLoading();
+  const AddOrEditMomentStateLoading({
+    required super.moment,
+    required super.photos,
+  });
 }
 
 class AddOrEditMomentStateLoaded extends AddOrEditMomentState {
-  final Moment moment;
-
-  const AddOrEditMomentStateLoaded({required this.moment});
+  const AddOrEditMomentStateLoaded({
+    required super.moment,
+    required super.photos,
+  });
 }
 
 class AddOrEditMomentStateOpenGallery extends AddOrEditMomentState {
-  const AddOrEditMomentStateOpenGallery();
+  const AddOrEditMomentStateOpenGallery({
+    required super.moment,
+    required super.photos
+  });
 }

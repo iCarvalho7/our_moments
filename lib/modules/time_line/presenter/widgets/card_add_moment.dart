@@ -14,7 +14,7 @@ class CardAddMoment extends StatelessWidget {
         Navigator.pushNamed(context, AppRoute.addMoment.tag);
 
         BlocProvider.of<AddOrEditMomentBloc>(context)
-            .add(SetupAddMomentEvent());
+            .add(const SetupAddMomentEvent());
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8),

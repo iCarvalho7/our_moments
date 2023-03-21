@@ -4,32 +4,34 @@ import '../bloc/add_or_edit_moment_bloc.dart';
 import '../../../core/utils/theme/app_theme.dart';
 
 class TitleSection extends StatelessWidget {
-  final String? title;
-
-  const TitleSection({
-    this.title,
-    Key? key,
-  }) : super(key: key);
+  const TitleSection({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      textInputAction: TextInputAction.next,
-      textCapitalization: TextCapitalization.sentences,
-      style: AppThemes.kLightTitleStyle,
-      cursorColor: Colors.black,
-      initialValue: title,
-      decoration: InputDecoration(
-        floatingLabelBehavior: FloatingLabelBehavior.never,
-        alignLabelWithHint: true,
-        labelText: 'Aquele em que...',
-        floatingLabelStyle: AppThemes.kLightTitleStyle,
-        labelStyle: AppThemes.kLightTitleStyle,
-        border: InputBorder.none,
-      ),
-      onChanged: (title) {
-        BlocProvider.of<AddOrEditMomentBloc>(context)
-            .add(AddOrEditMomentEventTypeTitle(title: title));
+    return BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
+      builder: (context, state) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextFormField(
+            textInputAction: TextInputAction.next,
+            textCapitalization: TextCapitalization.sentences,
+            style: AppThemes.kLightTitleStyle,
+            cursorColor: Colors.black,
+            initialValue: state.moment.title,
+            decoration: InputDecoration(
+              floatingLabelBehavior: FloatingLabelBehavior.never,
+              alignLabelWithHint: true,
+              labelText: 'Aquele em que...',
+              floatingLabelStyle: AppThemes.kLightTitleStyle,
+              labelStyle: AppThemes.kLightTitleStyle,
+              border: InputBorder.none,
+            ),
+            onChanged: (title) {
+              BlocProvider.of<AddOrEditMomentBloc>(context)
+                  .add(AddOrEditMomentEventTypeTitle(title: title));
+            },
+          ),
+        );
       },
     );
   }

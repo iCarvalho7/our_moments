@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
 import '../../domain/entities/moment.dart';
 import '../../domain/entities/moment_type.dart';
 import '../../domain/use_case/get_moment_by_id_use_case.dart';
@@ -17,28 +16,18 @@ part 'add_or_edit_moment_event.dart';
 part 'add_or_edit_moment_state.dart';
 
 @injectable
-class AddOrEditMomentBloc
-    extends Bloc<AddOrEditMomentEvent, AddOrEditMomentState> {
+class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentState> {
   final RegisterMomentsUseCase registerMomentsUseCase;
   final UploadPhotoUseCase uploadPhotoUseCase;
   final GetMomentByIdUseCase getMomentByIdUseCase;
   final UpdateMomentUseCase updateMomentUseCase;
-
-  bool isAddMoment = false;
-
-  MomentType type = MomentType.bad;
-  DateTime date = defaultDateTime;
-  List<String> photos = [];
-  String title = '';
-  String bodyText = '';
-  late Moment currentMoment;
 
   AddOrEditMomentBloc(
     this.updateMomentUseCase,
     this.registerMomentsUseCase,
     this.uploadPhotoUseCase,
     this.getMomentByIdUseCase,
-  ) : super(const AddOrEditMomentStateLoading()) {
+  ) : super(AddOrEditMomentStateEmpty()) {
     on<SetupAddMomentEvent>(_handleShowEmpty);
     on<SetupEditMomentEvent>(_handleEditMoment);
     on<AddOrEditMomentEventSelectType>(_handleSelectType);
@@ -54,20 +43,19 @@ class AddOrEditMomentBloc
     SetupAddMomentEvent event,
     Emitter<AddOrEditMomentState> emit,
   ) {
-    type = MomentType.bad;
-    date = defaultDateTime;
-    photos.clear();
-    title = '';
-    bodyText = '';
-    isAddMoment = true;
-    emit(const AddOrEditMomentStateEmpty());
+    emit(AddOrEditMomentStateEmpty());
   }
 
   FutureOr<void> _handleSelectType(
     AddOrEditMomentEventSelectType event,
     Emitter<AddOrEditMomentState> emit,
   ) {
-    type = event.type;
+    emit(AddOrEditMomentStateUpdate(
+      photos: state.photos,
+      moment: state.moment.clone(
+        type: event.type,
+      ),
+    ));
     _verifyIfFieldsAreFilled(emit);
   }
 
@@ -75,7 +63,10 @@ class AddOrEditMomentBloc
     AddOrEditMomentEventAddPhoto event,
     Emitter<AddOrEditMomentState> emit,
   ) {
-    photos.addAll(event.photos);
+    final photos = state.photos.toList()..addAll(event.photos);
+
+    emit(AddOrEditMomentStateUpdate(photos: photos, moment: state.moment));
+
     _verifyIfFieldsAreFilled(emit);
   }
 
@@ -83,7 +74,6 @@ class AddOrEditMomentBloc
     AddOrEditMomentEventDeletePhoto event,
     Emitter<AddOrEditMomentState> emit,
   ) {
-    photos.remove(event.photo);
     _verifyIfFieldsAreFilled(emit);
   }
 
@@ -91,7 +81,15 @@ class AddOrEditMomentBloc
     AddOrEditMomentEventAddDateTime event,
     Emitter<AddOrEditMomentState> emit,
   ) {
-    date = event.date;
+    emit(AddOrEditMomentStateUpdate(
+      photos: state.photos,
+      moment: state.moment.clone(
+        dateTime: event.date,
+        year: event.date.year.toString(),
+        month: DateFormat(DateFormat.ABBR_MONTH, 'pt_BR').format(event.date),
+        monthDay: event.date.day.toString(),
+      ),
+    ));
     _verifyIfFieldsAreFilled(emit);
   }
 
@@ -99,7 +97,12 @@ class AddOrEditMomentBloc
     AddOrEditMomentEventTypeTitle event,
     Emitter<AddOrEditMomentState> emit,
   ) {
-    title = event.title;
+    emit(AddOrEditMomentStateUpdate(
+      photos: state.photos,
+      moment: state.moment.clone(
+        title: event.title,
+      ),
+    ));
     _verifyIfFieldsAreFilled(emit);
   }
 
@@ -107,7 +110,12 @@ class AddOrEditMomentBloc
     AddOrEditMomentEvenTypeBodyText event,
     Emitter<AddOrEditMomentState> emit,
   ) {
-    bodyText = event.bodyText;
+    emit(AddOrEditMomentStateUpdate(
+      photos: state.photos,
+      moment: state.moment.clone(
+        body: event.bodyText,
+      ),
+    ));
     _verifyIfFieldsAreFilled(emit);
   }
 
@@ -115,92 +123,76 @@ class AddOrEditMomentBloc
     AddOrEditMomentEventCreateOrUpdateMoment event,
     Emitter<AddOrEditMomentState> emit,
   ) async {
-    emit(const AddOrEditMomentStateLoading());
+    emit(AddOrEditMomentStateLoading(
+      moment: state.moment,
+      photos: state.photos,
+    ));
 
-    if (isAddMoment) {
-      await _createMoment();
+    if (!state.moment.isEditing) {
+      await _createMoment(emit);
     } else {
-      await _editMoment();
+      await _editMoment(emit);
     }
-
-    add(SetupAddMomentEvent());
   }
 
-  Future<void> _createMoment() async {
-    final momentId = const Uuid().v1();
-
-    final downloadUrlList = await uploadPhotoUseCase.call(photos, momentId);
-
-    final moment = Moment(
-        id: momentId,
-        title: title,
-        body: bodyText,
-        downloadUrlList: downloadUrlList,
-        type: type,
-        dateTime: date,
-        year: date.year.toString(),
-        month: DateFormat(DateFormat.ABBR_MONTH, 'pt_BR').format(date),
-        monthDay: date.day.toString());
-
-    await registerMomentsUseCase.call(moment);
+  Future<void> _createMoment(Emitter<AddOrEditMomentState> emit) async {
+    final downloadUrlList =
+        await uploadPhotoUseCase.call(state.photos, state.moment.id);
+    emit(AddOrEditMomentStateUpdate(
+      moment: state.moment.clone(downloadUrlList: downloadUrlList),
+      photos: state.photos,
+    ));
+    await registerMomentsUseCase.call(state.moment);
   }
+
+  FutureOr<void> _editMoment(Emitter<AddOrEditMomentState> emit) async {
+    final downloadUrlList = await uploadPhotoUseCase.call(
+      state.moment.downloadUrlList
+          .where((element) => !element.isHttpUrl())
+          .toList(),
+      state.moment.id,
+    );
+
+    downloadUrlList.addAll(state.photos.where((element) => element.isHttpUrl()).toList());
+
+    emit(
+      AddOrEditMomentStateUpdate(
+        photos: state.photos,
+        moment: state.moment.clone(
+          downloadUrlList: downloadUrlList,
+        ),
+      ),
+    );
+
+    await updateMomentUseCase.call(state.moment);
+  }
+
 
   FutureOr<void> _handleEditMoment(
     SetupEditMomentEvent event,
     Emitter<AddOrEditMomentState> emit,
   ) async {
-    isAddMoment = false;
-    emit(const AddOrEditMomentStateLoading());
-
-    currentMoment = await getMomentByIdUseCase.call(event.momentID);
-
-    date = currentMoment.dateTime;
-    photos = currentMoment.downloadUrlList;
-    title = currentMoment.title;
-    bodyText = currentMoment.body;
-
-    _verifyIfFieldsAreFilled(emit);
-
-    emit(AddOrEditMomentStateLoaded(moment: currentMoment));
+    emit(AddOrEditMomentStateUpdate(
+      moment: event.moment.clone(isEditing: true),
+      photos: event.moment.downloadUrlList,
+    ));
   }
-
-  bool get _isAllFieldsFilled =>
-      date != defaultDateTime &&
-      photos.isNotEmpty &&
-      title.isNotEmpty &&
-      bodyText.isNotEmpty;
 
   void _verifyIfFieldsAreFilled(Emitter<AddOrEditMomentState> emit) {
     if (_isAllFieldsFilled) {
-      emit(const AddOrEditMomentStateAllFilled());
+      emit(AddOrEditMomentStateAllFilled(
+        moment: state.moment,
+        photos: state.photos,
+      ));
       return;
     }
-    emit(const AddOrEditMomentStateEmpty());
   }
 
-  FutureOr<void> _editMoment() async {
-    final downloadUrlList = await uploadPhotoUseCase.call(
-      photos.where((element) => !element.isHttpUrl()).toList(),
-      currentMoment.id,
-    );
-
-    downloadUrlList
-        .addAll(photos.where((element) => element.isHttpUrl()).toList());
-
-    final moment = Moment(
-      id: currentMoment.id,
-      title: title,
-      body: bodyText,
-      downloadUrlList: downloadUrlList,
-      type: type,
-      dateTime: date,
-      year: date.year.toString(),
-      month: DateFormat(DateFormat.ABBR_MONTH, 'pt_BR').format(date),
-      monthDay: date.day.toString(),
-    );
-
-    await updateMomentUseCase.call(moment);
-  }
+  bool get _isAllFieldsFilled =>
+      state.moment.dateTime != defaultDateTime &&
+          state.photos.isNotEmpty &&
+          state.moment.title.isNotEmpty &&
+          state.moment.body.isNotEmpty;
 
   static final defaultDateTime = DateTime(0, 0, 0);
 }

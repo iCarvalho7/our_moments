@@ -2,12 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
+import '../widget/date_time_section.dart';
+import '../widget/description_section.dart';
 import '../widget/history_container_loading.dart';
 import '../widget/photos_container.dart';
 import '../widget/moment_form_section_loading.dart';
 import '../widget/select_type_toggle.dart';
-import '../widget/tile_and_description_section.dart';
-import '../../../core/utils/date_util.dart';
+import '../widget/tile_section.dart';
 
 class AddOrEditMomentPage extends StatelessWidget {
   const AddOrEditMomentPage({Key? key}) : super(key: key);
@@ -59,39 +60,14 @@ class AddOrEditMomentPage extends StatelessWidget {
       return _buildLoadingState();
     }
 
-    if (state is AddOrEditMomentStateEmpty) {
-      return _buildEmptyPage(state, context);
-    }
-
-    if (state is AddOrEditMomentStateLoaded) {
-      return _buildFilledPage(state);
-    }
-
-    return const SizedBox.shrink();
-  }
-
-  Widget _buildEmptyPage(AddOrEditMomentState state, BuildContext context) {
     return Column(
       children: const [
         SelectTypeToggle(),
         Divider(),
         PhotosContainer(),
-        MomentFormSection(),
-      ],
-    );
-  }
-
-  Widget _buildFilledPage(AddOrEditMomentStateLoaded state) {
-    return Column(
-      children: [
-        SelectTypeToggle(index: state.moment.type.index),
-        const Divider(),
-        PhotosContainer(photosUrlList: state.moment.downloadUrlList),
-        MomentFormSection(
-          title: state.moment.title,
-          bodyText: state.moment.body,
-          date: DateUtil.getFormattedDate(state.moment.dateTime),
-        ),
+        TitleSection(),
+        DateTimeSection(),
+        DescriptionSection(),
       ],
     );
   }

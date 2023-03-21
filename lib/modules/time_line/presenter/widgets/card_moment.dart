@@ -32,12 +32,10 @@ class CardMoment extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, AppRoute.addMoment.tag).then(
-          (_) =>
-              context.read<TimeLineBloc>().add(const TimeLineEventChangeDate()),
+          (_) => context.read<TimeLineBloc>().add(const TimeLineEventChangeDate()),
         );
 
-        BlocProvider.of<AddOrEditMomentBloc>(context)
-            .add(SetupEditMomentEvent(momentID: moment.id));
+        BlocProvider.of<AddOrEditMomentBloc>(context).add(SetupEditMomentEvent(moment: moment));
       },
       child: Container(
         margin: const EdgeInsets.all(8),

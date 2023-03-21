@@ -5,13 +5,13 @@ abstract class AddOrEditMomentEvent {
 }
 
 class SetupAddMomentEvent extends AddOrEditMomentEvent {
-  SetupAddMomentEvent();
+  const SetupAddMomentEvent();
 }
 
 class SetupEditMomentEvent extends AddOrEditMomentEvent {
-  final String momentID;
+  final Moment moment;
 
-  const SetupEditMomentEvent({required this.momentID});
+  const SetupEditMomentEvent({required this.moment});
 }
 
 class AddOrEditMomentEventSelectType extends AddOrEditMomentEvent {
@@ -45,9 +45,7 @@ class AddOrEditMomentEventAddDateTime extends AddOrEditMomentEvent {
 class AddOrEditMomentEventTypeTitle extends AddOrEditMomentEvent {
   final String title;
 
-  const AddOrEditMomentEventTypeTitle({
-    required this.title,
-  });
+  const AddOrEditMomentEventTypeTitle({required this.title});
 }
 
 class AddOrEditMomentEvenTypeBodyText extends AddOrEditMomentEvent {

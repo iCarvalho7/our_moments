@@ -7,29 +7,31 @@ import 'package:nossos_momentos/di/injection.dart';
 import '../../../core/presenter/widgets/custom_delete_dialog.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
 import '../bloc/photos_bloc.dart';
-import 'colored_container.dart';
 import '../../../core/utils/string_ext/string_ext.dart';
 import '../../../core/presenter/routes.dart';
 import '../../../core/presenter/widgets/gradient_mask.dart';
 import '../../../core/utils/theme/app_theme.dart';
 
 class PhotosContainer extends StatelessWidget {
-  const PhotosContainer({Key? key, this.photosUrlList}) : super(key: key);
-
-  final List<String>? photosUrlList;
+  const PhotosContainer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<PhotosBloc>()
-        ..add(PhotosEventAddPhotos(photos: photosUrlList ?? [])),
-      child: Container(
-        alignment: Alignment.centerLeft,
-        margin: const EdgeInsets.only(left: 10.0),
-        padding: const EdgeInsets.only(top: 10.0),
-        child: BlocConsumer<PhotosBloc, PhotosState>(
-          buildWhen: (_, state) => state is! PhotosStateShowGallery,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => getIt<PhotosBloc>()),
+      ],
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<PhotosBloc, PhotosState>(
             listener: _handleStateChanges,
+          )
+        ],
+        child: Container(
+          alignment: Alignment.centerLeft,
+          margin: const EdgeInsets.only(left: 10.0),
+          padding: const EdgeInsets.only(top: 10.0),
+          child: BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
             builder: (context, state) {
               return SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -42,7 +44,9 @@ class PhotosContainer extends StatelessWidget {
                   ],
                 ),
               );
-            }),
+            },
+          ),
+        ),
       ),
     );
   }
@@ -52,7 +56,6 @@ class PhotosContainer extends StatelessWidget {
       final photos = await ImagePicker().pickMultiImage();
       if (photos != null) {
         final pathList = photos.map((e) => e.path).toList();
-        context.read<PhotosBloc>().add(PhotosEventAddPhotos(photos: pathList));
 
         context
             .read<AddOrEditMomentBloc>()
@@ -61,56 +64,49 @@ class PhotosContainer extends StatelessWidget {
     }
   }
 
-  Widget _buildHistoryList(PhotosState state) {
-    if (state is PhotosStateUpdateHistory) {
-      return SizedBox(
-        height: 55,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: state.photos.length,
-          shrinkWrap: true,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onLongPress: () {
-                CustomDeleteDialog.show(
-                  context,
-                  text: 'Deseja deletar essa foto?',
-                  onTapPositive: () {
-                    final photo = state.photos[index];
-                    context
-                        .read<PhotosBloc>()
-                        .add(PhotosEventDeletePhoto(photo: photo));
-                    context
-                        .read<AddOrEditMomentBloc>()
-                        .add(AddOrEditMomentEventDeletePhoto(photo: photo));
-                    Navigator.pop(context);
-                  },
-                );
-              },
-              onTap: () {
-                Navigator.pushNamed(context, AppRoute.story.tag, arguments: {
-                  'list': state.photos,
-                  'index': index,
-                });
-              },
-              child: ColoredContainer(
-                child: !state.photos[index].isHttpUrl()
-                    ? Image.file(
-                        File(state.photos[index]),
-                        fit: BoxFit.fitWidth,
-                      )
-                    : Image.network(
-                        state.photos[index],
-                        fit: BoxFit.fitWidth,
-                      ),
-              ),
-            );
-          },
-        ),
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
+  Widget _buildHistoryList(AddOrEditMomentState state) {
+    return SizedBox(
+      height: 55,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: state.photos.length,
+        shrinkWrap: true,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            onLongPress: () {
+              CustomDeleteDialog.show(
+                context,
+                text: 'Deseja deletar essa foto?',
+                onTapPositive: () {
+                  final photo = state.photos[index];
+                  context
+                      .read<AddOrEditMomentBloc>()
+                      .add(AddOrEditMomentEventDeletePhoto(photo: photo));
+                  Navigator.pop(context);
+                },
+              );
+            },
+            onTap: () {
+              Navigator.pushNamed(context, AppRoute.story.tag, arguments: {
+                'list': state.photos,
+                'index': index,
+              });
+            },
+            child: _ColoredContainer(
+              child: !state.photos[index].isHttpUrl()
+                  ? Image.file(
+                      File(state.photos[index]),
+                      fit: BoxFit.fitWidth,
+                    )
+                  : Image.network(
+                      state.photos[index],
+                      fit: BoxFit.fitWidth,
+                    ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -124,7 +120,7 @@ class _AddPhotoIcon extends StatelessWidget {
     return GestureDetector(
       onTap: () =>
           BlocProvider.of<PhotosBloc>(context).add(PhotosEventOpenGallery()),
-      child: const ColoredContainer(
+      child: const _ColoredContainer(
         child: GradientMask(
           child: Icon(
             Icons.add_photo_alternate,
@@ -136,4 +132,31 @@ class _AddPhotoIcon extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ColoredContainer extends StatelessWidget {
+
+  const _ColoredContainer({Key? key, required this.child}) : super(key: key);
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8.0),
+      decoration: AppThemes.coloredBorder,
+      height: 55,
+      width: 55,
+      child: Container(
+        margin: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.white),
+          borderRadius: BorderRadius.circular(40),
+        ),
+        child: ClipOval(child: child),
+      ),
+    );
+  }
+
 }

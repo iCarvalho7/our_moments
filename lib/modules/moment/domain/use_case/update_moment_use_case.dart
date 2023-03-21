@@ -9,8 +9,5 @@ class UpdateMomentUseCase {
 
   UpdateMomentUseCase(this._repository);
 
-  Future call(Moment moment) async {
-    final response = await _repository.editMoment(moment);
-    return response;
-  }
+  Future call(Moment moment) => _repository.editMoment(moment);
 }

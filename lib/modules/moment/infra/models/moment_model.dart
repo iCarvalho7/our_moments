@@ -24,22 +24,26 @@ class MomentModel extends Moment {
   }) : super(dateTime: dateTime, type: type);
 
   @override
-  @JsonKey(fromJson: _fromJsonDate)
+  @JsonKey(fromJson: _fromJsonDate, toJson: _toJsonDate)
   final DateTime dateTime;
 
   @override
-  @JsonKey(fromJson: _fromJsonType)
+  @JsonKey(fromJson: _fromJsonType, toJson: _toJsonType)
   final MomentType type;
-
 
   static _fromJsonDate(String dateTime) {
     return DateFormat(DateFormat.YEAR_MONTH_DAY).parse(dateTime);
   }
 
-  static _fromJsonType(String type) {
+  static String _toJsonDate(DateTime time) {
+    return DateFormat(DateFormat.YEAR_MONTH_DAY).format(time);
+  }
+
+  static MomentType _fromJsonType(String type) {
     return MomentType.values.firstWhere((e) => e.value.contains(type));
   }
 
+  static String _toJsonType(MomentType type) => type.value;
 
   factory MomentModel.fromJson(Map<String, dynamic> json) => _$MomentModelFromJson(json);
 

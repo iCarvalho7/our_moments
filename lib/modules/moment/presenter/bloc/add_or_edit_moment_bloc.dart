@@ -136,35 +136,34 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
   }
 
   Future<void> _createMoment(Emitter<AddOrEditMomentState> emit) async {
-    final downloadUrlList =
-        await uploadPhotoUseCase.call(state.photos, state.moment.id);
+    final downloadUrlList = await uploadPhotoUseCase.call(state.photos, state.moment.id);
+    await registerMomentsUseCase.call(state.moment);
     emit(AddOrEditMomentStateUpdate(
       moment: state.moment.clone(downloadUrlList: downloadUrlList),
       photos: state.photos,
     ));
-    await registerMomentsUseCase.call(state.moment);
   }
 
   FutureOr<void> _editMoment(Emitter<AddOrEditMomentState> emit) async {
     final downloadUrlList = await uploadPhotoUseCase.call(
-      state.moment.downloadUrlList
-          .where((element) => !element.isHttpUrl())
-          .toList(),
+      state.photos.where((element) => !element.isHttpUrl()).toList(),
       state.moment.id,
     );
 
-    downloadUrlList.addAll(state.photos.where((element) => element.isHttpUrl()).toList());
+    downloadUrlList
+      ..addAll(state.photos)
+      ..removeWhere((element) => !element.isHttpUrl());
+
+    final editedMoment = state.moment.clone(downloadUrlList: downloadUrlList);
+    await updateMomentUseCase.call(editedMoment);
 
     emit(
       AddOrEditMomentStateUpdate(
-        photos: state.photos,
-        moment: state.moment.clone(
-          downloadUrlList: downloadUrlList,
-        ),
+        photos: downloadUrlList,
+        moment: editedMoment,
       ),
     );
 
-    await updateMomentUseCase.call(state.moment);
   }
 
 

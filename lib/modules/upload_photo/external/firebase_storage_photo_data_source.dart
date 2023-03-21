@@ -18,22 +18,19 @@ class FirebaseStoragePhotoDataSource extends PhotoDataSource {
     List<File> paths,
     String momentId,
   ) async {
-    final imageUrls =
-        await Future.wait(paths.map((file) => _uploadFile(file, momentId)));
+    final imageUrls = await Future.wait(paths.map((file) => _uploadFile(file, momentId)));
     return imageUrls;
   }
 
   Future<String> _uploadFile(File _image, String id) async {
-    final uploadTask = momentsPhotoRef
-        .child("$id/${_image.lastAccessedSync().toIso8601String()}")
-        .putFile(_image);
+    final child = "$id/${_image.path}";
+    final uploadTask = momentsPhotoRef.child(child).putFile(_image);
     String downloadUrl = '';
 
-    await uploadTask.then((_) async {
-      downloadUrl = await momentsPhotoRef
-          .child("$id/${_image.lastAccessedSync().toIso8601String()}")
-          .getDownloadURL();
+    await uploadTask.then((TaskSnapshot task) async {
+      downloadUrl = await task.ref.getDownloadURL();
     });
+
     return downloadUrl;
   }
 

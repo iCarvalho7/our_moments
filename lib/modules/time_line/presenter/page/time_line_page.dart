@@ -235,6 +235,7 @@ class _TimeLineHeader extends StatelessWidget {
                 onChangeItem: (year) => context
                     .read<TimeLineBloc>()
                     .add(TimeLineEventChangeDate(year: year)),
+                selectedLabel: context.read<TimeLineBloc>().year,
               ),
               BlocBuilder<TimeLineBloc, TimeLineState>(
                 buildWhen: (_, state) => state is TimeLineStateToggleMonth,

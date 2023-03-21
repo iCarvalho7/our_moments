@@ -13,7 +13,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final GetMomentsUseCase getMomentsUseCase;
   final DeleteMomentsUseCase _deleteMomentsUseCase;
 
-  String year = enabledYears.first;
+  String year = enabledYears.firstWhere((element) => element == DateTime.now().year.toString());
   String month = monthsName.first;
   bool isMonthEnabled = true;
 

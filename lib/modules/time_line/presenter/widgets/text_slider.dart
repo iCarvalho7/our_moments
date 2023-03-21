@@ -7,12 +7,14 @@ class TextSlider extends StatefulWidget {
   final Function(String) onChangeItem;
   final List<String> carrouselItems;
   final bool isEnabled;
+  final String? selectedLabel;
 
   const TextSlider({
     Key? key,
     required this.onChangeItem,
     required this.carrouselItems,
     this.isEnabled = true,
+    this.selectedLabel,
   }) : super(key: key);
 
   @override
@@ -43,6 +45,7 @@ class _TextSliderState extends State<TextSlider> {
             height: 50,
             child: CarouselSlider(
               options: CarouselOptions(
+                initialPage: widget.selectedLabel != null ? widget.carrouselItems.indexOf(widget.selectedLabel!) : 0,
                 viewportFraction: 1,
                 enlargeCenterPage: true,
                 onPageChanged: (index, reason) {

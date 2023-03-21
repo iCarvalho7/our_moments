@@ -29,12 +29,6 @@ Map<String, dynamic> _$MomentModelToJson(MomentModel instance) =>
       'month': instance.month,
       'monthDay': instance.monthDay,
       'downloadUrlList': instance.downloadUrlList,
-      'dateTime': instance.dateTime.toIso8601String(),
-      'type': _$MomentTypeEnumMap[instance.type]!,
+      'dateTime': MomentModel._toJsonDate(instance.dateTime),
+      'type': MomentModel._toJsonType(instance.type),
     };
-
-const _$MomentTypeEnumMap = {
-  MomentType.bad: 'bad',
-  MomentType.romantic: 'romantic',
-  MomentType.good: 'good',
-};

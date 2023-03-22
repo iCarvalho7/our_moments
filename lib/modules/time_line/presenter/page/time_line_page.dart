@@ -232,10 +232,10 @@ class _TimeLineHeader extends StatelessWidget {
             children: [
               TextSlider(
                 carrouselItems: TimeLineBloc.enabledYears,
+                selectedLabel: context.read<TimeLineBloc>().year,
                 onChangeItem: (year) => context
                     .read<TimeLineBloc>()
                     .add(TimeLineEventChangeDate(year: year)),
-                selectedLabel: context.read<TimeLineBloc>().year,
               ),
               BlocBuilder<TimeLineBloc, TimeLineState>(
                 buildWhen: (_, state) => state is TimeLineStateToggleMonth,
@@ -245,10 +245,11 @@ class _TimeLineHeader extends StatelessWidget {
                       children: [
                         TextSlider(
                           isEnabled: state.isMonthEnabled,
+                          carrouselItems: TimeLineBloc.monthsName,
+                          selectedLabel: context.read<TimeLineBloc>().month,
                           onChangeItem: (month) => context
                               .read<TimeLineBloc>()
                               .add(TimeLineEventChangeDate(month: month)),
-                          carrouselItems: TimeLineBloc.monthsName,
                         ),
                         IconButton(
                           icon: Icon(
@@ -257,11 +258,9 @@ class _TimeLineHeader extends StatelessWidget {
                                 : Icons.visibility_off,
                             size: 30,
                           ),
-                          onPressed: () {
-                            context
-                                .read<TimeLineBloc>()
-                                .add(const TimeLineEventChangeEyeToggle());
-                          },
+                          onPressed: () => context
+                              .read<TimeLineBloc>()
+                              .add(const TimeLineEventChangeEyeToggle()),
                         ),
                       ],
                     );

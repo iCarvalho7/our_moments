@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:intl/intl.dart';
 import 'package:nossos_momentos/modules/time_line/domain/use_case/get_moments_use_case.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_events.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_state.dart';
@@ -14,7 +15,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final DeleteMomentsUseCase _deleteMomentsUseCase;
 
   String year = enabledYears.firstWhere((element) => element == DateTime.now().year.toString());
-  String month = monthsName.first;
+  String month = monthsName.firstWhere((element) => element == DateFormat(DateFormat.ABBR_MONTH).format(DateTime.now()));
   bool isMonthEnabled = true;
 
   TimeLineBloc(

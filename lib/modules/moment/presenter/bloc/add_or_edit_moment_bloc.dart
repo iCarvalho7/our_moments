@@ -7,7 +7,6 @@ import '../../domain/entities/moment.dart';
 import '../../domain/entities/moment_type.dart';
 import '../../domain/use_case/get_moment_by_id_use_case.dart';
 import '../../domain/use_case/register_moments_use_case.dart';
-import '../../../core/utils/string_ext/string_ext.dart';
 import '../../domain/use_case/update_moment_use_case.dart';
 import '../../../upload_photo/domain/use_case/upload_photo_use_case.dart';
 
@@ -51,30 +50,28 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     Emitter<AddOrEditMomentState> emit,
   ) {
     emit(AddOrEditMomentStateUpdate(
-      photos: state.photos,
-      moment: state.moment.clone(
+      moment: state.moment.copyWith(
         type: event.type,
       ),
     ));
-    _verifyIfFieldsAreFilled(emit);
   }
 
   FutureOr<void> _handleAddPhoto(
     AddOrEditMomentEventAddPhoto event,
     Emitter<AddOrEditMomentState> emit,
   ) {
-    final photos = state.photos.toList()..addAll(event.photos);
+    final photos = state.moment.downloadUrlList.toList()..addAll(event.photos);
 
-    emit(AddOrEditMomentStateUpdate(photos: photos, moment: state.moment));
+    emit(AddOrEditMomentStateUpdate(
+      moment: state.moment.copyWith(downloadUrlList: photos),
+    ));
 
-    _verifyIfFieldsAreFilled(emit);
   }
 
   FutureOr<void> _handleDeletePhoto(
     AddOrEditMomentEventDeletePhoto event,
     Emitter<AddOrEditMomentState> emit,
   ) {
-    _verifyIfFieldsAreFilled(emit);
   }
 
   FutureOr<void> _handleAddTimeEvent(
@@ -82,15 +79,13 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     Emitter<AddOrEditMomentState> emit,
   ) {
     emit(AddOrEditMomentStateUpdate(
-      photos: state.photos,
-      moment: state.moment.clone(
+      moment: state.moment.copyWith(
         dateTime: event.date,
         year: event.date.year.toString(),
         month: DateFormat(DateFormat.ABBR_MONTH, 'pt_BR').format(event.date),
         monthDay: event.date.day.toString(),
       ),
     ));
-    _verifyIfFieldsAreFilled(emit);
   }
 
   FutureOr<void> _handleTypeTitle(
@@ -98,12 +93,10 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     Emitter<AddOrEditMomentState> emit,
   ) {
     emit(AddOrEditMomentStateUpdate(
-      photos: state.photos,
-      moment: state.moment.clone(
+      moment: state.moment.copyWith(
         title: event.title,
       ),
     ));
-    _verifyIfFieldsAreFilled(emit);
   }
 
   FutureOr<void> _handleTypeBodyText(
@@ -111,22 +104,17 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     Emitter<AddOrEditMomentState> emit,
   ) {
     emit(AddOrEditMomentStateUpdate(
-      photos: state.photos,
-      moment: state.moment.clone(
+      moment: state.moment.copyWith(
         body: event.bodyText,
       ),
     ));
-    _verifyIfFieldsAreFilled(emit);
   }
 
   FutureOr<void> _handleCreateOrUpdateMoment(
     AddOrEditMomentEventCreateOrUpdateMoment event,
     Emitter<AddOrEditMomentState> emit,
   ) async {
-    emit(AddOrEditMomentStateLoading(
-      moment: state.moment,
-      photos: state.photos,
-    ));
+    emit(AddOrEditMomentStateLoading(moment: state.moment));
 
     if (!state.moment.isEditing) {
       await _createMoment(emit);
@@ -136,62 +124,37 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
   }
 
   Future<void> _createMoment(Emitter<AddOrEditMomentState> emit) async {
-    final downloadUrlList = await uploadPhotoUseCase.call(state.photos, state.moment.id);
-    await registerMomentsUseCase.call(state.moment);
-    emit(AddOrEditMomentStateUpdate(
-      moment: state.moment.clone(downloadUrlList: downloadUrlList),
-      photos: state.photos,
-    ));
-  }
-
-  FutureOr<void> _editMoment(Emitter<AddOrEditMomentState> emit) async {
     final downloadUrlList = await uploadPhotoUseCase.call(
-      state.photos.where((element) => !element.isHttpUrl()).toList(),
+      state.moment.localImgList,
       state.moment.id,
     );
 
-    downloadUrlList
-      ..addAll(state.photos)
-      ..removeWhere((element) => !element.isHttpUrl());
-
-    final editedMoment = state.moment.clone(downloadUrlList: downloadUrlList);
-    await updateMomentUseCase.call(editedMoment);
-
-    emit(
-      AddOrEditMomentStateUpdate(
-        photos: downloadUrlList,
-        moment: editedMoment,
-      ),
-    );
-
+    final uploadedImgList = state.moment.uploadedImgList;
+    final moment = state.moment.copyWith(downloadUrlList: downloadUrlList..addAll(uploadedImgList));
+    await registerMomentsUseCase.call(moment);
+    emit(AddOrEditMomentStateUpdate(moment: moment));
   }
 
+  FutureOr<void> _editMoment(Emitter<AddOrEditMomentState> emit) async {
+    final localImageList = state.moment.localImgList;
+
+    final downloadUrlList = await uploadPhotoUseCase.call(
+      localImageList,
+      state.moment.id,
+    );
+
+    final editedMoment = state.moment.copyWith(downloadUrlList: downloadUrlList..addAll(state.moment.uploadedImgList));
+    await updateMomentUseCase.call(editedMoment);
+
+    emit(AddOrEditMomentStateUpdate(moment: editedMoment));
+  }
 
   FutureOr<void> _handleEditMoment(
     SetupEditMomentEvent event,
     Emitter<AddOrEditMomentState> emit,
   ) async {
-    emit(AddOrEditMomentStateUpdate(
-      moment: event.moment.clone(isEditing: true),
-      photos: event.moment.downloadUrlList,
-    ));
+    emit(AddOrEditMomentStateUpdate(moment: event.moment.copyWith(isEditing: true)));
   }
-
-  void _verifyIfFieldsAreFilled(Emitter<AddOrEditMomentState> emit) {
-    if (_isAllFieldsFilled) {
-      emit(AddOrEditMomentStateAllFilled(
-        moment: state.moment,
-        photos: state.photos,
-      ));
-      return;
-    }
-  }
-
-  bool get _isAllFieldsFilled =>
-      state.moment.dateTime != defaultDateTime &&
-          state.photos.isNotEmpty &&
-          state.moment.title.isNotEmpty &&
-          state.moment.body.isNotEmpty;
 
   static final defaultDateTime = DateTime(0, 0, 0);
 }

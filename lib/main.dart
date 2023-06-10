@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/firebase_options.dart';
 import 'package:nossos_momentos/modules/core/presenter/routes.dart';
+import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
 import 'modules/moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 
@@ -42,7 +43,9 @@ class MyApp extends StatelessWidget {
         ],
         theme: ThemeData(
           textTheme: GoogleFonts.interTextTheme(),
-        ),
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.timeLineColor
+            )),
         routes: AppRoute.allRoutes,
         initialRoute: AppRoute.timeLine.tag,
       ),

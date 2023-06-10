@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
-import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_events.dart';
 import '../../../moment/domain/entities/moment_type.dart';
 import '../../../moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 import '../../../core/presenter/routes.dart';

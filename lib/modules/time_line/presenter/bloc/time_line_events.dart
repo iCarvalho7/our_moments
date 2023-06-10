@@ -1,3 +1,5 @@
+part of 'time_line_bloc.dart';
+
 abstract class TimeLineEvent {
   const TimeLineEvent();
 }
@@ -9,8 +11,9 @@ class TimeLineEventInit extends TimeLineEvent {
 class TimeLineEventChangeDate extends TimeLineEvent {
   final String? year;
   final String? month;
+  final bool disableMonth;
 
-  const TimeLineEventChangeDate({this.year, this.month});
+  const TimeLineEventChangeDate({this.year, this.month, this.disableMonth = false});
 }
 
 class TimeLineEventChangeEyeToggle extends TimeLineEvent {

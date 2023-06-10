@@ -2,26 +2,31 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
-import 'package:intl/intl.dart';
+import 'package:nossos_momentos/modules/core/use_case/use_case.dart';
 import 'package:nossos_momentos/modules/time_line/domain/use_case/get_moments_use_case.dart';
-import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_events.dart';
-import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_state.dart';
+import 'package:nossos_momentos/modules/time_line/domain/use_case/get_month_use_case.dart';
+import 'package:nossos_momentos/modules/time_line/domain/use_case/get_year_use_case.dart';
 
+import '../../../moment/domain/entities/moment.dart';
 import '../../domain/use_case/delete_moments_use_case.dart';
+
+part 'time_line_events.dart';
+
+part 'time_line_state.dart';
 
 @injectable
 class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
-  final GetMomentsUseCase getMomentsUseCase;
+  final GetMomentsUseCase _getMomentsUseCase;
+  final GetMonthUseCase _getMonthUseCase;
+  final GetYearUseCase _getYearUseCase;
   final DeleteMomentsUseCase _deleteMomentsUseCase;
 
-  String year = enabledYears.firstWhere((element) => element == DateTime.now().year.toString());
-  String month = monthsName.firstWhere((element) => element == DateFormat(DateFormat.ABBR_MONTH).format(DateTime.now()));
-  bool isMonthEnabled = true;
-
   TimeLineBloc(
-    this.getMomentsUseCase,
+    this._getMomentsUseCase,
+    this._getMonthUseCase,
+    this._getYearUseCase,
     this._deleteMomentsUseCase,
-  ) : super(const TimeLineStateLoading()) {
+  ) : super(TimeLineStateInitial()) {
     on<TimeLineEventInit>(_init);
     on<TimeLineEventChangeDate>(_handleChangeDate);
     on<TimeLineEventChangeEyeToggle>(_handleChangeToggle);
@@ -32,41 +37,45 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     TimeLineEventInit event,
     Emitter<TimeLineState> emit,
   ) async {
-    emit(const TimeLineStateLoading());
-
-    final result = await getMomentsUseCase.call(
-      year: year,
-      month: month,
-    );
-
-    if (result.isEmpty) {
-      emit(const TimeLineStateEmpty());
-    } else {
-      emit(
-        TimeLineStateLoaded(momentsList: result),
-      );
-    }
-    emit(const TimeLineStateToggleMonth(isMonthEnabled: true));
+    String year = _getYearUseCase(NoParams.instance).data!;
+    String month = _getMonthUseCase(NoParams.instance).data!;
+    emit(TimeLineStateLoading(year: year, month: month, isMonthEnabled: state.isMonthEnabled));
+    add(TimeLineEventChangeDate(year: year, month: month));
   }
 
   FutureOr<void> _handleChangeDate(
     TimeLineEventChangeDate event,
     Emitter<TimeLineState> emit,
   ) async {
-    emit(const TimeLineStateLoading());
+    emit(
+      TimeLineStateLoading(
+        year: state.year,
+        month: state.month,
+        isMonthEnabled: !event.disableMonth,
+      ),
+    );
 
-    year = event.year ?? year;
-    final tempMonth = isMonthEnabled ? event.month ?? month : '';
+    final year = event.year ?? state.year;
+    final month = event.disableMonth ? null : event.month ?? state.month;
 
-    final filteredMoments = await getMomentsUseCase.call(
+    final filteredMoments = await _getMomentsUseCase.call(
       year: year,
-      month: tempMonth,
+      month: month,
     );
 
     if (filteredMoments.isEmpty) {
-      emit(const TimeLineStateEmpty());
+      emit(TimeLineStateEmpty(
+        year: year,
+        month: month ?? state.month,
+        isMonthEnabled: state.isMonthEnabled,
+      ));
     } else {
-      emit(TimeLineStateLoaded(momentsList: filteredMoments));
+      emit(TimeLineStateLoaded(
+        momentsList: filteredMoments,
+        year: year,
+        month: month ?? state.month,
+        isMonthEnabled: state.isMonthEnabled,
+      ));
     }
   }
 
@@ -74,9 +83,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     TimeLineEventChangeEyeToggle event,
     Emitter<TimeLineState> emit,
   ) async {
-    isMonthEnabled = !isMonthEnabled;
-    emit(TimeLineStateToggleMonth(isMonthEnabled: isMonthEnabled));
-    add(TimeLineEventChangeDate(year: year));
+    add(TimeLineEventChangeDate(disableMonth: state.isMonthEnabled));
   }
 
   FutureOr<void> _deleteMoment(
@@ -94,7 +101,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     '2021',
     '2022',
     '2023',
-    '2024'
+    '2024',
   ];
 
   static const monthsName = [

@@ -18,20 +18,14 @@ class PhotosContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => getIt<PhotosBloc>()),
-      ],
-      child: MultiBlocListener(
-        listeners: [
-          BlocListener<PhotosBloc, PhotosState>(
-            listener: _handleStateChanges,
-          )
-        ],
+    return BlocProvider(
+      create: (_) => getIt<PhotosBloc>(),
+      child: BlocListener<PhotosBloc, PhotosState>(
+        listener: _handleStateChanges,
         child: Container(
           alignment: Alignment.centerLeft,
-          margin: const EdgeInsets.only(left: 10.0),
-          padding: const EdgeInsets.only(top: 10.0),
+          margin: const EdgeInsets.only(left: 16.0),
+          padding: const EdgeInsets.only(top: 16.0),
           child: BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
             builder: (context, state) {
               return SingleChildScrollView(
@@ -55,13 +49,9 @@ class PhotosContainer extends StatelessWidget {
   void _handleStateChanges(BuildContext context, PhotosState state) async {
     if (state is PhotosStateShowGallery) {
       final photos = await ImagePicker().pickMultiImage();
-      if (photos != null) {
-        final pathList = photos.map((e) => e.path).toList();
+      final pathList = photos.map((e) => e.path).toList();
 
-        context
-            .read<AddOrEditMomentBloc>()
-            .add(AddOrEditMomentEventAddPhoto(photos: pathList));
-      }
+      context.read<AddOrEditMomentBloc>().add(AddOrEditMomentEventAddPhoto(photos: pathList));
     }
   }
 
@@ -70,7 +60,7 @@ class PhotosContainer extends StatelessWidget {
       height: 55,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: state.photos.length,
+        itemCount: state.moment.downloadUrlList.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
           return GestureDetector(
@@ -79,7 +69,7 @@ class PhotosContainer extends StatelessWidget {
                 context,
                 text: 'Deseja deletar essa foto?',
                 onTapPositive: () {
-                  final photo = state.photos[index];
+                  final photo = state.moment.downloadUrlList[index];
                   context
                       .read<AddOrEditMomentBloc>()
                       .add(AddOrEditMomentEventDeletePhoto(photo: photo));
@@ -89,18 +79,18 @@ class PhotosContainer extends StatelessWidget {
             },
             onTap: () {
               Navigator.pushNamed(context, AppRoute.story.tag, arguments: {
-                'list': state.photos,
+                'list': state.moment.downloadUrlList,
                 'index': index,
               });
             },
             child: _ColoredContainer(
-              child: !state.photos[index].isHttpUrl()
+              child: !state.moment.downloadUrlList[index].isHttpUrl
                   ? Image.file(
-                      File(state.photos[index]),
+                      File(state.moment.downloadUrlList[index]),
                       fit: BoxFit.fitWidth,
                     )
                   : Image.network(
-                      state.photos[index],
+                      state.moment.downloadUrlList[index],
                       fit: BoxFit.fitWidth,
                       loadingBuilder: (_, widget, event) {
                         if (event == null) return widget;
@@ -129,16 +119,15 @@ class _AddPhotoIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () =>
-          BlocProvider.of<PhotosBloc>(context).add(PhotosEventOpenGallery()),
+      onTap: () => BlocProvider.of<PhotosBloc>(context).add(PhotosEventOpenGallery()),
       child: const _ColoredContainer(
         child: GradientMask(
+          colors: AppColors.instagramGradient,
           child: Icon(
             Icons.add_photo_alternate,
             color: Colors.white,
             size: 30,
           ),
-          colors: AppColors.instagramGradient,
         ),
       ),
     );

@@ -5,7 +5,7 @@ import 'package:nossos_momentos/modules/time_line/domain/repository/time_line_re
 mixin GetMomentsUseCase {
   Future<List<Moment>> call({
     required String year,
-    String month,
+    String? month,
   });
 }
 
@@ -18,11 +18,11 @@ class GetMomentsUseCaseImpl implements GetMomentsUseCase {
   @override
   Future<List<Moment>> call({
     required String year,
-    String month = '',
+    String? month = '',
   }) async {
     final response = await repository.getMoments(
       year: year.toLowerCase(),
-      month: month.toLowerCase(),
+      month: month?.toLowerCase() ?? '',
     );
     return response;
   }

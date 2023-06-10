@@ -1,25 +1,28 @@
-import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
+part of 'time_line_bloc.dart';
 
 abstract class TimeLineState {
-  const TimeLineState();
+  final String year;
+  final String month;
+  final bool isMonthEnabled;
+
+  TimeLineState({required this.year, required this.month, required this.isMonthEnabled});
+
+}
+
+class TimeLineStateInitial extends TimeLineState {
+  TimeLineStateInitial() : super(year: '', month: '', isMonthEnabled: true);
 }
 
 class TimeLineStateLoading extends TimeLineState {
-  const TimeLineStateLoading();
+  TimeLineStateLoading({required super.year, required super.month, required super.isMonthEnabled});
 }
 
 class TimeLineStateLoaded extends TimeLineState {
   final List<Moment> momentsList;
 
-  const TimeLineStateLoaded({required this.momentsList});
-}
-
-class TimeLineStateToggleMonth extends TimeLineState {
-  const TimeLineStateToggleMonth({this.isMonthEnabled = true});
-
-  final bool isMonthEnabled;
+  TimeLineStateLoaded({required this.momentsList, required super.year, required super.month, required super.isMonthEnabled});
 }
 
 class TimeLineStateEmpty extends TimeLineState {
-  const TimeLineStateEmpty();
+  TimeLineStateEmpty({required super.year, required super.month, required super.isMonthEnabled});
 }

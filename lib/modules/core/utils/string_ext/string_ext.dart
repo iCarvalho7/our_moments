@@ -1,3 +1,3 @@
 extension HttpParser on String {
-   bool isHttpUrl() => contains('http');
+   bool get isHttpUrl => contains('http');
 }

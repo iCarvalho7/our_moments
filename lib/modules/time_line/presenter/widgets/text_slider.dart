@@ -7,14 +7,14 @@ class TextSlider extends StatefulWidget {
   final Function(String) onChangeItem;
   final List<String> carrouselItems;
   final bool isEnabled;
-  final String? selectedLabel;
+  final int selectedIndex;
 
   const TextSlider({
     Key? key,
     required this.onChangeItem,
     required this.carrouselItems,
+    required this.selectedIndex,
     this.isEnabled = true,
-    this.selectedLabel,
   }) : super(key: key);
 
   @override
@@ -34,8 +34,7 @@ class _TextSliderState extends State<TextSlider> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            onPressed: () =>
-                widget.isEnabled ? _carrouselController.previousPage() : null,
+            onPressed: () => widget.isEnabled ? _carrouselController.previousPage() : null,
             icon: Icon(
               CupertinoIcons.left_chevron,
               color: widget.isEnabled ? Colors.black : Colors.grey,
@@ -44,11 +43,12 @@ class _TextSliderState extends State<TextSlider> {
           SizedBox(
             height: 50,
             child: CarouselSlider(
+              disableGesture: true,
               options: CarouselOptions(
-                initialPage: widget.selectedLabel != null ? widget.carrouselItems.indexOf(widget.selectedLabel!) : 0,
+                initialPage: widget.selectedIndex,
                 viewportFraction: 1,
                 enlargeCenterPage: true,
-                onPageChanged: (index, reason) {
+                onPageChanged: (index, _) {
                   widget.onChangeItem(widget.carrouselItems[index]);
                 },
               ),
@@ -66,8 +66,7 @@ class _TextSliderState extends State<TextSlider> {
             ),
           ),
           IconButton(
-            onPressed: () =>
-                widget.isEnabled ? _carrouselController.nextPage() : null,
+            onPressed: () => widget.isEnabled ? _carrouselController.nextPage() : null,
             icon: Icon(
               CupertinoIcons.right_chevron,
               color: widget.isEnabled ? Colors.black : Colors.grey,

@@ -19,12 +19,14 @@ class TitleSection extends StatelessWidget {
             cursorColor: Colors.black,
             initialValue: state.moment.title,
             decoration: InputDecoration(
+              isDense: true,
               floatingLabelBehavior: FloatingLabelBehavior.never,
               alignLabelWithHint: true,
               labelText: 'Aquele em que...',
               floatingLabelStyle: AppThemes.kLightTitleStyle,
               labelStyle: AppThemes.kLightTitleStyle,
               border: InputBorder.none,
+              contentPadding: EdgeInsets.zero
             ),
             onChanged: (title) {
               BlocProvider.of<AddOrEditMomentBloc>(context)

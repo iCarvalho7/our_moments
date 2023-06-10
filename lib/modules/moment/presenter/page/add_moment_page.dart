@@ -27,26 +27,8 @@ class AddOrEditMomentPage extends StatelessWidget {
               color: Colors.black,
             ),
           ),
-          actions: [
-            BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
-              builder: (context, state) {
-                return IconButton(
-                  onPressed: () => state is AddOrEditMomentStateAllFilled
-                      ? _createEvent(context)
-                      : null,
-                  icon: Icon(
-                    Icons.done,
-                    color: state is AddOrEditMomentStateAllFilled
-                        ? Colors.green
-                        : Colors.grey,
-                  ),
-                );
-              },
-            )
-          ],
         ),
         body: BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
-          buildWhen: (_, current) => current is! AddOrEditMomentStateAllFilled,
           builder: (context, state) {
             return _buildPage(state, context);
           },
@@ -61,13 +43,29 @@ class AddOrEditMomentPage extends StatelessWidget {
     }
 
     return Column(
-      children: const [
-        SelectTypeToggle(),
-        Divider(),
-        PhotosContainer(),
-        TitleSection(),
-        DateTimeSection(),
-        DescriptionSection(),
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const SelectTypeToggle(),
+        const PhotosContainer(),
+        const DateTimeSection(),
+        const TitleSection(),
+        const DescriptionSection(),
+        BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
+          builder: (context, state) {
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: state.moment.isAllFieldsFilled ? () => _createEvent(context) : null,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(MediaQuery.of(context).size.width, kTextTabBarHeight),
+                ),
+                child: Text(
+                  state.moment.isEditing ? 'Salvar Edição' : 'Registrar Eternamente',
+                ),
+              ),
+            );
+          },
+        ),
       ],
     );
   }

@@ -5,8 +5,6 @@ import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
-import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_events.dart';
-import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_state.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/widgets/card_add_moment.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/widgets/card_moment.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/widgets/text_slider.dart';
@@ -53,11 +51,12 @@ class _TimeLinePageState extends State<TimeLinePage> {
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: BlocBuilder<TimeLineBloc, TimeLineState>(
+                buildWhen: (oldState, state) => state is! TimeLineStateInitial,
                 builder: (context, state) {
                   return Column(
                     children: [
-                      _TimeLineHeader(state: state),
-                      _buildTimeLinePage()
+                      _TimeLineHeader(),
+                      _buildTimeLinePage(),
                     ],
                   );
                 },
@@ -71,49 +70,9 @@ class _TimeLinePageState extends State<TimeLinePage> {
 
   Widget _buildTimeLinePage() {
     return BlocBuilder<TimeLineBloc, TimeLineState>(
-      buildWhen: (_, state) => state is! TimeLineStateToggleMonth,
       builder: (context, state) {
         if (state is TimeLineStateLoaded) {
-          return ListView.builder(
-            itemCount: state.momentsList.length + 1,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemBuilder: (parentContext, index) {
-              return GestureDetector(
-                onLongPress: () => _showDeleteMomentDialog(
-                  parentContext,
-                  state.momentsList[index - 1].id,
-                ),
-                child: TimelineTile(
-                  alignment: TimelineAlign.manual,
-                  lineXY: 0.125,
-                  isFirst: _isFirstItem(index),
-                  beforeLineStyle:
-                      const LineStyle(color: AppColors.timeLineColor),
-                  afterLineStyle:
-                      const LineStyle(color: AppColors.timeLineColor),
-                  indicatorStyle: IndicatorStyle(
-                    height: _isFirstItem(index) ? 50 : 15,
-                    width: _isFirstItem(index) ? 50 : 15,
-                    color: AppColors.timeLineColor,
-                    indicator: _isFirstItem(index)
-                        ? Assets.iconAddMoments
-                        : const _CircularIndicator(),
-                  ),
-                  endChild: _isFirstItem(index)
-                      ? const CardAddMoment()
-                      : CardMoment(moment: state.momentsList[index - 1]),
-                  startChild: _isFirstItem(index)
-                      ? const SizedBox.shrink()
-                      : Text(
-                          state.momentsList[index - 1].dateTimeFormatted,
-                          textAlign: TextAlign.center,
-                          style: AppThemes.kBodyLargeLineStyle,
-                        ),
-                ),
-              );
-            },
-          );
+          return _buildLoadedState(state);
         }
         if (state is TimeLineStateLoading) {
           return _buildLoadingState();
@@ -122,6 +81,45 @@ class _TimeLinePageState extends State<TimeLinePage> {
           return _buildEmptyState(state);
         }
         return const SizedBox.shrink();
+      },
+    );
+  }
+
+  ListView _buildLoadedState(TimeLineStateLoaded state) {
+    return ListView.builder(
+      itemCount: state.momentsList.length + 1,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemBuilder: (parentContext, index) {
+        return GestureDetector(
+          onLongPress: () => _showDeleteMomentDialog(
+            parentContext,
+            state.momentsList[index - 1].id,
+          ),
+          child: TimelineTile(
+            alignment: TimelineAlign.manual,
+            lineXY: 0.125,
+            isFirst: _isFirstItem(index),
+            beforeLineStyle: const LineStyle(color: AppColors.timeLineColor),
+            afterLineStyle: const LineStyle(color: AppColors.timeLineColor),
+            indicatorStyle: IndicatorStyle(
+              height: _isFirstItem(index) ? 50 : 15,
+              width: _isFirstItem(index) ? 50 : 15,
+              color: AppColors.timeLineColor,
+              indicator: _isFirstItem(index) ? Assets.iconAddMoments : const _CircularIndicator(),
+            ),
+            endChild: _isFirstItem(index)
+                ? const CardAddMoment()
+                : CardMoment(moment: state.momentsList[index - 1]),
+            startChild: _isFirstItem(index)
+                ? const SizedBox.shrink()
+                : Text(
+                    state.momentsList[index - 1].dateTimeFormatted,
+                    textAlign: TextAlign.center,
+                    style: AppThemes.kBodyLargeLineStyle,
+                  ),
+          ),
+        );
       },
     );
   }
@@ -145,9 +143,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
                 ? Assets.iconAddMoments
                 : Container(color: AppColors.timeLineColor),
           ),
-          endChild: _isFirstItem(index)
-              ? const CardAddMoment()
-              : const SizedBox(height: 10),
+          endChild: _isFirstItem(index) ? const CardAddMoment() : const SizedBox(height: 10),
           startChild: const SizedBox.shrink(),
         );
       },
@@ -181,18 +177,14 @@ class _TimeLinePageState extends State<TimeLinePage> {
   void _showDeleteMomentDialog(BuildContext context, String momentId) {
     CustomDeleteDialog.show(
       context,
-      text:
-          'Você tem certeza que deseja remover esse momento das areias do tempo?',
+      text: 'Você tem certeza que deseja remover esse momento das areias do tempo?',
       onTapPositive: () {
-        context
-            .read<TimeLineBloc>()
-            .add(TimeLineEventDeleteMoment(momentId: momentId));
+        context.read<TimeLineBloc>().add(TimeLineEventDeleteMoment(momentId: momentId));
         Navigator.pop(context);
       },
     );
   }
 }
-
 
 class _CircularIndicator extends StatelessWidget {
   const _CircularIndicator({
@@ -210,18 +202,18 @@ class _CircularIndicator extends StatelessWidget {
 }
 
 class _TimeLineHeader extends StatelessWidget {
-  _TimeLineHeader({
-    required this.state,
-    Key? key,
-  }) : super(key: key);
+  _TimeLineHeader({Key? key}) : super(key: key);
 
-  final TimeLineState state;
   final Period diff = LocalDate.dateTime(
     DateTime(2019, 5, 22),
   ).periodSince(LocalDate.today());
 
   @override
   Widget build(BuildContext context) {
+    final state = context.read<TimeLineBloc>().state;
+    final monthIndex = TimeLineBloc.monthsName.indexOf(state.month);
+    final yearIndex = TimeLineBloc.enabledYears.indexOf(state.year);
+
     return Padding(
       padding: const EdgeInsets.only(left: 20, bottom: 20),
       child: Row(
@@ -230,44 +222,37 @@ class _TimeLineHeader extends StatelessWidget {
           _CalendarCard(time: diff),
           Column(
             children: [
-              TextSlider(
-                carrouselItems: TimeLineBloc.enabledYears,
-                selectedLabel: context.read<TimeLineBloc>().year,
-                onChangeItem: (year) => context
-                    .read<TimeLineBloc>()
-                    .add(TimeLineEventChangeDate(year: year)),
-              ),
-              BlocBuilder<TimeLineBloc, TimeLineState>(
-                buildWhen: (_, state) => state is TimeLineStateToggleMonth,
-                builder: (context, state) {
-                  if (state is TimeLineStateToggleMonth) {
-                    return Row(
-                      children: [
-                        TextSlider(
-                          isEnabled: state.isMonthEnabled,
-                          carrouselItems: TimeLineBloc.monthsName,
-                          selectedLabel: context.read<TimeLineBloc>().month,
-                          onChangeItem: (month) => context
-                              .read<TimeLineBloc>()
-                              .add(TimeLineEventChangeDate(month: month)),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            state.isMonthEnabled
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            size: 30,
-                          ),
-                          onPressed: () => context
-                              .read<TimeLineBloc>()
-                              .add(const TimeLineEventChangeEyeToggle()),
-                        ),
-                      ],
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
+              if (yearIndex != -1) ...[
+                TextSlider(
+                  carrouselItems: TimeLineBloc.enabledYears,
+                  selectedIndex: yearIndex,
+                  onChangeItem: (year) =>
+                      context.read<TimeLineBloc>().add(TimeLineEventChangeDate(year: year)),
+                ),
+              ],
+              if (monthIndex != -1) ...[
+                Row(
+                  children: [
+                    TextSlider(
+                      carrouselItems: TimeLineBloc.monthsName,
+                      isEnabled: context.read<TimeLineBloc>().state.isMonthEnabled,
+                      selectedIndex: monthIndex,
+                      onChangeItem: (month) =>
+                          context.read<TimeLineBloc>().add(TimeLineEventChangeDate(month: month)),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        context.read<TimeLineBloc>().state.isMonthEnabled
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        size: 30,
+                      ),
+                      onPressed: () =>
+                          context.read<TimeLineBloc>().add(const TimeLineEventChangeEyeToggle()),
+                    ),
+                  ],
+                ),
+              ]
             ],
           ),
         ],
@@ -277,10 +262,7 @@ class _TimeLineHeader extends StatelessWidget {
 }
 
 class _CalendarCard extends StatelessWidget {
-  const _CalendarCard({
-    Key? key,
-    required this.time,
-  }) : super(key: key);
+  const _CalendarCard({Key? key, required this.time}) : super(key: key);
 
   final Period time;
 
@@ -321,9 +303,7 @@ class _CalendarCard extends StatelessWidget {
 }
 
 class _CalendarTopCardWidget extends StatelessWidget {
-  const _CalendarTopCardWidget({
-    Key? key,
-  }) : super(key: key);
+  const _CalendarTopCardWidget({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

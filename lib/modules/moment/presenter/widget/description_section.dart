@@ -11,7 +11,7 @@ class DescriptionSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
       builder: (context, state) {
-        return Flexible(
+        return Expanded(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextFormField(
@@ -24,7 +24,7 @@ class DescriptionSection extends StatelessWidget {
               initialValue: state.moment.body,
               decoration: InputDecoration(
                 alignLabelWithHint: true,
-                labelText: '...',
+                hintText: 'Descreva em detalhes (ou não) esse momento',
                 floatingLabelStyle: AppThemes.kLightBodyStyle,
                 labelStyle: AppThemes.kLightBodyStyle,
                 border: InputBorder.none,

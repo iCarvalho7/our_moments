@@ -25,7 +25,7 @@ class StoryBloc extends Bloc<StoryEvent, StoryState> {
     Emitter<StoryState> emit,
   ) async {
     final list = event.stories
-        .map((path) => Story(url: path, isNetwork: path.isHttpUrl()))
+        .map((path) => Story(url: path, isNetwork: path.isHttpUrl))
         .toList();
     stories = list;
     _currentIndex = event.currentIndex;

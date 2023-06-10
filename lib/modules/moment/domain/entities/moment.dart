@@ -1,4 +1,5 @@
 import 'package:nossos_momentos/modules/core/utils/date_util.dart';
+import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
 import 'package:nossos_momentos/modules/moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 import 'package:nossos_momentos/modules/moment/presenter/widget/date_time_section.dart';
 import 'package:uuid/uuid.dart';
@@ -17,20 +18,19 @@ class Moment {
   final List<String> downloadUrlList;
   final bool isEditing;
 
-  const Moment({
-    required this.id,
-    required this.dateTime,
-    required this.title,
-    required this.body,
-    required this.type,
-    required this.monthDay,
-    required this.month,
-    required this.year,
-    required this.downloadUrlList,
-    this.isEditing = false
-  });
+  const Moment(
+      {required this.id,
+      required this.dateTime,
+      required this.title,
+      required this.body,
+      required this.type,
+      required this.monthDay,
+      required this.month,
+      required this.year,
+      required this.downloadUrlList,
+      this.isEditing = false});
 
-  Moment clone({
+  Moment copyWith({
     String? id,
     DateTime? dateTime,
     String? title,
@@ -71,9 +71,16 @@ class Moment {
   }
 
   String get dateTimeFormatted =>
-      monthDay +
-          "\n" +
-          month.substring(0, 3).replaceFirst(month[0], month[0].toUpperCase());
+      "$monthDay\n${month.substring(0, 3).replaceFirst(month[0], month[0].toUpperCase())}";
+
+  List<String> get localImgList => downloadUrlList.where((e) => !e.isHttpUrl).toList();
+
+  List<String> get uploadedImgList => downloadUrlList.where((e) => e.isHttpUrl).toList();
+
+  bool get isAllFieldsFilled =>
+      dateTime != AddOrEditMomentBloc.defaultDateTime &&
+      title.isNotEmpty &&
+      body.isNotEmpty;
 
   String get dateTimeComplete => dateTime != AddOrEditMomentBloc.defaultDateTime
       ? DateUtil.getFormattedDate(dateTime)

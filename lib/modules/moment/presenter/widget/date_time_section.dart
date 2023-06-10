@@ -14,11 +14,11 @@ class DateTimeSection extends StatelessWidget {
         return GestureDetector(
           onTap: () => _showDatePicker(context),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.only(top: 24.0, left: 8.0),
             child: Row(
               children: [
                 Text(
-                  label,
+                  'Aconteceu em: $label',
                   style: AppThemes.kLightBodyStyle.copyWith(
                     color: label == addDate
                         ? Colors.grey

@@ -2,7 +2,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/firebase_options.dart';
 import 'package:nossos_momentos/modules/core/presenter/routes.dart';
@@ -11,7 +10,6 @@ import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 import 'modules/moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -42,10 +40,16 @@ class MyApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         theme: ThemeData(
-          textTheme: GoogleFonts.interTextTheme(),
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.timeLineColor
-            )),
+          fontFamily: 'Inter',
+          colorScheme: const ColorScheme.light(primary: AppColors.timeLineColor),
+          appBarTheme: const AppBarTheme(
+            titleTextStyle: TextStyle(
+              fontFamily: 'GrandHotel',
+              fontSize: 30,
+              color: Colors.black,
+            ),
+          ),
+        ),
         routes: AppRoute.allRoutes,
         initialRoute: AppRoute.timeLine.tag,
       ),

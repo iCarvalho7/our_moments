@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
-import '../../../core/utils/theme/app_theme.dart';
 
 class DateTimeSection extends StatelessWidget {
   const DateTimeSection({Key? key}) : super(key: key);
@@ -14,15 +13,13 @@ class DateTimeSection extends StatelessWidget {
         return GestureDetector(
           onTap: () => _showDatePicker(context),
           child: Padding(
-            padding: const EdgeInsets.only(top: 24.0, left: 8.0),
+            padding: const EdgeInsets.only(top: 32.0, left: 8.0),
             child: Row(
               children: [
                 Text(
                   'Aconteceu em: $label',
-                  style: AppThemes.kLightBodyStyle.copyWith(
-                    color: label == addDate
-                        ? Colors.grey
-                        : Colors.black,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: label == addDate ? Colors.grey : Colors.black,
                   ),
                 ),
               ],
@@ -33,14 +30,16 @@ class DateTimeSection extends StatelessWidget {
     );
   }
 
-  void _showDatePicker(BuildContext context) async {
-    final date = await showDatePicker(
+  void _showDatePicker(BuildContext context) {
+    showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       lastDate: DateTime(2024, 1, 1),
       firstDate: DateTime(2018, 1, 1),
-    );
+    ).then((date) => _sendAddDateTime(context, date));
+  }
 
+  void _sendAddDateTime(BuildContext context, DateTime? date) {
     if (date != null) {
       BlocProvider.of<AddOrEditMomentBloc>(context)
           .add(AddOrEditMomentEventAddDateTime(date: date));

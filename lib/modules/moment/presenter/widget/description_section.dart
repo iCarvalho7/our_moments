@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
-import '../../../core/utils/theme/app_theme.dart';
 
 class DescriptionSection extends StatelessWidget {
 
@@ -19,14 +18,14 @@ class DescriptionSection extends StatelessWidget {
               keyboardType: TextInputType.multiline,
               maxLines: null,
               textCapitalization: TextCapitalization.sentences,
-              style: AppThemes.kLightBodyStyle,
+              style: Theme.of(context).textTheme.titleMedium,
               cursorColor: Colors.black,
               initialValue: state.moment.body,
               decoration: InputDecoration(
                 alignLabelWithHint: true,
                 hintText: 'Descreva em detalhes (ou não) esse momento',
-                floatingLabelStyle: AppThemes.kLightBodyStyle,
-                labelStyle: AppThemes.kLightBodyStyle,
+                floatingLabelStyle: Theme.of(context).textTheme.titleMedium,
+                labelStyle: Theme.of(context).textTheme.titleMedium,
                 border: InputBorder.none,
               ),
               onChanged: (bodyText) {

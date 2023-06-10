@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:injectable/injectable.dart';
-import 'package:nossos_momentos/modules/upload_photo/domain/repository/upload_photo_repository.dart';
+import 'package:nossos_momentos/modules/upload_photo/domain/repository/photos_repository.dart';
 
 @injectable
 class UploadPhotoUseCase {
-  final UploadPhotoRepository repository;
+  final PhotosRepository repository;
 
   UploadPhotoUseCase(this.repository);
 

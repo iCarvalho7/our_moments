@@ -63,7 +63,7 @@ class _TypeToggle extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             type.value,
-            style: AppThemes.kBodyStyle.copyWith(
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: isSelected ? Colors.black : Colors.grey,
             ),
           )

@@ -39,11 +39,6 @@ class FirebaseMomentsDataSource extends MomentsDataSource {
 
   @override
   Future deleteMoment(String momentId) async {
-    await momentsPhotoRef.child(momentId).listAll().then((value) {
-      for (var element in value.items) {
-        momentsPhotoRef.child(momentId).child(element.name).delete();
-      }
-    });
     return await momentsDBRef.doc(momentId).delete();
   }
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
+import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/widgets/card_add_moment.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/widgets/card_moment.dart';
@@ -30,10 +30,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
           appBar: AppBar(
             elevation: 0,
             centerTitle: true,
-            title: Text(
-              Strings.appName,
-              style: Fonts.grandHotelTitle,
-            ),
+            title: const Text(Strings.appName),
             backgroundColor: AppColors.secondary,
           ),
           body: Container(
@@ -55,7 +52,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
                 builder: (context, state) {
                   return Column(
                     children: [
-                      _TimeLineHeader(),
+                      const _TimeLineHeader(),
                       _buildTimeLinePage(),
                     ],
                   );
@@ -71,80 +68,70 @@ class _TimeLinePageState extends State<TimeLinePage> {
   Widget _buildTimeLinePage() {
     return BlocBuilder<TimeLineBloc, TimeLineState>(
       builder: (context, state) {
-        if (state is TimeLineStateLoaded) {
-          return _buildLoadedState(state);
-        }
         if (state is TimeLineStateLoading) {
           return _buildLoadingState();
         }
-        if (state is TimeLineStateEmpty) {
-          return _buildEmptyState(state);
-        }
-        return const SizedBox.shrink();
+        return _buildLoadedState(state);
       },
     );
   }
 
-  ListView _buildLoadedState(TimeLineStateLoaded state) {
+  ListView _buildLoadedState(TimeLineState state) {
+    final momentsList = <Moment>[];
+
+    if (state is TimeLineStateLoaded) {
+      momentsList.addAll((state).momentsList);
+    }
+
     return ListView.builder(
-      itemCount: state.momentsList.length + 1,
+      itemCount: momentsList.isEmpty ? 60 : momentsList.length + 1,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (parentContext, index) {
         return GestureDetector(
-          onLongPress: () => _showDeleteMomentDialog(
-            parentContext,
-            state.momentsList[index - 1].id,
-          ),
+          onLongPress: () => momentsList.isNotEmpty && index != 0
+              ? _showDeleteMomentDialog(
+                  parentContext,
+                  momentsList[index - 1].id,
+                )
+              : null,
           child: TimelineTile(
             alignment: TimelineAlign.manual,
             lineXY: 0.125,
-            isFirst: _isFirstItem(index),
+            isFirst: index == 0,
             beforeLineStyle: const LineStyle(color: AppColors.timeLineColor),
             afterLineStyle: const LineStyle(color: AppColors.timeLineColor),
             indicatorStyle: IndicatorStyle(
-              height: _isFirstItem(index) ? 50 : 15,
-              width: _isFirstItem(index) ? 50 : 15,
+              height: index == 0
+                  ? 50
+                  : momentsList.isEmpty
+                      ? 4
+                      : 15,
+              width: index == 0
+                  ? 50
+                  : momentsList.isEmpty
+                      ? 4
+                      : 15,
               color: AppColors.timeLineColor,
-              indicator: _isFirstItem(index) ? Assets.iconAddMoments : const _CircularIndicator(),
+              indicator: index == 0
+                  ? Assets.iconAddMoments
+                  : momentsList.isEmpty
+                      ? Container(color: AppColors.timeLineColor)
+                      : const _CircularIndicator(),
             ),
-            endChild: _isFirstItem(index)
+            endChild: index == 0
                 ? const CardAddMoment()
-                : CardMoment(moment: state.momentsList[index - 1]),
-            startChild: _isFirstItem(index)
+                : momentsList.isEmpty
+                    ? const SizedBox(height: 10)
+                    : CardMoment(moment: momentsList[index - 1]),
+            startChild: index == 0 || momentsList.isEmpty
                 ? const SizedBox.shrink()
                 : Text(
-                    state.momentsList[index - 1].dateTimeFormatted,
+                    momentsList[index - 1].dateTimeFormatted,
                     textAlign: TextAlign.center,
-                    style: AppThemes.kBodyLargeLineStyle,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildEmptyState(TimeLineStateEmpty state) {
-    return ListView.builder(
-      shrinkWrap: true,
-      itemCount: 55,
-      itemBuilder: (context, index) {
-        return TimelineTile(
-          alignment: TimelineAlign.manual,
-          lineXY: 0.125,
-          isFirst: _isFirstItem(index),
-          beforeLineStyle: const LineStyle(color: AppColors.timeLineColor),
-          afterLineStyle: const LineStyle(color: AppColors.timeLineColor),
-          indicatorStyle: IndicatorStyle(
-            height: 50,
-            width: _isFirstItem(index) ? 50 : 4,
-            color: AppColors.timeLineColor,
-            indicator: _isFirstItem(index)
-                ? Assets.iconAddMoments
-                : Container(color: AppColors.timeLineColor),
-          ),
-          endChild: _isFirstItem(index) ? const CardAddMoment() : const SizedBox(height: 10),
-          startChild: const SizedBox.shrink(),
         );
       },
     );
@@ -171,8 +158,6 @@ class _TimeLinePageState extends State<TimeLinePage> {
       ],
     );
   }
-
-  bool _isFirstItem(int index) => index == 0;
 
   void _showDeleteMomentDialog(BuildContext context, String momentId) {
     CustomDeleteDialog.show(
@@ -202,11 +187,7 @@ class _CircularIndicator extends StatelessWidget {
 }
 
 class _TimeLineHeader extends StatelessWidget {
-  _TimeLineHeader({Key? key}) : super(key: key);
-
-  final Period diff = LocalDate.dateTime(
-    DateTime(2019, 5, 22),
-  ).periodSince(LocalDate.today());
+  const _TimeLineHeader({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -219,7 +200,7 @@ class _TimeLineHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _CalendarCard(time: diff),
+          _CalendarCard(),
           Column(
             children: [
               if (yearIndex != -1) ...[
@@ -262,9 +243,9 @@ class _TimeLineHeader extends StatelessWidget {
 }
 
 class _CalendarCard extends StatelessWidget {
-  const _CalendarCard({Key? key, required this.time}) : super(key: key);
+  _CalendarCard({Key? key}) : super(key: key);
 
-  final Period time;
+  final Period time = LocalDate.dateTime(DateTime(2019, 5, 22)).periodSince(LocalDate.today());
 
   @override
   Widget build(BuildContext context) {
@@ -291,9 +272,7 @@ class _CalendarCard extends StatelessWidget {
             ),
             child: Text(
               '${time.years.abs()} Anos\n${time.months.abs()} Meses',
-              style: GoogleFonts.grandHotel(
-                fontSize: 30,
-              ),
+              style: Theme.of(context).appBarTheme.titleTextStyle,
             ),
           ),
         ),

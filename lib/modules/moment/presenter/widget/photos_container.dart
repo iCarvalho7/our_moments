@@ -46,12 +46,14 @@ class PhotosContainer extends StatelessWidget {
     );
   }
 
-  void _handleStateChanges(BuildContext context, PhotosState state) async {
+  void _handleStateChanges(BuildContext context, PhotosState state) {
     if (state is PhotosStateShowGallery) {
-      final photos = await ImagePicker().pickMultiImage();
-      final pathList = photos.map((e) => e.path).toList();
-
-      context.read<AddOrEditMomentBloc>().add(AddOrEditMomentEventAddPhoto(photos: pathList));
+      ImagePicker().pickMultiImage().then(
+        (photos) {
+          final pathList = photos.map((e) => e.path).toList();
+          context.read<AddOrEditMomentBloc>().add(AddOrEditMomentEventAddPhoto(photos: pathList));
+        },
+      );
     }
   }
 

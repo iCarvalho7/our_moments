@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
@@ -18,11 +19,23 @@ class CardMoment extends StatelessWidget {
   Widget get _fetchIconColorByMomentType {
     switch (moment.type) {
       case MomentType.good:
-        return Assets.iconGoodMoment;
+        return const Icon(
+          CupertinoIcons.check_mark_circled_solid,
+          color: AppColors.goodColor,
+          size: 40,
+        );
       case MomentType.bad:
-        return Assets.iconBadMoment;
+        return const Icon(
+          CupertinoIcons.clear_circled_solid,
+          color: AppColors.badColor,
+          size: 40,
+        );
       case MomentType.romantic:
-        return Assets.iconRomanticMoment;
+        return const Icon(
+          CupertinoIcons.heart_circle_fill,
+          color: AppColors.romanticColor,
+          size: 40,
+        );
     }
   }
 
@@ -44,20 +57,18 @@ class CardMoment extends StatelessWidget {
           color: Colors.transparent,
           child: Container(
             decoration: AppThemes.roundedBorder,
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
                     _fetchIconColorByMomentType,
-                    const SizedBox(
-                      width: 10,
-                    ),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         moment.title,
-                        style: AppThemes.kLightTitleStyle,
+                        style: Theme.of(context).textTheme.headlineSmall,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.start,
@@ -69,7 +80,7 @@ class CardMoment extends StatelessWidget {
                 Expanded(
                   child: Text(
                     moment.body,
-                    style: AppThemes.kLightBodyStyle,
+                    style: Theme.of(context).textTheme.titleMedium,
                     maxLines: 5,
                   ),
                 )

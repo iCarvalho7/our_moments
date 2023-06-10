@@ -8,6 +8,7 @@ import 'package:nossos_momentos/modules/time_line/domain/use_case/get_month_use_
 import 'package:nossos_momentos/modules/time_line/domain/use_case/get_year_use_case.dart';
 
 import '../../../moment/domain/entities/moment.dart';
+import '../../../upload_photo/domain/use_case/delete_photo_use_case.dart';
 import '../../domain/use_case/delete_moments_use_case.dart';
 
 part 'time_line_events.dart';
@@ -20,12 +21,14 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final GetMonthUseCase _getMonthUseCase;
   final GetYearUseCase _getYearUseCase;
   final DeleteMomentsUseCase _deleteMomentsUseCase;
+  final DeletePhotoUseCase _deletePhotoUseCase;
 
   TimeLineBloc(
     this._getMomentsUseCase,
     this._getMonthUseCase,
     this._getYearUseCase,
     this._deleteMomentsUseCase,
+    this._deletePhotoUseCase,
   ) : super(TimeLineStateInitial()) {
     on<TimeLineEventInit>(_init);
     on<TimeLineEventChangeDate>(_handleChangeDate);
@@ -90,7 +93,11 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     TimeLineEventDeleteMoment event,
     Emitter<TimeLineState> emit,
   ) async {
-    await _deleteMomentsUseCase.call(event.momentId);
+    final result = await _deletePhotoUseCase.call(event.momentId);
+    if (result.isSuccess) {
+      await _deleteMomentsUseCase.call(event.momentId);
+    }
+
     add(const TimeLineEventChangeDate());
   }
 

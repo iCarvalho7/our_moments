@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
-import '../../../core/utils/theme/app_theme.dart';
 
 class TitleSection extends StatelessWidget {
   const TitleSection({Key? key}) : super(key: key);
@@ -15,7 +14,7 @@ class TitleSection extends StatelessWidget {
           child: TextFormField(
             textInputAction: TextInputAction.next,
             textCapitalization: TextCapitalization.sentences,
-            style: AppThemes.kLightTitleStyle,
+            style: Theme.of(context).textTheme.headlineSmall,
             cursorColor: Colors.black,
             initialValue: state.moment.title,
             decoration: InputDecoration(
@@ -23,8 +22,8 @@ class TitleSection extends StatelessWidget {
               floatingLabelBehavior: FloatingLabelBehavior.never,
               alignLabelWithHint: true,
               labelText: 'Aquele em que...',
-              floatingLabelStyle: AppThemes.kLightTitleStyle,
-              labelStyle: AppThemes.kLightTitleStyle,
+              floatingLabelStyle: Theme.of(context).textTheme.headlineSmall,
+              labelStyle: Theme.of(context).textTheme.headlineSmall,
               border: InputBorder.none,
               contentPadding: EdgeInsets.zero
             ),

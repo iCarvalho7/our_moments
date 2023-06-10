@@ -1,7 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
 class TextSlider extends StatefulWidget {
   final Function(String) onChangeItem;
@@ -58,7 +57,7 @@ class _TextSliderState extends State<TextSlider> {
                     (item) => Center(
                       child: Text(
                         item,
-                        style: AppThemes.kLightHeadLineStyle,
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
                   )

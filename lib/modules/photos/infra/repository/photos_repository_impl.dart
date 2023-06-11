@@ -18,5 +18,8 @@ class PhotosRepositoryImpl extends PhotosRepository {
   ) => dataSource.uploadPhotoFromPath(paths, momentId);
 
   @override
-  Future deletePhotos(String momentId) => dataSource.deletePhotos(momentId);
+  Future clearAllPhotosFromMoment(String momentId) => dataSource.clearAllMomentPhotos(momentId);
+
+  @override
+  Future deletePhotosFromMoment(List<String> paths, String momentId) => dataSource.deleteMomentPhoto(paths, momentId);
 }

@@ -8,7 +8,7 @@ import 'package:nossos_momentos/modules/time_line/domain/use_case/get_month_use_
 import 'package:nossos_momentos/modules/time_line/domain/use_case/get_year_use_case.dart';
 
 import '../../../moment/domain/entities/moment.dart';
-import '../../../photos/domain/use_case/delete_photo_use_case.dart';
+import '../../../photos/domain/use_case/delete_all_photos_from_moment_use_case.dart';
 import '../../../moment/domain/use_case/delete_moments_use_case.dart';
 
 part 'time_line_events.dart';
@@ -21,7 +21,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final GetMonthUseCase _getMonthUseCase;
   final GetYearUseCase _getYearUseCase;
   final DeleteMomentsUseCase _deleteMomentsUseCase;
-  final DeletePhotoUseCase _deletePhotoUseCase;
+  final ClearAllPhotosFromMomentUseCase _deletePhotoUseCase;
 
   TimeLineBloc(
     this._getMomentsUseCase,

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:intl/intl.dart';
+import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
+import '../../../photos/domain/use_case/delete_photo_use_case.dart';
 import '../../domain/entities/moment.dart';
 import '../../domain/entities/moment_type.dart';
 import '../../domain/use_case/register_moments_use_case.dart';
@@ -18,11 +20,13 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
   final RegisterMomentsUseCase registerMomentsUseCase;
   final UploadPhotoUseCase uploadPhotoUseCase;
   final UpdateMomentUseCase updateMomentUseCase;
+  final DeletePhotoUseCase deletePhotoUseCase;
 
   AddOrEditMomentBloc(
     this.updateMomentUseCase,
     this.registerMomentsUseCase,
     this.uploadPhotoUseCase,
+    this.deletePhotoUseCase,
   ) : super(AddOrEditMomentStateEmpty()) {
     on<SetupAddMomentEvent>(_handleShowEmpty);
     on<SetupEditMomentEvent>(_handleEditMoment);
@@ -50,6 +54,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
       moment: state.moment.copyWith(
         type: event.type,
       ),
+      photosToDelete: state.photosToDelete,
     ));
   }
 
@@ -61,14 +66,23 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
 
     emit(AddOrEditMomentStateUpdate(
       moment: state.moment.copyWith(downloadUrlList: photos),
+      photosToDelete: state.photosToDelete,
     ));
-
   }
 
   FutureOr<void> _handleDeletePhoto(
     AddOrEditMomentEventDeletePhoto event,
     Emitter<AddOrEditMomentState> emit,
   ) {
+    final newList = state.moment.downloadUrlList;
+    newList.remove(event.photo);
+    emit(
+      AddOrEditMomentStateUpdate(
+        moment: state.moment.copyWith(downloadUrlList: newList),
+        photosToDelete:
+            event.photo.isHttpUrl ? [...state.photosToDelete, event.photo] : state.photosToDelete,
+      ),
+    );
   }
 
   FutureOr<void> _handleAddTimeEvent(
@@ -82,6 +96,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
         month: DateFormat(DateFormat.ABBR_MONTH, 'pt_BR').format(event.date),
         monthDay: event.date.day.toString(),
       ),
+      photosToDelete: state.photosToDelete,
     ));
   }
 
@@ -93,6 +108,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
       moment: state.moment.copyWith(
         title: event.title,
       ),
+      photosToDelete: state.photosToDelete,
     ));
   }
 
@@ -104,6 +120,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
       moment: state.moment.copyWith(
         body: event.bodyText,
       ),
+      photosToDelete: state.photosToDelete,
     ));
   }
 
@@ -111,7 +128,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     AddOrEditMomentEventCreateOrUpdateMoment event,
     Emitter<AddOrEditMomentState> emit,
   ) async {
-    emit(AddOrEditMomentStateLoading(moment: state.moment));
+    emit(AddOrEditMomentStateLoading(moment: state.moment, photosToDelete: state.photosToDelete));
 
     if (!state.moment.isEditing) {
       await _createMoment(emit);
@@ -121,7 +138,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
   }
 
   Future<void> _createMoment(Emitter<AddOrEditMomentState> emit) async {
-    final result = await uploadPhotoUseCase.call(UploadPhotoParams(
+    final result = await uploadPhotoUseCase.call(PhotoParams(
       paths: state.moment.localImgList,
       momentId: state.moment.id,
     ));
@@ -130,25 +147,34 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
       final uploadedImgList = state.moment.uploadedImgList;
       final moment = state.moment.copyWith(downloadUrlList: result.data!..addAll(uploadedImgList));
       await registerMomentsUseCase.call(moment);
-      emit(AddOrEditMomentStateUpdate(moment: moment));
+      emit(AddOrEditMomentStateUpdate(
+        moment: moment,
+        photosToDelete: [],
+      ));
     }
   }
 
   FutureOr<void> _editMoment(Emitter<AddOrEditMomentState> emit) async {
-    final localImageList = state.moment.localImgList;
-
-    final result = await uploadPhotoUseCase.call(UploadPhotoParams(
-      paths: localImageList,
+    final deleteResult = await deletePhotoUseCase(PhotoParams(
+      paths: state.photosToDelete,
       momentId: state.moment.id,
     ));
 
-    if (result.isSuccess) {
+    final result = await uploadPhotoUseCase(PhotoParams(
+      paths: state.moment.localImgList,
+      momentId: state.moment.id,
+    ));
+
+    if (result.isSuccess && deleteResult.isSuccess) {
       final editedMoment = state.moment.copyWith(
         downloadUrlList: result.data!..addAll(state.moment.uploadedImgList),
       );
-      await updateMomentUseCase.call(editedMoment);
+      await updateMomentUseCase(editedMoment);
 
-      emit(AddOrEditMomentStateUpdate(moment: editedMoment));
+      emit(AddOrEditMomentStateUpdate(
+        moment: editedMoment,
+        photosToDelete: [],
+      ));
     }
   }
 
@@ -156,7 +182,10 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     SetupEditMomentEvent event,
     Emitter<AddOrEditMomentState> emit,
   ) async {
-    emit(AddOrEditMomentStateUpdate(moment: event.moment.copyWith(isEditing: true)));
+    emit(AddOrEditMomentStateUpdate(
+      moment: event.moment.copyWith(isEditing: true),
+      photosToDelete: state.photosToDelete,
+    ));
   }
 
   static final defaultDateTime = DateTime(0, 0, 0);

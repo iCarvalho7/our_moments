@@ -23,7 +23,7 @@ class FirebaseStoragePhotoDataSource extends PhotoDataSource {
   }
 
   Future<String> _uploadFile(File image, String id) async {
-    final child = "$id/${image.path.split('/').last}";
+    final child = "$id/${image.path.split('/').last.replaceAll(' ', '_')}";
     final uploadTask = momentsPhotoRef.child(child).putFile(image);
     String downloadUrl = '';
 
@@ -34,14 +34,24 @@ class FirebaseStoragePhotoDataSource extends PhotoDataSource {
     return downloadUrl;
   }
 
-  static const String photosStorage = "photosStorage";
+  @override
+  Future clearAllMomentPhotos(String momentId) async {
+    final photoItems = (await momentsPhotoRef.child(momentId).listAll()).items;
+    for (var element in photoItems) {
+      await momentsPhotoRef.child(momentId).child(element.name).delete();
+    }
+  }
 
   @override
-  Future deletePhotos(String momentId) async {
-    await momentsPhotoRef.child(momentId).listAll().then((value) {
-      for (var element in value.items) {
-        momentsPhotoRef.child(momentId).child(element.name).delete();
+  Future deleteMomentPhoto(List<String> paths, String momentId) async {
+    final photoItems = (await momentsPhotoRef.child(momentId).listAll()).items;
+    for (final item in photoItems) {
+      final url = await item.getDownloadURL();
+      if (paths.contains(url)) {
+        await momentsPhotoRef.child(momentId).child(item.name).delete();
       }
-    });
+    }
   }
+
+  static const String photosStorage = "photosStorage";
 }

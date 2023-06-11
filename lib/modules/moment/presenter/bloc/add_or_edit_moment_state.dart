@@ -2,30 +2,23 @@ part of 'add_or_edit_moment_bloc.dart';
 
 abstract class AddOrEditMomentState {
   final Moment moment;
+  final List<String> photosToDelete;
 
-  const AddOrEditMomentState({required this.moment});
+  const AddOrEditMomentState({required this.moment, required this.photosToDelete});
 }
 
 class AddOrEditMomentStateEmpty extends AddOrEditMomentState {
-  AddOrEditMomentStateEmpty() : super(moment: Moment.empty());
+  AddOrEditMomentStateEmpty() : super(moment: Moment.empty(), photosToDelete: []);
 }
 
 class AddOrEditMomentStateUpdate extends AddOrEditMomentState {
-  const AddOrEditMomentStateUpdate({required super.moment});
+  const AddOrEditMomentStateUpdate({required super.moment, required super.photosToDelete});
 }
 
 class AddOrEditMomentStateCreate extends AddOrEditMomentState {
-  const AddOrEditMomentStateCreate({required super.moment});
+  const AddOrEditMomentStateCreate({required super.moment, required super.photosToDelete });
 }
 
 class AddOrEditMomentStateLoading extends AddOrEditMomentState {
-  const AddOrEditMomentStateLoading({required super.moment});
-}
-
-class AddOrEditMomentStateLoaded extends AddOrEditMomentState {
-  const AddOrEditMomentStateLoaded({required super.moment});
-}
-
-class AddOrEditMomentStateOpenGallery extends AddOrEditMomentState {
-  const AddOrEditMomentStateOpenGallery({required super.moment});
+  const AddOrEditMomentStateLoading({required super.moment, required super.photosToDelete});
 }

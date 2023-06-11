@@ -5,10 +5,9 @@ import 'package:injectable/injectable.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/moment.dart';
 import '../../domain/entities/moment_type.dart';
-import '../../domain/use_case/get_moment_by_id_use_case.dart';
 import '../../domain/use_case/register_moments_use_case.dart';
 import '../../domain/use_case/update_moment_use_case.dart';
-import '../../../upload_photo/domain/use_case/upload_photo_use_case.dart';
+import '../../../photos/domain/use_case/upload_photo_use_case.dart';
 
 part 'add_or_edit_moment_event.dart';
 
@@ -18,14 +17,12 @@ part 'add_or_edit_moment_state.dart';
 class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentState> {
   final RegisterMomentsUseCase registerMomentsUseCase;
   final UploadPhotoUseCase uploadPhotoUseCase;
-  final GetMomentByIdUseCase getMomentByIdUseCase;
   final UpdateMomentUseCase updateMomentUseCase;
 
   AddOrEditMomentBloc(
     this.updateMomentUseCase,
     this.registerMomentsUseCase,
     this.uploadPhotoUseCase,
-    this.getMomentByIdUseCase,
   ) : super(AddOrEditMomentStateEmpty()) {
     on<SetupAddMomentEvent>(_handleShowEmpty);
     on<SetupEditMomentEvent>(_handleEditMoment);
@@ -124,29 +121,35 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
   }
 
   Future<void> _createMoment(Emitter<AddOrEditMomentState> emit) async {
-    final downloadUrlList = await uploadPhotoUseCase.call(
-      state.moment.localImgList,
-      state.moment.id,
-    );
+    final result = await uploadPhotoUseCase.call(UploadPhotoParams(
+      paths: state.moment.localImgList,
+      momentId: state.moment.id,
+    ));
 
-    final uploadedImgList = state.moment.uploadedImgList;
-    final moment = state.moment.copyWith(downloadUrlList: downloadUrlList..addAll(uploadedImgList));
-    await registerMomentsUseCase.call(moment);
-    emit(AddOrEditMomentStateUpdate(moment: moment));
+    if (result.isSuccess) {
+      final uploadedImgList = state.moment.uploadedImgList;
+      final moment = state.moment.copyWith(downloadUrlList: result.data!..addAll(uploadedImgList));
+      await registerMomentsUseCase.call(moment);
+      emit(AddOrEditMomentStateUpdate(moment: moment));
+    }
   }
 
   FutureOr<void> _editMoment(Emitter<AddOrEditMomentState> emit) async {
     final localImageList = state.moment.localImgList;
 
-    final downloadUrlList = await uploadPhotoUseCase.call(
-      localImageList,
-      state.moment.id,
-    );
+    final result = await uploadPhotoUseCase.call(UploadPhotoParams(
+      paths: localImageList,
+      momentId: state.moment.id,
+    ));
 
-    final editedMoment = state.moment.copyWith(downloadUrlList: downloadUrlList..addAll(state.moment.uploadedImgList));
-    await updateMomentUseCase.call(editedMoment);
+    if (result.isSuccess) {
+      final editedMoment = state.moment.copyWith(
+        downloadUrlList: result.data!..addAll(state.moment.uploadedImgList),
+      );
+      await updateMomentUseCase.call(editedMoment);
 
-    emit(AddOrEditMomentStateUpdate(moment: editedMoment));
+      emit(AddOrEditMomentStateUpdate(moment: editedMoment));
+    }
   }
 
   FutureOr<void> _handleEditMoment(

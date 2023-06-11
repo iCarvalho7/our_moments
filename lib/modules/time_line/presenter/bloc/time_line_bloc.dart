@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:nossos_momentos/modules/core/use_case/use_case.dart';
-import 'package:nossos_momentos/modules/time_line/domain/use_case/get_moments_use_case.dart';
+import 'package:nossos_momentos/modules/moment/domain/use_case/get_moments_use_case.dart';
 import 'package:nossos_momentos/modules/time_line/domain/use_case/get_month_use_case.dart';
 import 'package:nossos_momentos/modules/time_line/domain/use_case/get_year_use_case.dart';
 
 import '../../../moment/domain/entities/moment.dart';
-import '../../../upload_photo/domain/use_case/delete_photo_use_case.dart';
-import '../../domain/use_case/delete_moments_use_case.dart';
+import '../../../photos/domain/use_case/delete_photo_use_case.dart';
+import '../../../moment/domain/use_case/delete_moments_use_case.dart';
 
 part 'time_line_events.dart';
 
@@ -61,24 +61,28 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     final year = event.year ?? state.year;
     final month = event.disableMonth ? null : event.month ?? state.month;
 
-    final filteredMoments = await _getMomentsUseCase.call(
+    final result = await _getMomentsUseCase.call(GetMomentsParam(
       year: year,
       month: month,
-    );
+    ));
 
-    if (filteredMoments.isEmpty) {
-      emit(TimeLineStateEmpty(
-        year: year,
-        month: month ?? state.month,
-        isMonthEnabled: state.isMonthEnabled,
-      ));
+    if (result.isSuccess || result.data?.isEmpty == false) {
+      emit(
+        TimeLineStateLoaded(
+          momentsList: result.data!,
+          year: year,
+          month: month ?? state.month,
+          isMonthEnabled: state.isMonthEnabled,
+        ),
+      );
     } else {
-      emit(TimeLineStateLoaded(
-        momentsList: filteredMoments,
-        year: year,
-        month: month ?? state.month,
-        isMonthEnabled: state.isMonthEnabled,
-      ));
+      emit(
+        TimeLineStateEmpty(
+          year: year,
+          month: month ?? state.month,
+          isMonthEnabled: state.isMonthEnabled,
+        ),
+      );
     }
   }
 

@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:injectable/injectable.dart';
-import 'package:nossos_momentos/modules/upload_photo/infra/data_source/photo_data_source.dart';
+import 'package:nossos_momentos/modules/photos/infra/data_source/photo_data_source.dart';
 
 @Injectable(as: PhotoDataSource)
 class FirebaseStoragePhotoDataSource extends PhotoDataSource {

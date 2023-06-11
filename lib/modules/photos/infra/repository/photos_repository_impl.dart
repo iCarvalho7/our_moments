@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:injectable/injectable.dart';
-import 'package:nossos_momentos/modules/upload_photo/domain/repository/photos_repository.dart';
-import 'package:nossos_momentos/modules/upload_photo/infra/data_source/photo_data_source.dart';
+import 'package:nossos_momentos/modules/photos/domain/repository/photos_repository.dart';
+import 'package:nossos_momentos/modules/photos/infra/data_source/photo_data_source.dart';
 
 @Injectable(as: PhotosRepository)
 class PhotosRepositoryImpl extends PhotosRepository {

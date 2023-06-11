@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:injectable/injectable.dart';
-import '../../../upload_photo/external/firebase_storage_photo_data_source.dart';
+import '../../../photos/external/firebase_storage_photo_data_source.dart';
 import '../../infra/data_source/moments_data_source.dart';
 import '../../infra/models/moment_model.dart';
 

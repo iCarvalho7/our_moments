@@ -4,7 +4,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../modules/moment/external/firebase/firebase_moments_data_source.dart';
 import '../../modules/moment/infra/models/moment_model.dart';
-import '../../modules/upload_photo/external/firebase_storage_photo_data_source.dart';
+import '../../modules/photos/external/firebase_storage_photo_data_source.dart';
 
 @module
 abstract class FirebaseModule {

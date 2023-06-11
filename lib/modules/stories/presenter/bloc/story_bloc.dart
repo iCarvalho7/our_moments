@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
-import 'package:nossos_momentos/modules/stories/domain/story.dart';
+import 'package:nossos_momentos/modules/stories/domain/entity/story.dart';
 
 part 'story_event.dart';
 part 'story_state.dart';

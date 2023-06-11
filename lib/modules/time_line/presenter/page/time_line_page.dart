@@ -48,12 +48,15 @@ class _TimeLinePageState extends State<TimeLinePage> {
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: BlocBuilder<TimeLineBloc, TimeLineState>(
-                buildWhen: (oldState, state) => state is! TimeLineStateInitial,
                 builder: (context, state) {
                   return Column(
                     children: [
-                      const _TimeLineHeader(),
-                      _buildTimeLinePage(),
+                      _TimeLineHeader(state: state),
+                      if (state is TimeLineStateLoading) ...[
+                        _buildLoadingState(),
+                      ] else ...[
+                        _buildTimeLine(state),
+                      ],
                     ],
                   );
                 },
@@ -65,22 +68,11 @@ class _TimeLinePageState extends State<TimeLinePage> {
     );
   }
 
-  Widget _buildTimeLinePage() {
-    return BlocBuilder<TimeLineBloc, TimeLineState>(
-      builder: (context, state) {
-        if (state is TimeLineStateLoading) {
-          return _buildLoadingState();
-        }
-        return _buildLoadedState(state);
-      },
-    );
-  }
-
-  ListView _buildLoadedState(TimeLineState state) {
+  ListView _buildTimeLine(TimeLineState state) {
     final momentsList = <Moment>[];
 
     if (state is TimeLineStateLoaded) {
-      momentsList.addAll((state).momentsList);
+      momentsList.addAll(state.momentsList);
     }
 
     return ListView.builder(
@@ -144,7 +136,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
           itemCount: 3,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemBuilder: ((context, index) {
+          itemBuilder: (context, index) {
             return LoadingEffect(
               child: Container(
                 width: MediaQuery.of(context).size.width,
@@ -153,7 +145,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
                 margin: const EdgeInsets.symmetric(vertical: 10),
               ),
             );
-          }),
+          },
         ),
       ],
     );
@@ -187,11 +179,12 @@ class _CircularIndicator extends StatelessWidget {
 }
 
 class _TimeLineHeader extends StatelessWidget {
-  const _TimeLineHeader({Key? key}) : super(key: key);
+  const _TimeLineHeader({Key? key, required this.state}) : super(key: key);
+
+  final TimeLineState state;
 
   @override
   Widget build(BuildContext context) {
-    final state = context.read<TimeLineBloc>().state;
     final monthIndex = TimeLineBloc.monthsName.indexOf(state.month);
     final yearIndex = TimeLineBloc.enabledYears.indexOf(state.year);
 

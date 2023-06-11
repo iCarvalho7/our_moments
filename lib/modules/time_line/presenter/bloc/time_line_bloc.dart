@@ -42,7 +42,11 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   ) async {
     String year = _getYearUseCase(NoParams.instance).data!;
     String month = _getMonthUseCase(NoParams.instance).data!;
-    emit(TimeLineStateLoading(year: year, month: month, isMonthEnabled: state.isMonthEnabled));
+    emit(TimeLineStateLoading(
+      year: year,
+      month: month,
+      isMonthEnabled: state.isMonthEnabled,
+    ));
     add(TimeLineEventChangeDate(year: year, month: month));
   }
 
@@ -54,19 +58,19 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
       TimeLineStateLoading(
         year: state.year,
         month: state.month,
-        isMonthEnabled: !event.disableMonth,
+        isMonthEnabled: event.disableMonth ?? state.isMonthEnabled,
       ),
     );
 
     final year = event.year ?? state.year;
-    final month = event.disableMonth ? null : event.month ?? state.month;
+    final month = !state.isMonthEnabled ? null : event.month ?? state.month;
 
     final result = await _getMomentsUseCase.call(GetMomentsParam(
       year: year,
       month: month,
     ));
 
-    if (result.isSuccess || result.data?.isEmpty == false) {
+    if (result.isSuccess && result.data!.isEmpty == false) {
       emit(
         TimeLineStateLoaded(
           momentsList: result.data!,
@@ -90,7 +94,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     TimeLineEventChangeEyeToggle event,
     Emitter<TimeLineState> emit,
   ) async {
-    add(TimeLineEventChangeDate(disableMonth: state.isMonthEnabled));
+    add(TimeLineEventChangeDate(disableMonth: !state.isMonthEnabled));
   }
 
   FutureOr<void> _deleteMoment(

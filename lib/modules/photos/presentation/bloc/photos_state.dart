@@ -8,6 +8,8 @@ class PhotosStateInit extends PhotosState {
   const PhotosStateInit();
 }
 
-class PhotosStateShowGallery extends PhotosState {
-  PhotosStateShowGallery();
+class PhotosStateMediaFound extends PhotosState {
+  PhotosStateMediaFound({required this.mediaFound});
+
+  final List<Story> mediaFound;
 }

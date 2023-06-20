@@ -14,6 +14,13 @@ class StoryEventInit extends StoryEvent {
   });
 }
 
+class StoryEventPlay extends StoryEvent {
+  final Story currentStory;
+  final List<Story> stories;
+
+  const StoryEventPlay({required this.currentStory, required this.stories});
+}
+
 class StoryEventPauseStories extends StoryEvent {
   const StoryEventPauseStories();
 }

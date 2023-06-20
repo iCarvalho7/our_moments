@@ -22,10 +22,10 @@ class AddOrEditMomentEventSelectType extends AddOrEditMomentEvent {
   });
 }
 
-class AddOrEditMomentEventAddPhoto extends AddOrEditMomentEvent {
-  final List<String> photos;
+class AddOrEditMomentEventAddMedia extends AddOrEditMomentEvent {
+  final List<String> medias;
 
-  const AddOrEditMomentEventAddPhoto({required this.photos});
+  const AddOrEditMomentEventAddMedia({required this.medias});
 }
 
 class AddOrEditMomentEventDeletePhoto extends AddOrEditMomentEvent {

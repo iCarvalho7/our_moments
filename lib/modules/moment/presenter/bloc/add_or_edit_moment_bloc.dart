@@ -1,9 +1,12 @@
+// ignore_for_file: unused_import
+
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:intl/intl.dart';
 import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
+import 'package:nossos_momentos/modules/stories/domain/entity/story.dart';
 import '../../../photos/domain/use_case/delete_photo_use_case.dart';
 import '../../domain/entities/moment.dart';
 import '../../domain/entities/moment_type.dart';
@@ -31,7 +34,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     on<SetupAddMomentEvent>(_handleShowEmpty);
     on<SetupEditMomentEvent>(_handleEditMoment);
     on<AddOrEditMomentEventSelectType>(_handleSelectType);
-    on<AddOrEditMomentEventAddPhoto>(_handleAddPhoto);
+    on<AddOrEditMomentEventAddMedia>(_handleAddPhoto);
     on<AddOrEditMomentEventDeletePhoto>(_handleDeletePhoto);
     on<AddOrEditMomentEventAddDateTime>(_handleAddTimeEvent);
     on<AddOrEditMomentEventTypeTitle>(_handleTypeTitle);
@@ -59,10 +62,10 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
   }
 
   FutureOr<void> _handleAddPhoto(
-    AddOrEditMomentEventAddPhoto event,
+    AddOrEditMomentEventAddMedia event,
     Emitter<AddOrEditMomentState> emit,
   ) {
-    final photos = state.moment.downloadUrlList.toList()..addAll(event.photos);
+    final photos = state.moment.downloadUrlList.toList()..addAll(event.medias);
 
     emit(AddOrEditMomentStateUpdate(
       moment: state.moment.copyWith(downloadUrlList: photos),

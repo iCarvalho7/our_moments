@@ -8,6 +8,13 @@ class StoryStateLoading extends StoryState {
   const StoryStateLoading();
 }
 
+class StoryStateSetUpControllers extends StoryState {
+
+  final Story story;
+  final List<Story> stories;
+
+  const StoryStateSetUpControllers({required this.stories, required this.story});
+}
 class StoryStateLoaded extends StoryState {
   final Story story;
   final List<Story> stories;

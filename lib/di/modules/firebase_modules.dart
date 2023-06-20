@@ -8,16 +8,13 @@ import '../../modules/photos/external/firebase_storage_photo_data_source.dart';
 
 @module
 abstract class FirebaseModule {
-
   @Named(FirebaseMomentsDataSource.momentsDBParam)
   CollectionReference<MomentModel> get momentsDBRef =>
       FirebaseFirestore.instance.collection('moments').withConverter(
-            fromFirestore: ((snapshot, options) =>
-                MomentModel.fromJson(snapshot.data()!)),
+            fromFirestore: ((snapshot, options) => MomentModel.fromJson(snapshot.data()!)),
             toFirestore: (moments, options) => moments.toJson(),
           );
 
   @Named(FirebaseStoragePhotoDataSource.photosStorage)
-  Reference get momentsPhotoRef =>
-      FirebaseStorage.instance.ref().child('moments_photo');
+  Reference get momentsPhotoRef => FirebaseStorage.instance.ref().child('moments_photo');
 }

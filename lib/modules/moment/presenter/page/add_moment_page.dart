@@ -5,7 +5,7 @@ import '../bloc/add_or_edit_moment_bloc.dart';
 import '../widget/date_time_section.dart';
 import '../widget/description_section.dart';
 import '../widget/history_container_loading.dart';
-import '../widget/photos_container.dart';
+import '../../../photos/presentation/widget/photos_container.dart';
 import '../widget/moment_form_section_loading.dart';
 import '../widget/select_type_toggle.dart';
 import '../widget/tile_section.dart';

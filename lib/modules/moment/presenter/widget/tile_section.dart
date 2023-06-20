@@ -23,7 +23,9 @@ class TitleSection extends StatelessWidget {
               alignLabelWithHint: true,
               labelText: 'Aquele em que...',
               floatingLabelStyle: Theme.of(context).textTheme.headlineSmall,
-              labelStyle: Theme.of(context).textTheme.headlineSmall,
+              labelStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Colors.grey
+              ),
               border: InputBorder.none,
               contentPadding: EdgeInsets.zero
             ),

@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
-import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
 import 'package:nossos_momentos/modules/stories/domain/entity/story.dart';
 
 part 'story_event.dart';
+
 part 'story_state.dart';
 
 @injectable
@@ -15,6 +15,7 @@ class StoryBloc extends Bloc<StoryEvent, StoryState> {
 
   StoryBloc() : super(const StoryStateLoading()) {
     on<StoryEventInit>(_init);
+    on<StoryEventPlay>(_play);
     on<StoryEventPauseStories>(_pauseStories);
     on<StoryEventNextStory>(_handleNextStory);
     on<StoryEventNextFinish>(_finish);
@@ -24,13 +25,10 @@ class StoryBloc extends Bloc<StoryEvent, StoryState> {
     StoryEventInit event,
     Emitter<StoryState> emit,
   ) async {
-    final list = event.stories
-        .map((path) => Story(url: path, isNetwork: path.isHttpUrl))
-        .toList();
+    final list = event.stories.map((path) => Story(url: path)).toList();
     stories = list;
     _currentIndex = event.currentIndex;
-
-    emit(StoryStateLoaded(
+    emit(StoryStateSetUpControllers(
       story: stories[event.currentIndex],
       stories: stories,
     ));
@@ -45,7 +43,7 @@ class StoryBloc extends Bloc<StoryEvent, StoryState> {
 
     if (nextIndex <= lastIndex) {
       _currentIndex = nextIndex;
-      emit(StoryStateLoaded(
+      emit(StoryStateSetUpControllers(
         story: stories[nextIndex],
         stories: stories,
       ));
@@ -68,5 +66,9 @@ class StoryBloc extends Bloc<StoryEvent, StoryState> {
     Emitter<StoryState> emit,
   ) {
     emit(const StoryStatePause());
+  }
+
+  FutureOr<void> _play(StoryEventPlay event, Emitter<StoryState> emit) {
+    emit(StoryStateLoaded(story: event.currentStory, stories: event.stories));
   }
 }

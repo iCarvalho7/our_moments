@@ -25,7 +25,9 @@ class DescriptionSection extends StatelessWidget {
                 alignLabelWithHint: true,
                 hintText: 'Descreva em detalhes (ou não) esse momento',
                 floatingLabelStyle: Theme.of(context).textTheme.titleMedium,
-                labelStyle: Theme.of(context).textTheme.titleMedium,
+                labelStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.grey
+                ),
                 border: InputBorder.none,
               ),
               onChanged: (bodyText) {

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+const kSpacerHeight32 = SizedBox(height: 32);
+const kSpacerHeight16 = SizedBox(height: 16);
+
 class AppThemes {
   static final BoxDecoration circularBorder = BoxDecoration(
     border: Border.all(color: Colors.transparent),
@@ -35,6 +38,11 @@ class AppColors {
     Color(0xFFBF16EA),
     Color(0xFFD00A0A),
     Color(0xFFCBA622),
+  ];
+
+  static const List<Color> loginGradient = [
+    Color(0xFFFFC5C5),
+    Colors.white,
   ];
 }
 

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:injectable/injectable.dart';
 
@@ -17,4 +18,6 @@ abstract class FirebaseModule {
 
   @Named(FirebaseStoragePhotoDataSource.photosStorage)
   Reference get momentsPhotoRef => FirebaseStorage.instance.ref().child('moments_photo');
+
+  FirebaseAuth get firebaseAuth => FirebaseAuth.instance;
 }

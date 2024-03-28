@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:nossos_momentos/modules/login/presentation/page/login_page.dart';
 
 import '../../moment/presenter/page/add_moment_page.dart';
 import '../../stories/presenter/page/story_page.dart';
 import '../../time_line/presenter/page/time_line_page.dart';
 
 enum AppRoute {
+  login(
+    '//login',
+    LoginPage()
+  ),
   timeLine(
     '//time_line',
     TimeLinePage(),

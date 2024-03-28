@@ -179,7 +179,7 @@ class _CircularIndicator extends StatelessWidget {
 }
 
 class _TimeLineHeader extends StatelessWidget {
-  const _TimeLineHeader({Key? key, required this.state}) : super(key: key);
+  const _TimeLineHeader({required this.state});
 
   final TimeLineState state;
 

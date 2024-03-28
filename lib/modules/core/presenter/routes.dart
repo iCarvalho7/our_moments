@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nossos_momentos/modules/login/presentation/page/login_page.dart';
+import 'package:nossos_momentos/modules/signup/presentation/page/sign_up_page.dart';
 
 import '../../moment/presenter/page/add_moment_page.dart';
 import '../../stories/presenter/page/story_page.dart';
@@ -9,6 +10,10 @@ enum AppRoute {
   login(
     '//login',
     LoginPage()
+  ),
+  signup(
+      '//register_user',
+      SignUpPage()
   ),
   timeLine(
     '//time_line',

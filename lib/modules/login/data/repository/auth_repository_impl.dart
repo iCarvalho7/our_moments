@@ -13,4 +13,9 @@ class AuthRepositoryImpl extends AuthRepository {
   Future<void> signIn(String username, String password) {
     return dataSource.signIn(username, password);
   }
+
+  @override
+  Future<void> signUp(String username, String password) {
+    return dataSource.signUp(username, password);
+  }
 }

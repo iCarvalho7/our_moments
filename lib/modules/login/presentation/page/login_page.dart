@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nossos_momentos/di/injection.dart';
+import 'package:nossos_momentos/modules/core/presenter/widgets/background_gradient.dart';
+import 'package:nossos_momentos/modules/core/presenter/widgets/dialog_loading.dart';
 import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
+import '../../../core/presenter/routes.dart';
 import '../bloc/login_bloc.dart';
 import '../widget/login_text_field.dart';
 
@@ -18,14 +21,14 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _userNameTextController = TextEditingController();
-  final _passwordTextController = TextEditingController();
-
-  String? _usernameErrorText;
-  String? _passwordErrorText;
 
   String get username => _userNameTextController.text;
+  String? _usernameErrorText;
+
+  final _passwordTextController = TextEditingController();
 
   String get password => _passwordTextController.text;
+  String? _passwordErrorText;
 
   bool get hasError => _usernameErrorText != null || _passwordErrorText != null;
 
@@ -56,22 +59,15 @@ class _LoginPageState extends State<LoginPage> {
             body: SafeArea(
               child: Stack(
                 children: [
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: AppColors.loginGradient,
-                        stops: [0.0, 1.0],
-                      ),
-                    ),
-                  ),
+                  const BackgroundGradient(),
                   Container(
                     alignment: Alignment.center,
                     padding: const EdgeInsets.all(16.0),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        final width = constraints.maxWidth > 1200 ? 500.0 : constraints.maxWidth;
+                        final width = constraints.maxWidth > 1200
+                            ? 500.0
+                            : constraints.maxWidth;
                         return SizedBox(
                           width: width,
                           child: Column(
@@ -111,7 +107,10 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               kSpacerHeight32,
                               TextButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                      context, AppRoute.signup.tag);
+                                },
                                 child: const Text('Criar uma conta'),
                               ),
                               const Spacer(flex: 1),
@@ -170,22 +169,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     if (state is LoginLoading) {
-      var backgroundColor = Colors.transparent;
-
-      showDialog(
-        context: context,
-        barrierColor: backgroundColor,
-        builder: (_) {
-          return AlertDialog(
-            backgroundColor: backgroundColor,
-            shadowColor: backgroundColor,
-            surfaceTintColor: backgroundColor,
-            content: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        },
-      );
+      showLoading(context);
     }
 
     if (state is LoginSuccess) {

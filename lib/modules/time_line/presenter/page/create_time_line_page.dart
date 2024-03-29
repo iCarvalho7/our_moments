@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -23,11 +22,26 @@ class CreateTimeLinePage extends StatelessWidget {
           const BackgroundGradient(),
           Scaffold(
             backgroundColor: Colors.transparent,
-            appBar: const PrimaryAppBar(title: 'Linha do Tempo'),
+            appBar: PrimaryAppBar(
+              title: '',
+              back: BlocBuilder<SelectTimeLineBloc, SelectTimeLineState>(
+                builder: (context, state) {
+                  return IconButton(
+                    onPressed: () {
+                      context
+                          .read<SelectTimeLineBloc>()
+                          .add(SelectTimeLineEventLogout());
+                    },
+                    icon: const Icon(Icons.logout),
+                  );
+                },
+              ),
+            ),
             body: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: BlocBuilder<SelectTimeLineBloc, SelectTimeLineState>(
+                child: BlocConsumer<SelectTimeLineBloc, SelectTimeLineState>(
+                  listener: listenerChanges,
                   builder: (context, state) {
                     if (state is SelectTimeLineLoading) {
                       return const Center(child: CircularProgressIndicator());
@@ -40,10 +54,10 @@ class CreateTimeLinePage extends StatelessWidget {
 
                     if (state is SelectTimeLineSuccess) {
                       return ListView.builder(
-                        itemCount: 10,
+                        itemCount: state.timeLines.length,
                         shrinkWrap: true,
                         itemBuilder: (context, index) {
-                          final item = state.timeLines[0];
+                          final item = state.timeLines[index];
                           return _SelectTimeLineItem(item: item);
                         },
                       );
@@ -59,6 +73,13 @@ class CreateTimeLinePage extends StatelessWidget {
       ),
     );
   }
+
+  void listenerChanges(BuildContext context, SelectTimeLineState state) {
+    if (state is SelectTimeLogoutSuccess) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRoute.login.tag, (Route<dynamic> route) => false);
+    }
+  }
 }
 
 class _SelectTimeLineItem extends StatelessWidget {
@@ -69,7 +90,9 @@ class _SelectTimeLineItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        Navigator.pushNamed(context, AppRoute.timeLine.tag, arguments: item);
+      },
       child: Container(
         margin: const EdgeInsets.all(8.0),
         child: Material(

@@ -54,72 +54,70 @@ class _LoginPageState extends State<LoginPage> {
         listener: _listerStateChanges,
         builder: (context, state) {
           return Scaffold(
-            body: SafeArea(
-              child: Stack(
-                children: [
-                  const BackgroundGradient(),
-                  Container(
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.all(16.0),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final width = constraints.maxWidth > 1200
-                            ? 500.0
-                            : constraints.maxWidth;
-                        return SizedBox(
-                          width: width,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              const Spacer(flex: 2),
-                              Text(
-                                'Nossos\nMomentos',
-                                style: Theme.of(context).textTheme.titleLarge,
+            body: Stack(
+              children: [
+                const BackgroundGradient(),
+                Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.all(16.0),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth > 1200
+                          ? 500.0
+                          : constraints.maxWidth;
+                      return SizedBox(
+                        width: width,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Spacer(flex: 2),
+                            Text(
+                              'Nossos\nMomentos',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const Spacer(flex: 1),
+                            LoginTextField(
+                              controller: _userNameTextController,
+                              errorText: _usernameErrorText,
+                              startIcon: Icons.person,
+                              hint: 'exemplo@email.com',
+                            ),
+                            kSpacerHeight16,
+                            LoginTextField(
+                              controller: _passwordTextController,
+                              errorText: _passwordErrorText,
+                              startIcon: Icons.lock,
+                              endIcon: Icons.remove_red_eye,
+                              hint: '********',
+                              isPassword: true,
+                            ),
+                            kSpacerHeight32,
+                            const Spacer(flex: 3),
+                            Material(
+                              elevation: 4,
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(15),
+                              child: OutlinedButton(
+                                onPressed: () => _signIn(context),
+                                child: const Text('Login'),
                               ),
-                              const Spacer(flex: 1),
-                              LoginTextField(
-                                controller: _userNameTextController,
-                                errorText: _usernameErrorText,
-                                startIcon: Icons.person,
-                                hint: 'exemplo@email.com',
-                              ),
-                              kSpacerHeight16,
-                              LoginTextField(
-                                controller: _passwordTextController,
-                                errorText: _passwordErrorText,
-                                startIcon: Icons.lock,
-                                endIcon: Icons.remove_red_eye,
-                                hint: '********',
-                                isPassword: true,
-                              ),
-                              kSpacerHeight32,
-                              const Spacer(flex: 3),
-                              Material(
-                                elevation: 4,
-                                color: Colors.transparent,
-                                borderRadius: BorderRadius.circular(15),
-                                child: OutlinedButton(
-                                  onPressed: () => _signIn(context),
-                                  child: const Text('Login'),
-                                ),
-                              ),
-                              kSpacerHeight32,
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pushNamed(
-                                      context, AppRoute.signup.tag);
-                                },
-                                child: const Text('Criar uma conta'),
-                              ),
-                              const Spacer(flex: 1),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  )
-                ],
-              ),
+                            ),
+                            kSpacerHeight32,
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                    context, AppRoute.signup.tag);
+                              },
+                              child: const Text('Criar uma conta'),
+                            ),
+                            const Spacer(flex: 1),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                )
+              ],
             ),
           );
         },
@@ -171,8 +169,10 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     if (state is LoginSuccess) {
-      Navigator.pop(context);
-      Navigator.of(context).pushReplacementNamed(AppRoute.createTimeLine.tag);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.maybePop(context);
+        Navigator.of(context).pushReplacementNamed(AppRoute.createTimeLine.tag);
+      });
     }
   }
 }

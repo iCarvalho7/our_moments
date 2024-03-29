@@ -8,4 +8,6 @@ abstract class AuthRemoteDataSource {
   bool isUserAuthenticated();
 
   User? getCurrentUser();
+
+  Future<void> logout();
 }

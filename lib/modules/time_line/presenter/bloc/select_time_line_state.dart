@@ -15,3 +15,7 @@ final class SelectTimeLineSuccess extends SelectTimeLineState {
 final class SelectTimeLineError extends SelectTimeLineState {}
 
 final class SelectTimeLineEmpty extends SelectTimeLineState {}
+
+final class SelectTimeLogoutError extends SelectTimeLineState {}
+
+final class SelectTimeLogoutSuccess extends SelectTimeLineState {}

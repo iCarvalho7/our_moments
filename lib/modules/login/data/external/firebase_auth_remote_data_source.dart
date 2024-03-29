@@ -33,4 +33,9 @@ class FirebaseAuthRemoteDataSource extends AuthRemoteDataSource {
   User? getCurrentUser() {
     return firebaseAuth.currentUser;
   }
+
+  @override
+  Future<void> logout() async {
+    return await firebaseAuth.signOut();
+  }
 }

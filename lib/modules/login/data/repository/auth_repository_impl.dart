@@ -29,4 +29,9 @@ class AuthRepositoryImpl extends AuthRepository {
   User? getCurrentUser() {
     return dataSource.getCurrentUser();
   }
+
+  @override
+  Future<void> logout() {
+    return dataSource.logout();
+  }
 }

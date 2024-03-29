@@ -8,4 +8,6 @@ abstract class AuthRepository {
   bool isUserAuthenticated();
 
   User? getCurrentUser();
+
+  Future<void> logout();
 }

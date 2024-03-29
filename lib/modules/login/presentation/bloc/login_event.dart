@@ -9,4 +9,4 @@ final class LoginEventSignIn extends LoginEvent {
   LoginEventSignIn({required this.username, required this.password});
 }
 
-final class LoginEventSignUp extends LoginEvent {}
+final class LoginEventValidateUser extends LoginEvent {}

@@ -50,6 +50,18 @@ class MyApp extends StatelessWidget {
               fontFamily: 'GrandHotel',
               fontSize: 35,
             ),
+            titleSmall: TextStyle(
+              fontFamily: 'GrandHotel',
+              fontSize: 20,
+            ),
+            titleMedium: TextStyle(
+              fontFamily: 'GrandHotel',
+              fontSize: 25
+            ),
+            bodyMedium: TextStyle(
+              fontFamily: 'GrandHotel',
+              fontSize: 17
+            )
           ),
           outlinedButtonTheme: OutlinedButtonThemeData(
             style: OutlinedButton.styleFrom(

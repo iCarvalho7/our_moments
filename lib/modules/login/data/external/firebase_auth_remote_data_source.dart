@@ -23,4 +23,14 @@ class FirebaseAuthRemoteDataSource extends AuthRemoteDataSource {
       password: password,
     );
   }
+
+  @override
+  bool isUserAuthenticated() {
+    return firebaseAuth.currentUser != null;
+  }
+
+  @override
+  User? getCurrentUser() {
+    return firebaseAuth.currentUser;
+  }
 }

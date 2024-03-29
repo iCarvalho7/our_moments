@@ -14,7 +14,7 @@ import 'package:timeline_tile/timeline_tile.dart';
 import '../../../core/presenter/widgets/custom_delete_dialog.dart';
 
 class TimeLinePage extends StatefulWidget {
-  const TimeLinePage({Key? key}) : super(key: key);
+  const TimeLinePage({super.key});
 
   @override
   State<TimeLinePage> createState() => _TimeLinePageState();

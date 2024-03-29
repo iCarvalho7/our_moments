@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 const kSpacerHeight32 = SizedBox(height: 32);
 const kSpacerHeight16 = SizedBox(height: 16);
 
+const kSpacerWidth32 = SizedBox(width: 32);
+const kSpacerWidth16 = SizedBox(width: 16);
+const kSpacerWidth8 = SizedBox(width: 8);
+
 class AppThemes {
   static final BoxDecoration circularBorder = BoxDecoration(
     border: Border.all(color: Colors.transparent),

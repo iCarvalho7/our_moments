@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/background_gradient.dart';
@@ -51,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<LoginBloc>(),
+      create: (context) => getIt<LoginBloc>()..add(LoginEventValidateUser()),
       child: BlocConsumer<LoginBloc, LoginState>(
         listener: _listerStateChanges,
         builder: (context, state) {
@@ -173,7 +171,8 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     if (state is LoginSuccess) {
-      Navigator.of(context).pop();
+      Navigator.pop(context);
+      Navigator.of(context).pushReplacementNamed(AppRoute.createTimeLine.tag);
     }
   }
 }

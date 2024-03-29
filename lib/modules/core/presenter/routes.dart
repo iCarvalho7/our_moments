@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nossos_momentos/modules/login/presentation/page/login_page.dart';
 import 'package:nossos_momentos/modules/signup/presentation/page/sign_up_page.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/page/create_time_line_page.dart';
 
 import '../../moment/presenter/page/add_moment_page.dart';
 import '../../stories/presenter/page/story_page.dart';
@@ -14,6 +15,10 @@ enum AppRoute {
   signup(
       '//register_user',
       SignUpPage()
+  ),
+  createTimeLine(
+    '//create_time_line',
+    CreateTimeLinePage(),
   ),
   timeLine(
     '//time_line',

@@ -77,42 +77,54 @@ class _SignUpPageState extends State<SignUpPage> {
               Scaffold(
                 backgroundColor: Colors.transparent,
                 appBar: const PrimaryAppBar(title: 'Cadastrar-se'),
-                body: Padding(
+                body: Container(
+                  alignment: Alignment.center,
                   padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      const Spacer(flex: 2),
-                      LoginTextField(
-                        startIcon: Icons.alternate_email_rounded,
-                        errorText: _emailErrorTxt,
-                        hint: 'seu@email.com',
-                        controller: _emailController,
-                      ),
-                      kSpacerHeight32,
-                      LoginTextField(
-                        startIcon: Icons.lock_person_sharp,
-                        endIcon: Icons.remove_red_eye,
-                        errorText: _passwordErrorTxt,
-                        isPassword: true,
-                        hint: '*********',
-                        controller: _passwordController,
-                      ),
-                      kSpacerHeight32,
-                      LoginTextField(
-                        startIcon: Icons.lock_person_sharp,
-                        endIcon: Icons.remove_red_eye,
-                        hint: '*********',
-                        isPassword: true,
-                        errorText: _confirmPasswordErrorTxt,
-                        controller: _confirmPasswordController,
-                      ),
-                      const Spacer(flex: 2),
-                      OutlinedButton(
-                        onPressed: () => _signUp(context),
-                        child: const Text('Criar Conta'),
-                      ),
-                      const Spacer(),
-                    ],
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth > 1200
+                          ? 500.0
+                          : constraints.maxWidth;
+
+                      return SizedBox(
+                        width: width,
+                        child: Column(
+                          children: [
+                            const Spacer(flex: 2),
+                            LoginTextField(
+                              startIcon: Icons.alternate_email_rounded,
+                              errorText: _emailErrorTxt,
+                              hint: 'seu@email.com',
+                              controller: _emailController,
+                            ),
+                            kSpacerHeight32,
+                            LoginTextField(
+                              startIcon: Icons.lock_person_sharp,
+                              endIcon: Icons.remove_red_eye,
+                              errorText: _passwordErrorTxt,
+                              isPassword: true,
+                              hint: '*********',
+                              controller: _passwordController,
+                            ),
+                            kSpacerHeight32,
+                            LoginTextField(
+                              startIcon: Icons.lock_person_sharp,
+                              endIcon: Icons.remove_red_eye,
+                              hint: '*********',
+                              isPassword: true,
+                              errorText: _confirmPasswordErrorTxt,
+                              controller: _confirmPasswordController,
+                            ),
+                            const Spacer(flex: 2),
+                            OutlinedButton(
+                              onPressed: () => _signUp(context),
+                              child: const Text('Criar Conta'),
+                            ),
+                            const Spacer(),
+                          ],
+                        ),
+                      );
+                    }
                   ),
                 ),
               )
@@ -128,7 +140,7 @@ class _SignUpPageState extends State<SignUpPage> {
       _passwordErrorTxt = 'Senha está vazia';
     }
 
-    if(password.length < 6) {
+    if (password.length < 6) {
       _passwordErrorTxt = 'Senha precisa ser maior de 6 caracteres';
     }
 
@@ -172,8 +184,48 @@ class _SignUpPageState extends State<SignUpPage> {
 
     if (state is SignUpSuccess) {
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(backgroundColor: Colors.white, content: Text('Usuário criado com sucesso')));
-    }
+      showSuccessSign(context);
+     }
+  }
+
+  void showSuccessSign(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return Material(
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              children: [
+                kSpacerHeight16,
+                Text(
+                  'Sua conta foi criada com sucesso.',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                Image.asset(
+                  'assets/images/login_success.png',
+                  width: 400,
+                ),
+                OutlinedButton(
+                  style: Theme.of(context).outlinedButtonTheme.style?.copyWith(
+                        backgroundColor: const MaterialStatePropertyAll(
+                          AppColors.timeLineColor,
+                        ),
+                      ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Fazer Login'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

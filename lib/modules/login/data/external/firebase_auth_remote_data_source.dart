@@ -18,6 +18,9 @@ class FirebaseAuthRemoteDataSource extends AuthRemoteDataSource {
 
   @override
   Future<void> signUp(String username, String password) {
-    return firebaseAuth.createUserWithEmailAndPassword(email: username, password: password);
+    return firebaseAuth.createUserWithEmailAndPassword(
+      email: username,
+      password: password,
+    );
   }
 }

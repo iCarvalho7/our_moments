@@ -3,7 +3,7 @@ import '../../../core/presenter/widgets/loading_effect.dart';
 import '../../../core/utils/theme/app_theme.dart';
 
 class HistoryContainerLoading extends StatelessWidget {
-  const HistoryContainerLoading({Key? key}) : super(key: key);
+  const HistoryContainerLoading({super.key});
 
   @override
   Widget build(BuildContext context) {

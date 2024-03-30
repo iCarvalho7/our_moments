@@ -9,12 +9,12 @@ class TextSlider extends StatefulWidget {
   final int selectedIndex;
 
   const TextSlider({
-    Key? key,
+    super.key,
     required this.onChangeItem,
     required this.carrouselItems,
     required this.selectedIndex,
     this.isEnabled = true,
-  }) : super(key: key);
+  });
 
   @override
   State<TextSlider> createState() => _TextSliderState();

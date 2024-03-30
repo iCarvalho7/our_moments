@@ -35,6 +35,7 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     _passwordTextController.addListener(() {
       setState(() {
+        _usernameErrorText = null;
         _passwordErrorText = null;
       });
     });

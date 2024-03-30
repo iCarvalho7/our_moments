@@ -13,9 +13,11 @@ class MomentRepositoryImpl extends MomentRepository {
   MomentRepositoryImpl(this._dataSource);
 
   @override
-  Future registerMoment({required Moment moment}) => _dataSource.registerMoment(
-        moment: MomentModel.fromEntity(moment),
-      );
+  Future registerMoment({required Moment moment}) {
+    return _dataSource.registerMoment(
+      moment: MomentModel.fromEntity(moment),
+    );
+  }
 
   @override
   FutureOr<Moment> fetchMomentById(String id) async {

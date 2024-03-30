@@ -9,12 +9,14 @@ abstract class MomentsDataSource {
 
   Future<MomentModel> fetchMoment({required String momentId});
 
-  Future<List<MomentModel>> fetchAllMomentsByMonthAndYear({
-    required String year,
-    required String month,
-  });
+  Future<List<MomentModel>> fetchAllMomentsByMonthAndYear(
+    String year,
+    String month,
+    String timelineId,
+  );
 
   Future<List<MomentModel>> fetchAllMomentsByYear({
     required String year,
+    required String timelineId,
   });
 }

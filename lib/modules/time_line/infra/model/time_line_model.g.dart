@@ -8,8 +8,7 @@ part of 'time_line_model.dart';
 
 TimeLineModel _$TimeLineModelFromJson(Map<String, dynamic> json) =>
     TimeLineModel(
-      createdDate:
-          TimeLineModel._fromJsonTimeStamp(json['created_date'] as Timestamp),
+      createdDate: TimeLineModel._fromJsonTimeStamp(json['created_date']),
       emails:
           (json['emails'] as List<dynamic>).map((e) => e as String).toList(),
       id: json['id'] as String,

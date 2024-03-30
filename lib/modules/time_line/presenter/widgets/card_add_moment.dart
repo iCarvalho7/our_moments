@@ -6,7 +6,7 @@ import '../../../moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 import '../bloc/time_line_bloc.dart';
 
 class CardAddMoment extends StatelessWidget {
-  const CardAddMoment({Key? key}) : super(key: key);
+  const CardAddMoment({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,8 +16,10 @@ class CardAddMoment extends StatelessWidget {
               (_) => context.read<TimeLineBloc>().add(const TimeLineEventChangeDate()),
         );
 
+        final timelineId = context.read<TimeLineBloc>().timelineId;
+
         BlocProvider.of<AddOrEditMomentBloc>(context)
-            .add(const SetupAddMomentEvent());
+            .add(SetupAddMomentEvent(timelineId: timelineId));
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8),

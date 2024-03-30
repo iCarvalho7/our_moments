@@ -7,6 +7,7 @@ import 'package:injectable/injectable.dart';
 import 'package:intl/intl.dart';
 import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
 import 'package:nossos_momentos/modules/stories/domain/entity/story.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
 import '../../../photos/domain/use_case/delete_photo_use_case.dart';
 import '../../domain/entities/moment.dart';
 import '../../domain/entities/moment_type.dart';
@@ -30,7 +31,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     this.registerMomentsUseCase,
     this.uploadPhotoUseCase,
     this.deletePhotoUseCase,
-  ) : super(AddOrEditMomentStateEmpty()) {
+  ) : super(AddOrEditMomentStateEmpty(timeLineId: '')) {
     on<SetupAddMomentEvent>(_handleShowEmpty);
     on<SetupEditMomentEvent>(_handleEditMoment);
     on<AddOrEditMomentEventSelectType>(_handleSelectType);
@@ -46,7 +47,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     SetupAddMomentEvent event,
     Emitter<AddOrEditMomentState> emit,
   ) {
-    emit(AddOrEditMomentStateEmpty());
+    emit(AddOrEditMomentStateEmpty(timeLineId: event.timelineId));
   }
 
   FutureOr<void> _handleSelectType(
@@ -96,7 +97,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
       moment: state.moment.copyWith(
         dateTime: event.date,
         year: event.date.year.toString(),
-        month: DateFormat(DateFormat.ABBR_MONTH, 'pt_BR').format(event.date),
+        month: TimeLineBloc.monthsName[event.date.month],
         monthDay: event.date.day.toString(),
       ),
       photosToDelete: state.photosToDelete,

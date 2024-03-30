@@ -12,7 +12,11 @@ final class SelectTimeLineSuccess extends SelectTimeLineState {
   SelectTimeLineSuccess(this.timeLines);
 }
 
-final class SelectTimeLineError extends SelectTimeLineState {}
+final class SelectTimeLineError extends SelectTimeLineState {
+  final String error;
+
+  SelectTimeLineError(this.error);
+}
 
 final class SelectTimeLineEmpty extends SelectTimeLineState {}
 

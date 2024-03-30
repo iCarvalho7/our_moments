@@ -5,7 +5,9 @@ abstract class TimeLineEvent {
 }
 
 class TimeLineEventInit extends TimeLineEvent {
-  const TimeLineEventInit();
+  const TimeLineEventInit({required this.timeLine});
+
+  final TimeLine? timeLine;
 }
 
 class TimeLineEventChangeDate extends TimeLineEvent {

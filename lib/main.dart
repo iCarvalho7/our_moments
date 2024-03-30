@@ -75,27 +75,6 @@ class MyApp extends StatelessWidget {
               ),
             ),
           ),
-          inputDecorationTheme: const InputDecorationTheme(
-            contentPadding:
-                EdgeInsets.symmetric(vertical: 16.0, horizontal: 64.0),
-            fillColor: Color(0xFFF8EEEE),
-            filled: true,
-            isDense: true,
-            hintStyle: TextStyle(
-              fontFamily: 'GrandHotel',
-              fontSize: 20,
-              color: Color(0xFFB6B6B6),
-            ),
-            prefixIconColor: Color(0xFF605D5D),
-            suffixIconColor: Color(0xFF605D5D),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              borderSide: BorderSide(color: Color(0xFF9B9191)),
-            ),
-          ),
         ),
         routes: AppRoute.allRoutes,
         initialRoute: AppRoute.login.tag,

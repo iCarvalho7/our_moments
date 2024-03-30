@@ -6,7 +6,7 @@ import '../../domain/entities/moment_type.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
 
 class SelectTypeToggle extends StatelessWidget {
-  const SelectTypeToggle({Key? key}) : super(key: key);
+  const SelectTypeToggle({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,11 +47,10 @@ class _TypeToggle extends StatelessWidget {
   final MomentType type;
 
   const _TypeToggle({
-    Key? key,
     required this.onPressed,
     required this.isSelected,
     required this.type,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

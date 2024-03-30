@@ -10,6 +10,8 @@ import 'package:nossos_momentos/modules/time_line/domain/use_case/get_year_use_c
 import '../../../moment/domain/entities/moment.dart';
 import '../../../photos/domain/use_case/delete_all_photos_from_moment_use_case.dart';
 import '../../../moment/domain/use_case/delete_moments_use_case.dart';
+import '../../domain/entity/time_line.dart';
+import '../../domain/use_case/create_time_line_use_case.dart';
 
 part 'time_line_events.dart';
 
@@ -22,6 +24,10 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final GetYearUseCase _getYearUseCase;
   final DeleteMomentsUseCase _deleteMomentsUseCase;
   final ClearAllPhotosFromMomentUseCase _deletePhotoUseCase;
+  final CreateTimeLineUseCase _createTimeLineUseCase;
+  late TimeLine _timeLine;
+
+  String get timelineId => _timeLine.id;
 
   TimeLineBloc(
     this._getMomentsUseCase,
@@ -29,6 +35,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     this._getYearUseCase,
     this._deleteMomentsUseCase,
     this._deletePhotoUseCase,
+    this._createTimeLineUseCase,
   ) : super(TimeLineStateInitial()) {
     on<TimeLineEventInit>(_init);
     on<TimeLineEventChangeDate>(_handleChangeDate);
@@ -40,13 +47,25 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     TimeLineEventInit event,
     Emitter<TimeLineState> emit,
   ) async {
-    String year = _getYearUseCase(NoParams.instance).data!;
-    String month = _getMonthUseCase(NoParams.instance).data!;
+
     emit(TimeLineStateLoading(
-      year: year,
-      month: month,
+      year: state.year,
+      month: state.month,
       isMonthEnabled: state.isMonthEnabled,
     ));
+
+    if(event.timeLine == null) {
+      final result = await _createTimeLineUseCase.call(NoParams.instance);
+      if(result.isSuccess) {
+        _timeLine = result.data!;
+      }
+    } else {
+      _timeLine = event.timeLine!;
+    }
+
+    String year = _getYearUseCase(NoParams.instance).data!;
+    String month = _getMonthUseCase(NoParams.instance).data!;
+
     add(TimeLineEventChangeDate(year: year, month: month));
   }
 
@@ -68,6 +87,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     final result = await _getMomentsUseCase.call(GetMomentsParam(
       year: year,
       month: month,
+      timelineId: _timeLine.id,
     ));
 
     if (result.isSuccess && result.data!.isEmpty == false) {
@@ -117,6 +137,12 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     '2022',
     '2023',
     '2024',
+    '2025',
+    '2026',
+    '2027',
+    '2028',
+    '2029',
+    '2030',
   ];
 
   static const monthsName = [

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -9,8 +10,8 @@ import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/select_time_line_bloc.dart';
 
-class CreateTimeLinePage extends StatelessWidget {
-  const CreateTimeLinePage({super.key});
+class SelectTimeLinePage extends StatelessWidget {
+  const SelectTimeLinePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class CreateTimeLinePage extends StatelessWidget {
           Scaffold(
             backgroundColor: Colors.transparent,
             appBar: PrimaryAppBar(
-              title: '',
+              title: 'Linha do Tempo',
               back: BlocBuilder<SelectTimeLineBloc, SelectTimeLineState>(
                 builder: (context, state) {
                   return IconButton(
@@ -78,6 +79,16 @@ class CreateTimeLinePage extends StatelessWidget {
     if (state is SelectTimeLogoutSuccess) {
       Navigator.of(context).pushNamedAndRemoveUntil(
           AppRoute.login.tag, (Route<dynamic> route) => false);
+    }
+
+    if (state is SelectTimeLineError) {
+      final msm = kDebugMode ? state.error : 'Erro ao Criar sua linha do tempo';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(msm),
+        ),
+      );
     }
   }
 }
@@ -173,7 +184,10 @@ class _CreateTimeLineContent extends StatelessWidget {
         const Spacer(),
         GestureDetector(
           onTap: () {
-            Navigator.pushNamed(context, AppRoute.timeLine.tag);
+            Navigator.pushNamed(context, AppRoute.timeLine.tag).then((_) =>
+                context
+                    .read<SelectTimeLineBloc>()
+                    .add(SelectTimeLineEventFetchAll()));
           },
           child: Column(
             children: [

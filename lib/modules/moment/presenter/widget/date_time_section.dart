@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
 
 class DateTimeSection extends StatelessWidget {
-  const DateTimeSection({Key? key}) : super(key: key);
+  const DateTimeSection({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class DateTimeSection extends StatelessWidget {
     showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      lastDate: DateTime(2024, 1, 1),
+      lastDate: DateTime(2030, 1, 1),
       firstDate: DateTime(2018, 1, 1),
     ).then((date) => _sendAddDateTime(context, date));
   }

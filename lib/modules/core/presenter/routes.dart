@@ -18,7 +18,7 @@ enum AppRoute {
   ),
   createTimeLine(
     '//create_time_line',
-    CreateTimeLinePage(),
+    SelectTimeLinePage(),
   ),
   timeLine(
     '//time_line',

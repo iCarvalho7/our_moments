@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
 
 class TitleSection extends StatelessWidget {
-  const TitleSection({Key? key}) : super(key: key);
+  const TitleSection({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class TitleSection extends StatelessWidget {
           child: TextFormField(
             textInputAction: TextInputAction.next,
             textCapitalization: TextCapitalization.sentences,
-            style: Theme.of(context).textTheme.headlineSmall,
+            style: Theme.of(context).textTheme.headlineMedium,
             cursorColor: Colors.black,
             initialValue: state.moment.title,
             decoration: InputDecoration(

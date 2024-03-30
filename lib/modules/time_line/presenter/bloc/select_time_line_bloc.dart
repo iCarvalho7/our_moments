@@ -33,7 +33,7 @@ class SelectTimeLineBloc
     final result = await _getTimeLineFromEmailUseCase.call(NoParams.instance);
 
     if (result.isError) {
-      emit(SelectTimeLineError());
+      emit(SelectTimeLineError(result.exception.toString()));
       return;
     }
 

@@ -12,9 +12,9 @@ class CardMoment extends StatelessWidget {
   final Moment moment;
 
   const CardMoment({
-    Key? key,
+    super.key,
     required this.moment,
-  }) : super(key: key);
+  });
 
   Widget get _fetchIconColorByMomentType {
     switch (moment.type) {

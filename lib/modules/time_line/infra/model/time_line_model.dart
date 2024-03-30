@@ -17,7 +17,10 @@ class TimeLineModel extends TimeLine {
   }) : super(createdDate: createdDate, momentIds: momentIds);
 
   @override
-  @JsonKey(name: 'created_date', fromJson: _fromJsonTimeStamp, toJson: _toJsonTimeStamp)
+  @JsonKey(
+      name: 'created_date',
+      fromJson: _fromJsonTimeStamp,
+      toJson: _toJsonTimeStamp)
   final Timestamp createdDate;
 
   @JsonKey(name: 'moment_ids')
@@ -26,13 +29,32 @@ class TimeLineModel extends TimeLine {
 
   Map<String, dynamic> toJson() => _$TimeLineModelToJson(this);
 
-  factory TimeLineModel.fromJson(Map<String, dynamic> json) => _$TimeLineModelFromJson(json);
+  factory TimeLineModel.fromJson(Map<String, dynamic> json) =>
+      _$TimeLineModelFromJson(json);
 
-  static _fromJsonTimeStamp(Timestamp timestamp) {
+  static Timestamp _fromJsonTimeStamp(dynamic timestamp) {
+    if(timestamp.runtimeType == Timestamp) {
+      return timestamp;
+    }
+
+    if(timestamp.runtimeType == String) {
+      final date = DateTime.parse(timestamp);
+      return Timestamp.fromDate(date);
+    }
+
     return timestamp;
   }
 
   static _toJsonTimeStamp(Timestamp timestamp) {
-    return timestamp.toDate().toIso8601String();
+    return timestamp;
+  }
+
+  static TimeLineModel fromEntity(TimeLine timeLine) {
+    return TimeLineModel(
+      createdDate: timeLine.createdDate,
+      emails: timeLine.emails,
+      id: timeLine.id,
+      momentIds: timeLine.momentIds,
+    );
   }
 }

@@ -14,6 +14,7 @@ class GetMomentsUseCase extends AsyncUseCase<List<Moment>, GetMomentsParam> {
     final response = await repository.getMoments(
       year: params.year.toLowerCase(),
       month: params.month?.toLowerCase() ?? '',
+      timeLineId: params.timelineId
     );
     return response;
   }
@@ -22,6 +23,7 @@ class GetMomentsUseCase extends AsyncUseCase<List<Moment>, GetMomentsParam> {
 class GetMomentsParam {
   final String year;
   final String? month;
+  final String timelineId;
 
-  GetMomentsParam({required this.year, this.month,});
+  GetMomentsParam({required this.year, this.month, required this.timelineId});
 }

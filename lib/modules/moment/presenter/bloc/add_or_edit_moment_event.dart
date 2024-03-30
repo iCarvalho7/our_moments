@@ -5,7 +5,9 @@ abstract class AddOrEditMomentEvent {
 }
 
 class SetupAddMomentEvent extends AddOrEditMomentEvent {
-  const SetupAddMomentEvent();
+  final String timelineId;
+
+  const SetupAddMomentEvent({required this.timelineId});
 }
 
 class SetupEditMomentEvent extends AddOrEditMomentEvent {

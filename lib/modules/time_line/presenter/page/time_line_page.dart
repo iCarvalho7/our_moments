@@ -4,6 +4,7 @@ import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
+import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/widgets/card_add_moment.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/widgets/card_moment.dart';
@@ -23,8 +24,10 @@ class TimeLinePage extends StatefulWidget {
 class _TimeLinePageState extends State<TimeLinePage> {
   @override
   Widget build(BuildContext context) {
+    final timeLine = ModalRoute.of(context)?.settings.arguments as TimeLine?;
+
     return BlocProvider<TimeLineBloc>(
-      create: (_) => getIt<TimeLineBloc>()..add(const TimeLineEventInit()),
+      create: (_) => getIt<TimeLineBloc>()..add(TimeLineEventInit(timeLine: timeLine)),
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
@@ -164,9 +167,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
 }
 
 class _CircularIndicator extends StatelessWidget {
-  const _CircularIndicator({
-    Key? key,
-  }) : super(key: key);
+  const _CircularIndicator();
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +237,6 @@ class _TimeLineHeader extends StatelessWidget {
 }
 
 class _CalendarCard extends StatelessWidget {
-  _CalendarCard({Key? key}) : super(key: key);
 
   final Period time = LocalDate.dateTime(DateTime(2019, 5, 22)).periodSince(LocalDate.today());
 
@@ -275,7 +275,7 @@ class _CalendarCard extends StatelessWidget {
 }
 
 class _CalendarTopCardWidget extends StatelessWidget {
-  const _CalendarTopCardWidget({Key? key}) : super(key: key);
+  const _CalendarTopCardWidget();
 
   @override
   Widget build(BuildContext context) {

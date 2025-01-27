@@ -4,7 +4,7 @@ import '../bloc/add_or_edit_moment_bloc.dart';
 
 class DescriptionSection extends StatelessWidget {
 
-  const DescriptionSection({Key? key}) : super(key: key);
+  const DescriptionSection({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class DescriptionSection extends StatelessWidget {
               keyboardType: TextInputType.multiline,
               maxLines: null,
               textCapitalization: TextCapitalization.sentences,
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.bodyLarge,
               cursorColor: Colors.black,
               initialValue: state.moment.body,
               decoration: InputDecoration(

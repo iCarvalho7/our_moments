@@ -17,6 +17,7 @@ class Moment {
   final MomentType type;
   final List<String> downloadUrlList;
   final bool isEditing;
+  final String timelineId;
 
   const Moment(
       {required this.id,
@@ -28,6 +29,7 @@ class Moment {
       required this.month,
       required this.year,
       required this.downloadUrlList,
+      required this.timelineId,
       this.isEditing = false});
 
   Moment copyWith({
@@ -41,6 +43,7 @@ class Moment {
     MomentType? type,
     List<String>? downloadUrlList,
     bool? isEditing,
+    String? timelineId,
   }) {
     return Moment(
       id: id ?? this.id,
@@ -53,10 +56,11 @@ class Moment {
       year: year ?? this.year,
       downloadUrlList: downloadUrlList ?? this.downloadUrlList,
       isEditing: isEditing ?? this.isEditing,
+      timelineId: timelineId ?? this.timelineId,
     );
   }
 
-  static Moment empty() {
+  static Moment empty(String timelineId) {
     return Moment(
       id: const Uuid().v1(),
       dateTime: AddOrEditMomentBloc.defaultDateTime,
@@ -67,11 +71,12 @@ class Moment {
       month: '',
       year: '',
       downloadUrlList: [],
+      timelineId: timelineId,
     );
   }
 
   String get dateTimeFormatted =>
-      "$monthDay\n${month.substring(0, 3).replaceFirst(month[0], month[0].toUpperCase())}";
+      "$monthDay ${month.substring(0, 3).replaceFirst(month[0], month[0].toUpperCase())} $year";
 
   List<String> get localImgList => downloadUrlList.where((e) => !e.isHttpUrl).toList();
 

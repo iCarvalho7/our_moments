@@ -8,8 +8,10 @@ import 'package:nossos_momentos/modules/time_line/domain/use_case/get_month_use_
 import 'package:nossos_momentos/modules/time_line/domain/use_case/get_year_use_case.dart';
 
 import '../../../moment/domain/entities/moment.dart';
-import '../../../photos/domain/use_case/delete_all_photos_from_moment_use_case.dart';
 import '../../../moment/domain/use_case/delete_moments_use_case.dart';
+import '../../../photos/domain/use_case/delete_all_photos_from_moment_use_case.dart';
+import '../../domain/entity/time_line.dart';
+import '../../domain/use_case/create_time_line_use_case.dart';
 
 part 'time_line_events.dart';
 
@@ -18,17 +20,18 @@ part 'time_line_state.dart';
 @injectable
 class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final GetMomentsUseCase _getMomentsUseCase;
-  final GetMonthUseCase _getMonthUseCase;
-  final GetYearUseCase _getYearUseCase;
   final DeleteMomentsUseCase _deleteMomentsUseCase;
   final ClearAllPhotosFromMomentUseCase _deletePhotoUseCase;
+  final CreateTimeLineUseCase _createTimeLineUseCase;
+  late TimeLine _timeLine;
+
+  String get timelineId => _timeLine.id;
 
   TimeLineBloc(
     this._getMomentsUseCase,
-    this._getMonthUseCase,
-    this._getYearUseCase,
     this._deleteMomentsUseCase,
     this._deletePhotoUseCase,
+    this._createTimeLineUseCase,
   ) : super(TimeLineStateInitial()) {
     on<TimeLineEventInit>(_init);
     on<TimeLineEventChangeDate>(_handleChangeDate);
@@ -40,50 +43,59 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     TimeLineEventInit event,
     Emitter<TimeLineState> emit,
   ) async {
-    String year = _getYearUseCase(NoParams.instance).data!;
-    String month = _getMonthUseCase(NoParams.instance).data!;
     emit(TimeLineStateLoading(
-      year: year,
-      month: month,
+      startDate: state.startDate,
+      endDate: state.endDate,
       isMonthEnabled: state.isMonthEnabled,
     ));
-    add(TimeLineEventChangeDate(year: year, month: month));
+
+    if (event.timeLine == null) {
+      final result = await _createTimeLineUseCase.call(NoParams.instance);
+      if (result.isSuccess) {
+        _timeLine = result.data!;
+      }
+    } else {
+      _timeLine = event.timeLine!;
+    }
+
+    add(TimeLineEventChangeDate());
   }
 
   FutureOr<void> _handleChangeDate(
     TimeLineEventChangeDate event,
     Emitter<TimeLineState> emit,
   ) async {
+    final startDate = event.startDate ?? state.startDate;
+    final endDate = event.endDate ?? state.endDate;
+
     emit(
       TimeLineStateLoading(
-        year: state.year,
-        month: state.month,
+        startDate: startDate,
+        endDate: endDate,
         isMonthEnabled: event.disableMonth ?? state.isMonthEnabled,
       ),
     );
 
-    final year = event.year ?? state.year;
-    final month = !state.isMonthEnabled ? null : event.month ?? state.month;
-
     final result = await _getMomentsUseCase.call(GetMomentsParam(
-      year: year,
-      month: month,
+      timelineId: _timeLine.id,
+      startDate: startDate,
+      endDate: endDate,
     ));
 
     if (result.isSuccess && result.data!.isEmpty == false) {
       emit(
         TimeLineStateLoaded(
           momentsList: result.data!,
-          year: year,
-          month: month ?? state.month,
+          startDate: startDate,
+          endDate: endDate,
           isMonthEnabled: state.isMonthEnabled,
         ),
       );
     } else {
       emit(
         TimeLineStateEmpty(
-          year: year,
-          month: month ?? state.month,
+          startDate: startDate,
+          endDate: endDate,
           isMonthEnabled: state.isMonthEnabled,
         ),
       );
@@ -94,7 +106,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     TimeLineEventChangeEyeToggle event,
     Emitter<TimeLineState> emit,
   ) async {
-    add(TimeLineEventChangeDate(disableMonth: !state.isMonthEnabled));
+    // add(TimeLineEventChangeDate(disableMonth: !state.isMonthEnabled));
   }
 
   FutureOr<void> _deleteMoment(
@@ -106,7 +118,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
       await _deleteMomentsUseCase.call(event.momentId);
     }
 
-    add(const TimeLineEventChangeDate());
+    add(TimeLineEventChangeDate());
   }
 
   static const enabledYears = [
@@ -117,6 +129,12 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     '2022',
     '2023',
     '2024',
+    '2025',
+    '2026',
+    '2027',
+    '2028',
+    '2029',
+    '2030',
   ];
 
   static const monthsName = [

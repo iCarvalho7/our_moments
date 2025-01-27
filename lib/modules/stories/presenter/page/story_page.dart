@@ -23,7 +23,7 @@ class StoryPage extends StatelessWidget {
 }
 
 class _StoryPage extends StatefulWidget {
-  const _StoryPage({Key? key}) : super(key: key);
+  const _StoryPage();
 
   @override
   State<_StoryPage> createState() => _StoryPageState();
@@ -140,7 +140,7 @@ class _StoryPageState extends State<_StoryPage> with TickerProviderStateMixin {
     if (state is StoryStateSetUpControllers) {
       if (state.story.type == StoryType.video) {
         _videoPlayerController = state.story.isNetwork
-            ? VideoPlayerController.network(state.story.url)
+            ? VideoPlayerController.networkUrl(Uri.parse(state.story.url))
             : VideoPlayerController.file(File(state.story.url));
         await _videoPlayerController!.initialize();
         await _videoPlayerController!.play();
@@ -151,7 +151,7 @@ class _StoryPageState extends State<_StoryPage> with TickerProviderStateMixin {
         duration: _videoPlayerController?.value.duration ?? const Duration(seconds: 4),
       )..addStatusListener(
           (status) {
-            if (status == AnimationStatus.completed) {
+            if (status == AnimationStatus.completed && controller?.toStringDetails() != 'DISPOSED') {
               context.read<StoryBloc>().add(const StoryEventNextStory());
             }
           },
@@ -238,11 +238,10 @@ class _AnimatedBar extends StatelessWidget {
   final int currentIndex;
 
   const _AnimatedBar({
-    Key? key,
     required this.animController,
     required this.position,
     required this.currentIndex,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

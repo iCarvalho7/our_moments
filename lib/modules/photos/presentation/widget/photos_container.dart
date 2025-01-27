@@ -15,7 +15,7 @@ import '../../../core/presenter/widgets/gradient_mask.dart';
 import '../../../core/utils/theme/app_theme.dart';
 
 class PhotosContainer extends StatelessWidget {
-  const PhotosContainer({Key? key}) : super(key: key);
+  const PhotosContainer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -86,10 +86,13 @@ class _StorySectionState extends State<_StorySection> {
   @override
   void initState() {
     super.initState();
-    _controller = widget.storyUrl.isHttpUrl
-        ? VideoPlayerController.network(widget.storyUrl)
-        : VideoPlayerController.file(File(widget.storyUrl));
-    _controller.initialize();
+    final story = Story(url: widget.storyUrl);
+    if (story.type == StoryType.video) {
+      _controller = widget.storyUrl.isHttpUrl
+          ? VideoPlayerController.networkUrl(Uri.parse(widget.storyUrl))
+          : VideoPlayerController.file(File(widget.storyUrl));
+      _controller.initialize();
+    }
   }
 
   @override
@@ -152,12 +155,13 @@ class _StorySectionState extends State<_StorySection> {
 }
 
 class _AddPhotoIcon extends StatelessWidget {
-  const _AddPhotoIcon({Key? key}) : super(key: key);
+  const _AddPhotoIcon();
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => BlocProvider.of<PhotosBloc>(context).add(PhotosEventOpenGallery()),
+      onTap: () =>
+          BlocProvider.of<PhotosBloc>(context).add(PhotosEventOpenGallery()),
       child: const _ColoredContainer(
         child: GradientMask(
           colors: AppColors.instagramGradient,
@@ -173,7 +177,7 @@ class _AddPhotoIcon extends StatelessWidget {
 }
 
 class _ColoredContainer extends StatelessWidget {
-  const _ColoredContainer({Key? key, required this.child}) : super(key: key);
+  const _ColoredContainer({required this.child});
 
   final Widget child;
 

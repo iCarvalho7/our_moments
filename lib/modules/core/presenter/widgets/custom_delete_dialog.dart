@@ -5,8 +5,8 @@ class CustomDeleteDialog extends StatefulWidget {
   const CustomDeleteDialog({
     required this.text,
     required this.onTapPositive,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final String text;
   final VoidCallback onTapPositive;

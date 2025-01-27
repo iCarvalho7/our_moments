@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
 
 class MomentFormSectionLoading extends StatelessWidget {
-  const MomentFormSectionLoading({Key? key}) : super(key: key);
+  const MomentFormSectionLoading({super.key});
 
   @override
   Widget build(BuildContext context) {

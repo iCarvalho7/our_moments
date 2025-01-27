@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 class GradientMask extends StatelessWidget {
 
   const GradientMask({
-    Key? key,
+    super.key,
     required this.child,
     required this.colors,
-  }) : super(key: key);
+  });
 
   final Widget child;
   final List<Color> colors;

@@ -1,3 +1,4 @@
+import 'package:carousel_slider/carousel_controller.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,19 +10,19 @@ class TextSlider extends StatefulWidget {
   final int selectedIndex;
 
   const TextSlider({
-    Key? key,
+    super.key,
     required this.onChangeItem,
     required this.carrouselItems,
     required this.selectedIndex,
     this.isEnabled = true,
-  }) : super(key: key);
+  });
 
   @override
   State<TextSlider> createState() => _TextSliderState();
 }
 
 class _TextSliderState extends State<TextSlider> {
-  final _carrouselController = CarouselController();
+  final _carrouselController = CarouselSliderController();
 
   @override
   Widget build(BuildContext context) {

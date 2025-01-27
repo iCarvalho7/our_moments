@@ -4,7 +4,7 @@ import 'package:shimmer/shimmer.dart';
 class LoadingEffect extends StatelessWidget {
   final Widget child;
 
-  const LoadingEffect({Key? key, required this.child}) : super(key: key);
+  const LoadingEffect({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {

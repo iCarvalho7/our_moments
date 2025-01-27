@@ -11,7 +11,7 @@ import '../widget/select_type_toggle.dart';
 import '../widget/tile_section.dart';
 
 class AddOrEditMomentPage extends StatelessWidget {
-  const AddOrEditMomentPage({Key? key}) : super(key: key);
+  const AddOrEditMomentPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -74,9 +74,9 @@ class AddOrEditMomentPage extends StatelessWidget {
     return Container(
       color: Colors.transparent,
       padding: const EdgeInsets.all(10.0),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           HistoryContainerLoading(),
           MomentFormSectionLoading(),
         ],

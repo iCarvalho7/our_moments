@@ -5,15 +5,21 @@ abstract class TimeLineEvent {
 }
 
 class TimeLineEventInit extends TimeLineEvent {
-  const TimeLineEventInit();
+  const TimeLineEventInit({required this.timeLine});
+
+  final TimeLine? timeLine;
 }
 
 class TimeLineEventChangeDate extends TimeLineEvent {
-  final String? year;
-  final String? month;
   final bool? disableMonth;
+  final DateTime? startDate;
+  final DateTime? endDate;
 
-  const TimeLineEventChangeDate({this.year, this.month, this.disableMonth});
+  const TimeLineEventChangeDate({
+    this.startDate,
+    this.endDate,
+    this.disableMonth,
+  });
 }
 
 class TimeLineEventChangeEyeToggle extends TimeLineEvent {

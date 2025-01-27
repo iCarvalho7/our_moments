@@ -21,7 +21,8 @@ class MomentModel extends Moment {
     required super.monthDay,
     required super.year,
     required super.downloadUrlList,
-  }) : super(dateTime: dateTime, type: type);
+    required this.timelineId,
+  }) : super(dateTime: dateTime, type: type, timelineId: timelineId);
 
   @override
   @JsonKey(fromJson: _fromJsonDate, toJson: _toJsonDate)
@@ -30,6 +31,10 @@ class MomentModel extends Moment {
   @override
   @JsonKey(fromJson: _fromJsonType, toJson: _toJsonType)
   final MomentType type;
+
+  @override
+  @JsonKey(name: 'time_line_id')
+  final String timelineId;
 
   static _fromJsonDate(String dateTime) {
     return DateFormat(DateFormat.YEAR_MONTH_DAY).parse(dateTime);
@@ -59,7 +64,8 @@ class MomentModel extends Moment {
       year: year,
       monthDay: monthDay,
       month: month,
-      downloadUrlList: downloadUrlList
+      downloadUrlList: downloadUrlList,
+      timelineId: timelineId
     );
   }
 
@@ -74,6 +80,7 @@ class MomentModel extends Moment {
       year: moment.year,
       month: moment.month,
       monthDay: moment.monthDay,
+      timelineId: moment.timelineId,
     );
   }
 }

@@ -8,7 +8,9 @@ abstract class AddOrEditMomentState {
 }
 
 class AddOrEditMomentStateEmpty extends AddOrEditMomentState {
-  AddOrEditMomentStateEmpty() : super(moment: Moment.empty(), photosToDelete: []);
+  final String timeLineId;
+
+  AddOrEditMomentStateEmpty({required this.timeLineId}) : super(moment: Moment.empty(timeLineId), photosToDelete: []);
 }
 
 class AddOrEditMomentStateUpdate extends AddOrEditMomentState {

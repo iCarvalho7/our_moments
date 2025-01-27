@@ -4,6 +4,9 @@ extension StringExt on String {
   bool get isImage => kImageExt.any((element) => contains(element));
 
   bool get isVideo => kVideoExt.any((element) => contains(element));
+
+  bool get isEmail => RegExp(
+          r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(this);
 }
 
 const kImageExt = [

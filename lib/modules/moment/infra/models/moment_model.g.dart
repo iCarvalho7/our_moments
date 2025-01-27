@@ -18,6 +18,7 @@ MomentModel _$MomentModelFromJson(Map<String, dynamic> json) => MomentModel(
       downloadUrlList: (json['downloadUrlList'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
+      timelineId: json['time_line_id'] as String,
     );
 
 Map<String, dynamic> _$MomentModelToJson(MomentModel instance) =>
@@ -31,4 +32,5 @@ Map<String, dynamic> _$MomentModelToJson(MomentModel instance) =>
       'downloadUrlList': instance.downloadUrlList,
       'dateTime': MomentModel._toJsonDate(instance.dateTime),
       'type': MomentModel._toJsonType(instance.type),
+      'time_line_id': instance.timelineId,
     };

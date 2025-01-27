@@ -55,13 +55,27 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
 
   @override
   Future updateTimeLineMomentIds(Moment moment) async {
-    final timeLine = await timeLineDataSource.getTimeLineById(moment.timelineId);
+    final timeLine =
+        await timeLineDataSource.getTimeLineById(moment.timelineId);
 
     timeLine.momentIds.add(moment.id);
 
     return await timeLineDataSource.updateTimeline(
       timeLine.id,
       TimeLineModel.fromEntity(timeLine).toJson(),
+    );
+  }
+
+  @override
+  Future<List<Moment>> getMomentsByDate({
+    required DateTime endDate,
+    required DateTime startDate,
+    required String timeLineId,
+  }) {
+    return momentsDataSource.fetchMomentsByDate(
+      endDate: endDate,
+      startDate: startDate,
+      timelineId: timeLineId,
     );
   }
 }

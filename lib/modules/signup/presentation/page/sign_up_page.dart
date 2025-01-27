@@ -198,30 +198,32 @@ class _SignUpPageState extends State<SignUpPage> {
           borderRadius: BorderRadius.circular(8),
           child: Container(
             padding: const EdgeInsets.all(10),
-            child: Column(
-              children: [
-                kSpacerHeight16,
-                Text(
-                  'Sua conta foi criada com sucesso.',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                Image.asset(
-                  'assets/images/login_success.png',
-                  width: 400,
-                ),
-                OutlinedButton(
-                  style: Theme.of(context).outlinedButtonTheme.style?.copyWith(
-                        backgroundColor: const MaterialStatePropertyAll(
-                          AppColors.timeLineColor,
+            child: Expanded(
+              child: Column(
+                children: [
+                  kSpacerHeight16,
+                  Text(
+                    'Sua conta foi criada com sucesso.',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  Image.asset(
+                    'assets/images/login_success.png',
+                    width: 400,
+                  ),
+                  OutlinedButton(
+                    style: Theme.of(context).outlinedButtonTheme.style?.copyWith(
+                          backgroundColor: const WidgetStatePropertyAll(
+                            AppColors.timeLineColor,
+                          ),
                         ),
-                      ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Fazer Login'),
-                ),
-              ],
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Fazer Login'),
+                  ),
+                ],
+              ),
             ),
           ),
         );

@@ -19,4 +19,10 @@ abstract class MomentsDataSource {
     required String year,
     required String timelineId,
   });
+
+  Future<List<MomentModel>> fetchMomentsByDate({
+    required DateTime endDate,
+    required DateTime startDate,
+    required String timelineId,
+  });
 }

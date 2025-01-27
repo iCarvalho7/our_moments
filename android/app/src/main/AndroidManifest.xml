@@ -1,5 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="br.com.lovestudios.nossosmomentos.nossos_momentos">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
    <application
         android:label="nossos_momentos"
         android:name="${applicationName}"

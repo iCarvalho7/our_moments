@@ -16,16 +16,13 @@ class FirebaseMomentsDataSource extends MomentsDataSource {
   );
 
   @override
-  Future registerMoment({required MomentModel moment}) =>
-      momentsDBRef.doc(moment.id).set(moment);
+  Future registerMoment({required MomentModel moment}) => momentsDBRef.doc(moment.id).set(moment);
 
   @override
   Future<MomentModel> fetchMoment({
     required String momentId,
   }) async {
-    final result = await momentsDBRef
-        .where('id', isEqualTo: momentId)
-        .get(const GetOptions(
+    final result = await momentsDBRef.where('id', isEqualTo: momentId).get(const GetOptions(
           source: Source.server,
         ));
 
@@ -48,9 +45,8 @@ class FirebaseMomentsDataSource extends MomentsDataSource {
     String month,
     String timelineId,
   ) async {
-    final result = await momentsDBRef
-        .where('time_line_id', isEqualTo: timelineId)
-        .get(const GetOptions(source: Source.server));
+    final result =
+        await momentsDBRef.where('time_line_id', isEqualTo: timelineId).get(const GetOptions(source: Source.server));
 
     return result.docs
         .map((e) => e.data())
@@ -64,14 +60,10 @@ class FirebaseMomentsDataSource extends MomentsDataSource {
     required String year,
     required String timelineId,
   }) async {
-    final result = await momentsDBRef
-        .where('time_line_id', isEqualTo: timelineId)
-        .get(const GetOptions(source: Source.server));
+    final result =
+        await momentsDBRef.where('time_line_id', isEqualTo: timelineId).get(const GetOptions(source: Source.server));
 
-    return result.docs
-        .map((e) => e.data())
-        .where((element) => element.timelineId == timelineId)
-        .toList();
+    return result.docs.map((e) => e.data()).where((element) => element.year == year).toList();
   }
 
   static const String momentsDBParam = "momentsDBParam";
@@ -79,4 +71,20 @@ class FirebaseMomentsDataSource extends MomentsDataSource {
   static const monthQuery = 'month';
   static const titleParam = 'title';
   static const bodyParam = 'body';
+
+  @override
+  Future<List<MomentModel>> fetchMomentsByDate({
+    required DateTime startDate,
+    required DateTime endDate,
+    required String timelineId,
+  }) async {
+    final result =
+        await momentsDBRef.where('time_line_id', isEqualTo: timelineId).get(const GetOptions(source: Source.server));
+
+    return result.docs
+        .map((e) => e.data())
+        .where((e) =>
+            e.dateTime.isBefore(endDate) && e.dateTime.isAfter(startDate))
+        .toList();
+  }
 }

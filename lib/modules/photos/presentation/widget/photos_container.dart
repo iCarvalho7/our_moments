@@ -86,10 +86,13 @@ class _StorySectionState extends State<_StorySection> {
   @override
   void initState() {
     super.initState();
-    _controller = widget.storyUrl.isHttpUrl
-        ? VideoPlayerController.networkUrl(Uri.parse(widget.storyUrl))
-        : VideoPlayerController.file(File(widget.storyUrl));
-    _controller.initialize();
+    final story = Story(url: widget.storyUrl);
+    if (story.type == StoryType.video) {
+      _controller = widget.storyUrl.isHttpUrl
+          ? VideoPlayerController.networkUrl(Uri.parse(widget.storyUrl))
+          : VideoPlayerController.file(File(widget.storyUrl));
+      _controller.initialize();
+    }
   }
 
   @override
@@ -157,7 +160,8 @@ class _AddPhotoIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => BlocProvider.of<PhotosBloc>(context).add(PhotosEventOpenGallery()),
+      onTap: () =>
+          BlocProvider.of<PhotosBloc>(context).add(PhotosEventOpenGallery()),
       child: const _ColoredContainer(
         child: GradientMask(
           colors: AppColors.instagramGradient,

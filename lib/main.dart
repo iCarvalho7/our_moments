@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           fontFamily: 'Inter',
-          colorScheme: const ColorScheme.light(
+          colorScheme: ColorScheme.light(
             primary: Colors.black,
           ),
           appBarTheme: const AppBarTheme(

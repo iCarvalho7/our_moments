@@ -151,7 +151,7 @@ class _StoryPageState extends State<_StoryPage> with TickerProviderStateMixin {
         duration: _videoPlayerController?.value.duration ?? const Duration(seconds: 4),
       )..addStatusListener(
           (status) {
-            if (status == AnimationStatus.completed) {
+            if (status == AnimationStatus.completed && controller?.toStringDetails() != 'DISPOSED') {
               context.read<StoryBloc>().add(const StoryEventNextStory());
             }
           },

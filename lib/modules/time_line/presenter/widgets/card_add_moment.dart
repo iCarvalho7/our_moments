@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../core/presenter/routes.dart';
-import '../../../core/utils/theme/app_theme.dart';
 import '../../../moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 import '../bloc/time_line_bloc.dart';
 
@@ -13,7 +13,7 @@ class CardAddMoment extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, AppRoute.addMoment.tag).then(
-              (_) => context.read<TimeLineBloc>().add(const TimeLineEventChangeDate()),
+              (_) => context.read<TimeLineBloc>().add(TimeLineEventChangeDate()),
         );
 
         final timelineId = context.read<TimeLineBloc>().timelineId;
@@ -26,9 +26,9 @@ class CardAddMoment extends StatelessWidget {
         alignment: Alignment.topCenter,
         child: Material(
           elevation: 8,
-          color: Colors.transparent,
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
           child: Container(
-            decoration: AppThemes.roundedBorder,
             width: MediaQuery.of(context).size.width,
             padding: const EdgeInsets.all(15),
             child: Text(

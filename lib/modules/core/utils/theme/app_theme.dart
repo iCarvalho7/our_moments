@@ -16,7 +16,6 @@ class AppThemes {
 
   static final BoxDecoration roundedBorder = BoxDecoration(
     border: Border.all(color: Colors.white),
-    color: Colors.white,
     borderRadius: const BorderRadius.all(
       Radius.circular(10),
     ),
@@ -34,9 +33,9 @@ class AppColors {
   static const Color timeLineColor = Color(0xFFF6A3A3);
   static const Color secondary = Color(0xffFFCFCF);
   static const Color calendarColor = Color(0xFFEBC8FC);
-  static const Color romanticColor = Color(0xFFF308EA);
-  static const Color badColor = Color(0xFFF30808);
-  static const Color goodColor = Color(0xFF08F312);
+  static const Color romanticColor = Color(0xFFF8E1FA);
+  static const Color badColor = Color(0xFFFAE1E1);
+  static const Color goodColor = Color(0xFFE5FAE1);
 
   static const List<Color> instagramGradient = [
     Color(0xFFBF16EA),

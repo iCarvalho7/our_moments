@@ -11,19 +11,23 @@ class GetMomentsUseCase extends AsyncUseCase<List<Moment>, GetMomentsParam> {
 
   @override
   Future<List<Moment>> execute(GetMomentsParam params) async {
-    final response = await repository.getMoments(
-      year: params.year.toLowerCase(),
-      month: params.month?.toLowerCase() ?? '',
-      timeLineId: params.timelineId
+    final response = await repository.getMomentsByDate(
+      startDate: params.startDate,
+      endDate: params.endDate,
+      timeLineId: params.timelineId,
     );
     return response;
   }
 }
 
 class GetMomentsParam {
-  final String year;
-  final String? month;
+  final DateTime startDate;
+  final DateTime endDate;
   final String timelineId;
 
-  GetMomentsParam({required this.year, this.month, required this.timelineId});
+  GetMomentsParam({
+    required this.startDate,
+    required this.endDate,
+    required this.timelineId,
+  });
 }

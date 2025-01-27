@@ -9,6 +9,12 @@ abstract class TimeLineRepository {
     required String timeLineId,
   });
 
+  Future<List<Moment>> getMomentsByDate({
+    required DateTime startDate,
+    required DateTime endDate,
+    required String timeLineId,
+  });
+
   Future<List<TimeLine>> getTimelinesIdByEmail(String email);
 
   Future<TimeLine> createTimeLine(TimeLine timeLine);

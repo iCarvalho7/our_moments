@@ -76,7 +76,7 @@ class Moment {
   }
 
   String get dateTimeFormatted =>
-      "$monthDay\n${month.substring(0, 3).replaceFirst(month[0], month[0].toUpperCase())}";
+      "$monthDay ${month.substring(0, 3).replaceFirst(month[0], month[0].toUpperCase())} $year";
 
   List<String> get localImgList => downloadUrlList.where((e) => !e.isHttpUrl).toList();
 

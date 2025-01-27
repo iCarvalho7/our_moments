@@ -1,3 +1,4 @@
+import 'package:carousel_slider/carousel_controller.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class TextSlider extends StatefulWidget {
 }
 
 class _TextSliderState extends State<TextSlider> {
-  final _carrouselController = CarouselController();
+  final _carrouselController = CarouselSliderController();
 
   @override
   Widget build(BuildContext context) {

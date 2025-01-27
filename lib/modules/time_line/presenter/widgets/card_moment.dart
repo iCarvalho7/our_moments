@@ -26,7 +26,7 @@ class CardMoment extends StatelessWidget {
         alignment: Alignment.topCenter,
         child: Material(
           elevation: 8,
-          color: Colors.transparent,
+          color: moment.type.color,
           shadowColor: Colors.white,
           borderRadius: const BorderRadius.all(Radius.circular(10)),
           child: Container(

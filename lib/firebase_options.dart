@@ -25,15 +25,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -52,6 +46,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '258810302381',
     projectId: 'nossosmomentos-22',
     authDomain: 'nossosmomentos-22.firebaseapp.com',
+    databaseURL: 'https://nossosmomentos-22-default-rtdb.firebaseio.com',
     storageBucket: 'nossosmomentos-22.appspot.com',
     measurementId: 'G-BYNL78VXWZ',
   );
@@ -61,16 +56,39 @@ class DefaultFirebaseOptions {
     appId: '1:258810302381:android:80bce144dd1e6ff7481b24',
     messagingSenderId: '258810302381',
     projectId: 'nossosmomentos-22',
+    databaseURL: 'https://nossosmomentos-22-default-rtdb.firebaseio.com',
     storageBucket: 'nossosmomentos-22.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDEuVAm7Bo061JGPe9FoYfGJRIbJYu8PME',
+    appId: '1:258810302381:ios:2285e0e041d5c09e481b24',
+    messagingSenderId: '258810302381',
+    projectId: 'nossosmomentos-22',
+    databaseURL: 'https://nossosmomentos-22-default-rtdb.firebaseio.com',
+    storageBucket: 'nossosmomentos-22.appspot.com',
+    iosBundleId: 'br.com.lovestudios.nossosmomentos',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyDEuVAm7Bo061JGPe9FoYfGJRIbJYu8PME',
     appId: '1:258810302381:ios:d5218bbb0dab6e3c481b24',
     messagingSenderId: '258810302381',
     projectId: 'nossosmomentos-22',
+    databaseURL: 'https://nossosmomentos-22-default-rtdb.firebaseio.com',
     storageBucket: 'nossosmomentos-22.appspot.com',
-    iosClientId: '258810302381-vlpq2or1f9kr45bvjp5fp4f33rtu4745.apps.googleusercontent.com',
     iosBundleId: 'br.com.lovestudios.nossosmomentos.nossosMomentos',
   );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyBNfvYG6gD1IrdNnQw2O3YqKnkVLxn1dqU',
+    appId: '1:258810302381:web:2201554c7357ada3481b24',
+    messagingSenderId: '258810302381',
+    projectId: 'nossosmomentos-22',
+    authDomain: 'nossosmomentos-22.firebaseapp.com',
+    databaseURL: 'https://nossosmomentos-22-default-rtdb.firebaseio.com',
+    storageBucket: 'nossosmomentos-22.appspot.com',
+    measurementId: 'G-1LZQMXZ5LD',
+  );
+
 }

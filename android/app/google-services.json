@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "258810302381",
+    "firebase_url": "https://nossosmomentos-22-default-rtdb.firebaseio.com",
     "project_id": "nossosmomentos-22",
     "storage_bucket": "nossosmomentos-22.appspot.com"
   },
@@ -12,12 +13,7 @@
           "package_name": "br.com.lovestudios.nossosmomentos.nossos_momentos"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "258810302381-vb1d8t46e24onp2bp9rdr0kigqb21vs4.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
           "current_key": "AIzaSyBhtcdjW51vhA3ht_8JnENemT6-gCnmCmU"
@@ -25,19 +21,7 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "258810302381-vb1d8t46e24onp2bp9rdr0kigqb21vs4.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "258810302381-vlpq2or1f9kr45bvjp5fp4f33rtu4745.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "br.com.lovestudios.nossosmomentos.nossosMomentos"
-              }
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

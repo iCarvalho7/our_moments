@@ -8,12 +8,14 @@ class LoginTextField extends StatefulWidget {
     required this.controller,
     this.errorText,
     this.endIcon,
+    this.endIconPressed,
     this.isPassword = false,
   });
 
   final String hint;
   final IconData? startIcon;
   final IconData? endIcon;
+  final Function()? endIconPressed;
   final String? errorText;
   final TextEditingController controller;
   final bool isPassword;
@@ -72,6 +74,7 @@ class _LoginTextFieldState extends State<LoginTextField> {
                       isPasswordVisible = !isPasswordVisible;
                     });
                   }
+                  widget.endIconPressed?.call();
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(right: 16.0),

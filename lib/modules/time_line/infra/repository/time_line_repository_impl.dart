@@ -2,6 +2,7 @@ import 'package:injectable/injectable.dart';
 import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/moment/infra/data_source/moments_data_source.dart';
 import 'package:nossos_momentos/modules/time_line/domain/repository/time_line_repository.dart';
+import 'package:time_machine/time_machine.dart';
 
 import '../../domain/entity/time_line.dart';
 import '../data_source/time_line_data_source.dart';
@@ -24,16 +25,14 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
     required String timeLineId,
   }) async {
     if (month.isNotEmpty) {
-      final result = await momentsDataSource.fetchAllMomentsByMonthAndYear(
-          year, month, timeLineId);
+      final result = await momentsDataSource.fetchAllMomentsByMonthAndYear(year, month, timeLineId);
       return result.map((e) => e.toEntity()).toList();
     } else {
       final result = await momentsDataSource.fetchAllMomentsByYear(
         year: year.toString(),
         timelineId: timeLineId,
       );
-      return result.map((e) => e.toEntity()).toList()
-        ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+      return result.map((e) => e.toEntity()).toList()..sort((a, b) => a.dateTime.compareTo(b.dateTime));
     }
   }
 
@@ -44,8 +43,7 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
 
   @override
   Future<TimeLine> createTimeLine(TimeLine timeLine) {
-    return timeLineDataSource
-        .createTimeLine(TimeLineModel.fromEntity(timeLine));
+    return timeLineDataSource.createTimeLine(TimeLineModel.fromEntity(timeLine));
   }
 
   @override
@@ -55,8 +53,7 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
 
   @override
   Future updateTimeLineMomentIds(Moment moment) async {
-    final timeLine =
-        await timeLineDataSource.getTimeLineById(moment.timelineId);
+    final timeLine = await timeLineDataSource.getTimeLineById(moment.timelineId);
 
     timeLine.momentIds.add(moment.id);
 
@@ -76,6 +73,25 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
       endDate: endDate,
       startDate: startDate,
       timelineId: timeLineId,
+    );
+  }
+
+  @override
+  Future<TimeLine> updateTimeLineEmails(TimeLine timeline, String email) async {
+    timeline.emails.add(email);
+
+    return timeLineDataSource.updateTimeline(
+      timeline.id,
+      TimeLineModel.fromEntity(timeline).toJson(),
+    );
+  }
+
+  @override
+  Future<TimeLine> deleteTimeLineEmails(TimeLine timeline, String email) async {
+    timeline.emails.removeWhere((e) => e == email);
+    return timeLineDataSource.updateTimeline(
+      timeline.id,
+      TimeLineModel.fromEntity(timeline).toJson(),
     );
   }
 }

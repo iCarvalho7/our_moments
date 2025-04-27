@@ -22,6 +22,7 @@ class CreateTimeLineUseCase extends AsyncUseCase<TimeLine, NoParams> {
 
       final timeLine = TimeLine(
         id: timeLineId,
+        owner: user.email!,
         createdDate: Timestamp.now(),
         emails: [user.email!],
         momentIds: [],

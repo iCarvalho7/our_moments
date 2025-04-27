@@ -8,12 +8,14 @@ class TimeLine {
   final List<String> emails;
   final String id;
   final List<String> momentIds;
+  final String owner;
 
   TimeLine({
     required this.createdDate,
     required this.emails,
     required this.id,
     required this.momentIds,
+    required this.owner,
   });
 
   String get momentsAmount => '${momentIds.length} momentos';
@@ -31,5 +33,11 @@ class TimeLine {
     } else {
       return emails;
     }
+  }
+
+  List<String> emailsUserFirst(String email) {
+    emails.remove(email);
+    emails.insert(0, email);
+    return emails;
   }
 }

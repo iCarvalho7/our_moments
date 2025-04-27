@@ -13,6 +13,7 @@ class TimeLineModel extends TimeLine {
     required this.createdDate,
     required super.emails,
     required super.id,
+    required super.owner,
     required this.momentIds,
   }) : super(createdDate: createdDate, momentIds: momentIds);
 
@@ -55,6 +56,7 @@ class TimeLineModel extends TimeLine {
       emails: timeLine.emails,
       id: timeLine.id,
       momentIds: timeLine.momentIds,
+      owner: timeLine.owner,
     );
   }
 }

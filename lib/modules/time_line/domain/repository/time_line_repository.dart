@@ -22,4 +22,8 @@ abstract class TimeLineRepository {
   String generateTimeLineId();
 
   Future updateTimeLineMomentIds(Moment moment);
+
+  Future<TimeLine> updateTimeLineEmails(TimeLine timeline, String email);
+
+  Future<TimeLine> deleteTimeLineEmails(TimeLine timeline, String email);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/background_gradient.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
@@ -49,9 +50,16 @@ class _TimeLinePageState extends State<TimeLinePage> {
                     ),
                     IconButton(
                       icon: Icon(Icons.settings_outlined),
-                      onPressed: () {},
+                      onPressed: () => _goToSettings(context, context.read<TimeLineBloc>().timeLine),
                     ),
                   ],
+                  bottom: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Text('De: ${DateFormat('dd/MM/yyyy').format(state.startDate)}'),
+                      Text('Até: ${DateFormat('dd/MM/yyyy').format(state.endDate)}'),
+                    ],
+                  ),
                 ),
                 body: state is TimeLineStateLoading ? _buildLoadingState() : _buildTimeLine(state),
               ),
@@ -97,12 +105,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
   void _onCalendarSubmit(Object? date, BuildContext context) {
     if (date is PickerDateRange) {
       if (date.endDate != null && date.startDate != null) {
-        context.read<TimeLineBloc>().add(
-              TimeLineEventChangeDate(
-                startDate: date.startDate,
-                endDate: date.endDate,
-              ),
-            );
+        context.read<TimeLineBloc>().add(TimeLineEventChangeDate(startDate: date.startDate, endDate: date.endDate));
         Navigator.pop(context);
       }
     }
@@ -145,11 +148,6 @@ class _TimeLinePageState extends State<TimeLinePage> {
                 indicator: const _CircularIndicator(),
               ),
               endChild: CardMoment(moment: momentsList[index]),
-              // startChild: Text(
-              //   momentsList[index].dateTimeFormatted,
-              //   textAlign: TextAlign.center,
-              //   style: Theme.of(context).textTheme.titleMedium,
-              // ),
             ),
           );
         },
@@ -188,6 +186,10 @@ class _TimeLinePageState extends State<TimeLinePage> {
         Navigator.pop(context);
       },
     );
+  }
+
+  void _goToSettings(BuildContext context, TimeLine timeLine) {
+    Navigator.pushNamed(context, AppRoute.settings.tag, arguments: timeLine);
   }
 }
 

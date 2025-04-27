@@ -23,9 +23,9 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final DeleteMomentsUseCase _deleteMomentsUseCase;
   final ClearAllPhotosFromMomentUseCase _deletePhotoUseCase;
   final CreateTimeLineUseCase _createTimeLineUseCase;
-  late TimeLine _timeLine;
+  late TimeLine timeLine;
 
-  String get timelineId => _timeLine.id;
+  String get timelineId => timeLine.id;
 
   TimeLineBloc(
     this._getMomentsUseCase,
@@ -52,10 +52,10 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     if (event.timeLine == null) {
       final result = await _createTimeLineUseCase.call(NoParams.instance);
       if (result.isSuccess) {
-        _timeLine = result.data!;
+        timeLine = result.data!;
       }
     } else {
-      _timeLine = event.timeLine!;
+      timeLine = event.timeLine!;
     }
 
     add(TimeLineEventChangeDate());
@@ -77,7 +77,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     );
 
     final result = await _getMomentsUseCase.call(GetMomentsParam(
-      timelineId: _timeLine.id,
+      timelineId: timeLine.id,
       startDate: startDate,
       endDate: endDate,
     ));

@@ -53,6 +53,12 @@ import '../modules/photos/infra/data_source/photo_data_source.dart' as _i592;
 import '../modules/photos/infra/repository/photos_repository_impl.dart'
     as _i724;
 import '../modules/photos/presentation/bloc/photos_bloc.dart' as _i876;
+import '../modules/settings/domain/use_case/add_email_use_case.dart' as _i619;
+import '../modules/settings/domain/use_case/delete_email_use_case.dart'
+    as _i275;
+import '../modules/settings/domain/use_case/get_current_user_use_case.dart'
+    as _i1069;
+import '../modules/settings/presentation/bloc/settings_bloc.dart' as _i970;
 import '../modules/signup/domain/sign_up_use_case.dart' as _i480;
 import '../modules/signup/presentation/bloc/sign_up_bloc.dart' as _i773;
 import '../modules/stories/presenter/bloc/story_bloc.dart' as _i211;
@@ -144,6 +150,8 @@ _i174.GetIt $initGetIt(
         momentsDataSource: gh<_i771.MomentsDataSource>(),
         timeLineDataSource: gh<_i1061.TimeLineDataSource>(),
       ));
+  gh.factory<_i1069.GetCurrentUserUseCase>(
+      () => _i1069.GetCurrentUserUseCase(gh<_i884.AuthRepository>()));
   gh.factory<_i183.DeleteMomentsUseCase>(
       () => _i183.DeleteMomentsUseCase(gh<_i980.MomentRepository>()));
   gh.factory<_i272.UpdateMomentUseCase>(
@@ -167,6 +175,15 @@ _i174.GetIt $initGetIt(
       () => _i876.PhotosBloc(gh<_i465.GetMediaUseCase>()));
   gh.factory<_i589.GetMomentsUseCase>(
       () => _i589.GetMomentsUseCase(gh<_i184.TimeLineRepository>()));
+  gh.factory<_i619.AddEmailUseCase>(
+      () => _i619.AddEmailUseCase(gh<_i184.TimeLineRepository>()));
+  gh.factory<_i275.DeleteEmailUseCase>(
+      () => _i275.DeleteEmailUseCase(gh<_i184.TimeLineRepository>()));
+  gh.factory<_i970.SettingsBloc>(() => _i970.SettingsBloc(
+        gh<_i619.AddEmailUseCase>(),
+        gh<_i275.DeleteEmailUseCase>(),
+        gh<_i1069.GetCurrentUserUseCase>(),
+      ));
   gh.factory<_i283.CreateTimeLineUseCase>(() => _i283.CreateTimeLineUseCase(
         gh<_i184.TimeLineRepository>(),
         gh<_i884.AuthRepository>(),

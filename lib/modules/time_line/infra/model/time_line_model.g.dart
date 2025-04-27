@@ -12,6 +12,7 @@ TimeLineModel _$TimeLineModelFromJson(Map<String, dynamic> json) =>
       emails:
           (json['emails'] as List<dynamic>).map((e) => e as String).toList(),
       id: json['id'] as String,
+      owner: json['owner'] as String,
       momentIds: (json['moment_ids'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
@@ -21,6 +22,7 @@ Map<String, dynamic> _$TimeLineModelToJson(TimeLineModel instance) =>
     <String, dynamic>{
       'emails': instance.emails,
       'id': instance.id,
+      'owner': instance.owner,
       'created_date': TimeLineModel._toJsonTimeStamp(instance.createdDate),
       'moment_ids': instance.momentIds,
     };

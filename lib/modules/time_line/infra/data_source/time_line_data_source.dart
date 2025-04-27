@@ -7,7 +7,7 @@ abstract class TimeLineDataSource {
   Future<TimeLineModel> getTimeLineById(String id);
   Future<TimeLineModel> createTimeLine(TimeLineModel timeLine);
   String getNewKey();
-  Future updateTimeline(String timelineId, Map<String, dynamic> timeline);
+  Future<TimeLineModel> updateTimeline(String timelineId, Map<String, dynamic> timeline);
 }
 
 @Injectable(as: TimeLineDataSource)
@@ -37,8 +37,10 @@ class FirebaseTimelineRemoteDataSourceImpl extends TimeLineDataSource {
   }
 
   @override
-  Future updateTimeline(String timelineId, Map<String, dynamic> timeline) async {
+  Future<TimeLineModel> updateTimeline(String timelineId, Map<String, dynamic> timeline) async {
     await timelineRef.doc(timelineId).update(timeline);
+
+    return (await timelineRef.doc(timelineId).get()).data()!;
   }
 
   @override

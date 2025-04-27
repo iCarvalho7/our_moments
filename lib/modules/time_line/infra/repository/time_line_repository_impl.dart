@@ -2,7 +2,6 @@ import 'package:injectable/injectable.dart';
 import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/moment/infra/data_source/moments_data_source.dart';
 import 'package:nossos_momentos/modules/time_line/domain/repository/time_line_repository.dart';
-import 'package:time_machine/time_machine.dart';
 
 import '../../domain/entity/time_line.dart';
 import '../data_source/time_line_data_source.dart';
@@ -93,5 +92,10 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
       timeline.id,
       TimeLineModel.fromEntity(timeline).toJson(),
     );
+  }
+
+  @override
+  Future<TimeLine> getTimeLineById(String id) {
+    return timeLineDataSource.getTimeLineById(id);
   }
 }

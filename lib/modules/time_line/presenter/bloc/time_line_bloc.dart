@@ -4,17 +4,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:nossos_momentos/modules/core/use_case/use_case.dart';
 import 'package:nossos_momentos/modules/moment/domain/use_case/get_moments_use_case.dart';
-import 'package:nossos_momentos/modules/time_line/domain/use_case/get_month_use_case.dart';
-import 'package:nossos_momentos/modules/time_line/domain/use_case/get_year_use_case.dart';
 
+import '../../../core/entity/result.dart';
 import '../../../moment/domain/entities/moment.dart';
 import '../../../moment/domain/use_case/delete_moments_use_case.dart';
 import '../../../photos/domain/use_case/delete_all_photos_from_moment_use_case.dart';
 import '../../domain/entity/time_line.dart';
 import '../../domain/use_case/create_time_line_use_case.dart';
+import '../../domain/use_case/get_time_line_from_id_use_case.dart';
 
 part 'time_line_events.dart';
-
 part 'time_line_state.dart';
 
 @injectable
@@ -23,6 +22,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final DeleteMomentsUseCase _deleteMomentsUseCase;
   final ClearAllPhotosFromMomentUseCase _deletePhotoUseCase;
   final CreateTimeLineUseCase _createTimeLineUseCase;
+  final GetTimeLineFromIdUseCase _getTimeLineFromIdUseCase;
   late TimeLine timeLine;
 
   String get timelineId => timeLine.id;
@@ -32,6 +32,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     this._deleteMomentsUseCase,
     this._deletePhotoUseCase,
     this._createTimeLineUseCase,
+    this._getTimeLineFromIdUseCase,
   ) : super(TimeLineStateInitial()) {
     on<TimeLineEventInit>(_init);
     on<TimeLineEventChangeDate>(_handleChangeDate);
@@ -49,14 +50,15 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
       isMonthEnabled: state.isMonthEnabled,
     ));
 
-    if (event.timeLine == null) {
-      final result = await _createTimeLineUseCase.call(NoParams.instance);
-      if (result.isSuccess) {
-        timeLine = result.data!;
-      }
+    Result<TimeLine> result;
+
+    if (event.timeLineId == null) {
+      result = await _createTimeLineUseCase.call(NoParams.instance);
     } else {
-      timeLine = event.timeLine!;
+      result = await _getTimeLineFromIdUseCase.call(event.timeLineId!);
     }
+
+    timeLine = result.data!;
 
     add(TimeLineEventChangeDate());
   }

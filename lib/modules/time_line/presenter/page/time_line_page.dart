@@ -27,10 +27,10 @@ class TimeLinePage extends StatefulWidget {
 class _TimeLinePageState extends State<TimeLinePage> {
   @override
   Widget build(BuildContext context) {
-    final timeLine = ModalRoute.of(context)?.settings.arguments as TimeLine?;
+    final timeLine = ModalRoute.of(context)?.settings.arguments as String?;
 
     return BlocProvider<TimeLineBloc>(
-      create: (_) => getIt<TimeLineBloc>()..add(TimeLineEventInit(timeLine: timeLine)),
+      create: (_) => getIt<TimeLineBloc>()..add(TimeLineEventInit(timeLineId: timeLine)),
       child: BlocBuilder<TimeLineBloc, TimeLineState>(
         builder: (context, state) {
           return Stack(
@@ -189,7 +189,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
   }
 
   void _goToSettings(BuildContext context, TimeLine timeLine) {
-    Navigator.pushNamed(context, AppRoute.settings.tag, arguments: timeLine);
+    Navigator.pushNamed(context, AppRoute.settings.tag, arguments: timeLine.id);
   }
 }
 

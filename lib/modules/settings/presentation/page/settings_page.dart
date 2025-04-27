@@ -22,10 +22,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final timeline = ModalRoute.of(context)?.settings.arguments as TimeLine;
+    final timeLineId = ModalRoute.of(context)?.settings.arguments as String;
 
     return BlocProvider<SettingsBloc>(
-      create: (context) => getIt<SettingsBloc>()..add(FetchEmailEvent(timeLine: timeline)),
+      create: (context) => getIt<SettingsBloc>()..add(FetchEmailEvent(timeLineId: timeLineId)),
       child: Stack(
         children: [
           const BackgroundGradient(),
@@ -41,7 +41,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       builder: (_) {
                         if (state is SettingsSuccess) {
                           return _SuccessContent(
-                            timeline: timeline,
+                            timeline: state.timeLine!,
                             usernameController: usernameController,
                             state: state,
                           );

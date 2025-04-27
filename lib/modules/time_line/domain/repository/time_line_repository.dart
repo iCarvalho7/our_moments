@@ -26,4 +26,6 @@ abstract class TimeLineRepository {
   Future<TimeLine> updateTimeLineEmails(TimeLine timeline, String email);
 
   Future<TimeLine> deleteTimeLineEmails(TimeLine timeline, String email);
+
+  Future<TimeLine> getTimeLineById(String id);
 }

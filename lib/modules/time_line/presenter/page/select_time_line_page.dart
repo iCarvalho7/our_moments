@@ -109,7 +109,7 @@ class _SelectTimeLineItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, AppRoute.timeLine.tag, arguments: item).then((e) {
+        Navigator.pushNamed(context, AppRoute.timeLine.tag, arguments: item.id).then((e) {
           context.read<SelectTimeLineBloc>().add(SelectTimeLineEventFetchAll());
         });
       },

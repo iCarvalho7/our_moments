@@ -3,9 +3,9 @@ part of 'settings_bloc.dart';
 abstract class SettingsEvent {}
 
 class FetchEmailEvent extends SettingsEvent {
-  final TimeLine timeLine;
+  final String timeLineId;
 
-  FetchEmailEvent({required this.timeLine});
+  FetchEmailEvent({required this.timeLineId});
 }
 
 class DeleteEmailEvent extends SettingsEvent {

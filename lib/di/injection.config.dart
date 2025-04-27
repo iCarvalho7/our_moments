@@ -69,6 +69,8 @@ import '../modules/time_line/domain/use_case/create_time_line_use_case.dart'
 import '../modules/time_line/domain/use_case/get_month_use_case.dart' as _i341;
 import '../modules/time_line/domain/use_case/get_time_line_from_email_use_case.dart'
     as _i783;
+import '../modules/time_line/domain/use_case/get_time_line_from_id_use_case.dart'
+    as _i13;
 import '../modules/time_line/domain/use_case/get_year_use_case.dart' as _i970;
 import '../modules/time_line/domain/use_case/logout_use_case.dart' as _i44;
 import '../modules/time_line/infra/data_source/time_line_data_source.dart'
@@ -179,11 +181,8 @@ _i174.GetIt $initGetIt(
       () => _i619.AddEmailUseCase(gh<_i184.TimeLineRepository>()));
   gh.factory<_i275.DeleteEmailUseCase>(
       () => _i275.DeleteEmailUseCase(gh<_i184.TimeLineRepository>()));
-  gh.factory<_i970.SettingsBloc>(() => _i970.SettingsBloc(
-        gh<_i619.AddEmailUseCase>(),
-        gh<_i275.DeleteEmailUseCase>(),
-        gh<_i1069.GetCurrentUserUseCase>(),
-      ));
+  gh.factory<_i13.GetTimeLineFromIdUseCase>(
+      () => _i13.GetTimeLineFromIdUseCase(gh<_i184.TimeLineRepository>()));
   gh.factory<_i283.CreateTimeLineUseCase>(() => _i283.CreateTimeLineUseCase(
         gh<_i184.TimeLineRepository>(),
         gh<_i884.AuthRepository>(),
@@ -196,6 +195,12 @@ _i174.GetIt $initGetIt(
         gh<_i980.MomentRepository>(),
         gh<_i184.TimeLineRepository>(),
       ));
+  gh.factory<_i970.SettingsBloc>(() => _i970.SettingsBloc(
+        gh<_i619.AddEmailUseCase>(),
+        gh<_i275.DeleteEmailUseCase>(),
+        gh<_i1069.GetCurrentUserUseCase>(),
+        gh<_i13.GetTimeLineFromIdUseCase>(),
+      ));
   gh.factory<_i321.AddOrEditMomentBloc>(() => _i321.AddOrEditMomentBloc(
         gh<_i272.UpdateMomentUseCase>(),
         gh<_i663.RegisterMomentsUseCase>(),
@@ -207,6 +212,7 @@ _i174.GetIt $initGetIt(
         gh<_i183.DeleteMomentsUseCase>(),
         gh<_i522.ClearAllPhotosFromMomentUseCase>(),
         gh<_i283.CreateTimeLineUseCase>(),
+        gh<_i13.GetTimeLineFromIdUseCase>(),
       ));
   return getIt;
 }

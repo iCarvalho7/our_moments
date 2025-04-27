@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +20,11 @@ void main() async {
   initializeDateFormatting();
   configureDependencies();
 
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
   runApp(const MyApp());
 }
 
@@ -46,23 +54,16 @@ class MyApp extends StatelessWidget {
             ),
           ),
           textTheme: const TextTheme(
-            titleLarge: TextStyle(
-              fontFamily: 'GrandHotel',
-              fontSize: 35,
-            ),
-            titleSmall: TextStyle(
-              fontFamily: 'GrandHotel',
-              fontSize: 20,
-            ),
-            titleMedium: TextStyle(
-              fontFamily: 'GrandHotel',
-              fontSize: 25
-            ),
-            bodyMedium: TextStyle(
-              fontFamily: 'GrandHotel',
-              fontSize: 17
-            )
-          ),
+              titleLarge: TextStyle(
+                fontFamily: 'GrandHotel',
+                fontSize: 35,
+              ),
+              titleSmall: TextStyle(
+                fontFamily: 'GrandHotel',
+                fontSize: 20,
+              ),
+              titleMedium: TextStyle(fontFamily: 'GrandHotel', fontSize: 25),
+              bodyMedium: TextStyle(fontFamily: 'GrandHotel', fontSize: 17)),
           outlinedButtonTheme: OutlinedButtonThemeData(
             style: OutlinedButton.styleFrom(
               side: BorderSide.none,

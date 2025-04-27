@@ -63,9 +63,7 @@ class _LoginPageState extends State<LoginPage> {
                   padding: const EdgeInsets.all(16.0),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      final width = constraints.maxWidth > 1200
-                          ? 500.0
-                          : constraints.maxWidth;
+                      final width = constraints.maxWidth > 1200 ? 500.0 : constraints.maxWidth;
                       return SizedBox(
                         width: width,
                         child: Column(
@@ -106,8 +104,7 @@ class _LoginPageState extends State<LoginPage> {
                             kSpacerHeight32,
                             TextButton(
                               onPressed: () {
-                                Navigator.pushNamed(
-                                    context, AppRoute.signup.tag);
+                                Navigator.pushNamed(context, AppRoute.signup.tag);
                               },
                               child: const Text('Criar uma conta'),
                             ),
@@ -132,9 +129,7 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() {});
     if (!hasError) {
-      context
-          .read<LoginBloc>()
-          .add(LoginEventSignIn(username: username, password: password));
+      context.read<LoginBloc>().add(LoginEventSignIn(username: username, password: password));
     }
   }
 
@@ -154,9 +149,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  bool get isFilled =>
-      _userNameTextController.text.isNotEmpty &&
-      _passwordTextController.text.isNotEmpty;
+  bool get isFilled => _userNameTextController.text.isNotEmpty && _passwordTextController.text.isNotEmpty;
 
   void _listerStateChanges(BuildContext context, LoginState state) {
     if (state is LoginError) {

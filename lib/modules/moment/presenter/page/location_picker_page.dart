@@ -185,11 +185,9 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                 subdomains: const ['a', 'b', 'c', 'd'],
                 userAgentPackageName: 'com.nossosmomentos.app',
               ),
-              const RichAttributionWidget(
-                attributions: [
-                  TextSourceAttribution('OpenStreetMap contributors'),
-                  TextSourceAttribution('CARTO'),
-                ],
+              SimpleAttributionWidget(
+                source: const Text('OpenStreetMap · CARTO'),
+                backgroundColor: palette.surface.withValues(alpha: 0.8),
               ),
             ],
           ),

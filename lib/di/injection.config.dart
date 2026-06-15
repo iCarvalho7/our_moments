@@ -1,5 +1,5 @@
-// dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format width=80
 
 // **************************************************************************
 // InjectableConfigGenerator
@@ -89,11 +89,7 @@ _i174.GetIt $initGetIt(
   String? environment,
   _i526.EnvironmentFilter? environmentFilter,
 }) {
-  final gh = _i526.GetItHelper(
-    getIt,
-    environment,
-    environmentFilter,
-  );
+  final gh = _i526.GetItHelper(getIt, environment, environmentFilter);
   final appModules = _$AppModules();
   final firebaseModule = _$FirebaseModule();
   gh.factory<_i388.FilePicker>(() => appModules.filePicker);
@@ -110,110 +106,159 @@ _i174.GetIt $initGetIt(
     instanceName: 'photosStorage',
   );
   gh.factory<_i370.FilePickerDataSource>(
-      () => _i370.FilePickerDataSource(gh<_i388.FilePicker>()));
-  gh.factory<_i771.MomentsDataSource>(() => _i1056.FirebaseMomentsDataSource(
-        gh<_i974.CollectionReference<_i797.MomentModel>>(
-            instanceName: 'momentsDBParam'),
-        gh<_i457.Reference>(instanceName: 'photosStorage'),
-      ));
+    () => _i370.FilePickerDataSource(gh<_i388.FilePicker>()),
+  );
+  gh.factory<_i771.MomentsDataSource>(
+    () => _i1056.FirebaseMomentsDataSource(
+      gh<_i974.CollectionReference<_i797.MomentModel>>(
+        instanceName: 'momentsDBParam',
+      ),
+      gh<_i457.Reference>(instanceName: 'photosStorage'),
+    ),
+  );
   gh.factory<_i974.CollectionReference<_i452.TimeLineModel>>(
     () => firebaseModule.timelineDbRef,
     instanceName: 'timeline',
   );
-  gh.factory<_i592.PhotoDataSource>(() => _i320.FirebaseStoragePhotoDataSource(
-      gh<_i457.Reference>(instanceName: 'photosStorage')));
+  gh.factory<_i592.PhotoDataSource>(
+    () => _i320.FirebaseStoragePhotoDataSource(
+      gh<_i457.Reference>(instanceName: 'photosStorage'),
+    ),
+  );
   gh.factory<_i283.AuthRemoteDataSource>(
-      () => _i678.FirebaseAuthRemoteDataSource(gh<_i59.FirebaseAuth>()));
-  gh.factory<_i179.PhotosRepository>(() => _i724.PhotosRepositoryImpl(
-        gh<_i592.PhotoDataSource>(),
-        gh<_i370.FilePickerDataSource>(),
-      ));
+    () => _i678.FirebaseAuthRemoteDataSource(gh<_i59.FirebaseAuth>()),
+  );
+  gh.factory<_i179.PhotosRepository>(
+    () => _i724.PhotosRepositoryImpl(
+      gh<_i592.PhotoDataSource>(),
+      gh<_i370.FilePickerDataSource>(),
+    ),
+  );
   gh.factory<_i262.UploadPhotoUseCase>(
-      () => _i262.UploadPhotoUseCase(gh<_i179.PhotosRepository>()));
-  gh.factory<_i1061.TimeLineDataSource>(() =>
-      _i1061.FirebaseTimelineRemoteDataSourceImpl(
-          gh<_i974.CollectionReference<_i452.TimeLineModel>>(
-              instanceName: 'timeline')));
+    () => _i262.UploadPhotoUseCase(gh<_i179.PhotosRepository>()),
+  );
+  gh.factory<_i1061.TimeLineDataSource>(
+    () => _i1061.FirebaseTimelineRemoteDataSourceImpl(
+      gh<_i974.CollectionReference<_i452.TimeLineModel>>(
+        instanceName: 'timeline',
+      ),
+    ),
+  );
   gh.factory<_i980.MomentRepository>(
-      () => _i775.MomentRepositoryImpl(gh<_i771.MomentsDataSource>()));
+    () => _i775.MomentRepositoryImpl(gh<_i771.MomentsDataSource>()),
+  );
   gh.factory<_i884.AuthRepository>(
-      () => _i401.AuthRepositoryImpl(gh<_i283.AuthRemoteDataSource>()));
+    () => _i401.AuthRepositoryImpl(gh<_i283.AuthRemoteDataSource>()),
+  );
   gh.factory<_i465.GetMediaUseCase>(
-      () => _i465.GetMediaUseCase(gh<_i179.PhotosRepository>()));
+    () => _i465.GetMediaUseCase(gh<_i179.PhotosRepository>()),
+  );
   gh.factory<_i393.IsUserAuthenticatedUseCase>(
-      () => _i393.IsUserAuthenticatedUseCase(gh<_i884.AuthRepository>()));
+    () => _i393.IsUserAuthenticatedUseCase(gh<_i884.AuthRepository>()),
+  );
   gh.factory<_i518.SignInUseCase>(
-      () => _i518.SignInUseCase(gh<_i884.AuthRepository>()));
+    () => _i518.SignInUseCase(gh<_i884.AuthRepository>()),
+  );
   gh.factory<_i480.SignUpUseCase>(
-      () => _i480.SignUpUseCase(gh<_i884.AuthRepository>()));
+    () => _i480.SignUpUseCase(gh<_i884.AuthRepository>()),
+  );
   gh.factory<_i44.LogoutUseCase>(
-      () => _i44.LogoutUseCase(gh<_i884.AuthRepository>()));
-  gh.factory<_i184.TimeLineRepository>(() => _i294.TimeLineRepositoryImpl(
-        momentsDataSource: gh<_i771.MomentsDataSource>(),
-        timeLineDataSource: gh<_i1061.TimeLineDataSource>(),
-      ));
+    () => _i44.LogoutUseCase(gh<_i884.AuthRepository>()),
+  );
+  gh.factory<_i184.TimeLineRepository>(
+    () => _i294.TimeLineRepositoryImpl(
+      momentsDataSource: gh<_i771.MomentsDataSource>(),
+      timeLineDataSource: gh<_i1061.TimeLineDataSource>(),
+    ),
+  );
   gh.factory<_i1069.GetCurrentUserUseCase>(
-      () => _i1069.GetCurrentUserUseCase(gh<_i884.AuthRepository>()));
+    () => _i1069.GetCurrentUserUseCase(gh<_i884.AuthRepository>()),
+  );
   gh.factory<_i183.DeleteMomentsUseCase>(
-      () => _i183.DeleteMomentsUseCase(gh<_i980.MomentRepository>()));
+    () => _i183.DeleteMomentsUseCase(gh<_i980.MomentRepository>()),
+  );
   gh.factory<_i272.UpdateMomentUseCase>(
-      () => _i272.UpdateMomentUseCase(gh<_i980.MomentRepository>()));
+    () => _i272.UpdateMomentUseCase(gh<_i980.MomentRepository>()),
+  );
   gh.factory<_i783.GetTimeLineFromEmailUseCase>(
-      () => _i783.GetTimeLineFromEmailUseCase(
-            gh<_i884.AuthRepository>(),
-            gh<_i184.TimeLineRepository>(),
-          ));
-  gh.factory<_i522.ClearAllPhotosFromMomentUseCase>(() =>
-      _i522.ClearAllPhotosFromMomentUseCase(gh<_i179.PhotosRepository>()));
+    () => _i783.GetTimeLineFromEmailUseCase(
+      gh<_i884.AuthRepository>(),
+      gh<_i184.TimeLineRepository>(),
+    ),
+  );
+  gh.factory<_i522.ClearAllPhotosFromMomentUseCase>(
+    () => _i522.ClearAllPhotosFromMomentUseCase(gh<_i179.PhotosRepository>()),
+  );
   gh.factory<_i271.DeletePhotoUseCase>(
-      () => _i271.DeletePhotoUseCase(gh<_i179.PhotosRepository>()));
-  gh.factory<_i260.LoginBloc>(() => _i260.LoginBloc(
-        gh<_i518.SignInUseCase>(),
-        gh<_i393.IsUserAuthenticatedUseCase>(),
-      ));
+    () => _i271.DeletePhotoUseCase(gh<_i179.PhotosRepository>()),
+  );
+  gh.factory<_i260.LoginBloc>(
+    () => _i260.LoginBloc(
+      gh<_i518.SignInUseCase>(),
+      gh<_i393.IsUserAuthenticatedUseCase>(),
+    ),
+  );
   gh.factory<_i773.SignUpBloc>(
-      () => _i773.SignUpBloc(gh<_i480.SignUpUseCase>()));
+    () => _i773.SignUpBloc(gh<_i480.SignUpUseCase>()),
+  );
   gh.factory<_i876.PhotosBloc>(
-      () => _i876.PhotosBloc(gh<_i465.GetMediaUseCase>()));
+    () => _i876.PhotosBloc(gh<_i465.GetMediaUseCase>()),
+  );
   gh.factory<_i589.GetMomentsUseCase>(
-      () => _i589.GetMomentsUseCase(gh<_i184.TimeLineRepository>()));
+    () => _i589.GetMomentsUseCase(gh<_i184.TimeLineRepository>()),
+  );
   gh.factory<_i619.AddEmailUseCase>(
-      () => _i619.AddEmailUseCase(gh<_i184.TimeLineRepository>()));
+    () => _i619.AddEmailUseCase(gh<_i184.TimeLineRepository>()),
+  );
   gh.factory<_i275.DeleteEmailUseCase>(
-      () => _i275.DeleteEmailUseCase(gh<_i184.TimeLineRepository>()));
+    () => _i275.DeleteEmailUseCase(gh<_i184.TimeLineRepository>()),
+  );
   gh.factory<_i13.GetTimeLineFromIdUseCase>(
-      () => _i13.GetTimeLineFromIdUseCase(gh<_i184.TimeLineRepository>()));
-  gh.factory<_i283.CreateTimeLineUseCase>(() => _i283.CreateTimeLineUseCase(
-        gh<_i184.TimeLineRepository>(),
-        gh<_i884.AuthRepository>(),
-      ));
-  gh.factory<_i11.SelectTimeLineBloc>(() => _i11.SelectTimeLineBloc(
-        gh<_i783.GetTimeLineFromEmailUseCase>(),
-        gh<_i44.LogoutUseCase>(),
-      ));
-  gh.factory<_i663.RegisterMomentsUseCase>(() => _i663.RegisterMomentsUseCase(
-        gh<_i980.MomentRepository>(),
-        gh<_i184.TimeLineRepository>(),
-      ));
-  gh.factory<_i970.SettingsBloc>(() => _i970.SettingsBloc(
-        gh<_i619.AddEmailUseCase>(),
-        gh<_i275.DeleteEmailUseCase>(),
-        gh<_i1069.GetCurrentUserUseCase>(),
-        gh<_i13.GetTimeLineFromIdUseCase>(),
-      ));
-  gh.factory<_i321.AddOrEditMomentBloc>(() => _i321.AddOrEditMomentBloc(
-        gh<_i272.UpdateMomentUseCase>(),
-        gh<_i663.RegisterMomentsUseCase>(),
-        gh<_i262.UploadPhotoUseCase>(),
-        gh<_i271.DeletePhotoUseCase>(),
-      ));
-  gh.factory<_i716.TimeLineBloc>(() => _i716.TimeLineBloc(
-        gh<_i589.GetMomentsUseCase>(),
-        gh<_i183.DeleteMomentsUseCase>(),
-        gh<_i522.ClearAllPhotosFromMomentUseCase>(),
-        gh<_i283.CreateTimeLineUseCase>(),
-        gh<_i13.GetTimeLineFromIdUseCase>(),
-      ));
+    () => _i13.GetTimeLineFromIdUseCase(gh<_i184.TimeLineRepository>()),
+  );
+  gh.factory<_i283.CreateTimeLineUseCase>(
+    () => _i283.CreateTimeLineUseCase(
+      gh<_i184.TimeLineRepository>(),
+      gh<_i884.AuthRepository>(),
+    ),
+  );
+  gh.factory<_i11.SelectTimeLineBloc>(
+    () => _i11.SelectTimeLineBloc(
+      gh<_i783.GetTimeLineFromEmailUseCase>(),
+      gh<_i44.LogoutUseCase>(),
+    ),
+  );
+  gh.factory<_i663.RegisterMomentsUseCase>(
+    () => _i663.RegisterMomentsUseCase(
+      gh<_i980.MomentRepository>(),
+      gh<_i184.TimeLineRepository>(),
+    ),
+  );
+  gh.factory<_i970.SettingsBloc>(
+    () => _i970.SettingsBloc(
+      gh<_i619.AddEmailUseCase>(),
+      gh<_i275.DeleteEmailUseCase>(),
+      gh<_i1069.GetCurrentUserUseCase>(),
+      gh<_i13.GetTimeLineFromIdUseCase>(),
+    ),
+  );
+  gh.factory<_i321.AddOrEditMomentBloc>(
+    () => _i321.AddOrEditMomentBloc(
+      gh<_i272.UpdateMomentUseCase>(),
+      gh<_i663.RegisterMomentsUseCase>(),
+      gh<_i262.UploadPhotoUseCase>(),
+      gh<_i271.DeletePhotoUseCase>(),
+    ),
+  );
+  gh.factory<_i716.TimeLineBloc>(
+    () => _i716.TimeLineBloc(
+      gh<_i589.GetMomentsUseCase>(),
+      gh<_i183.DeleteMomentsUseCase>(),
+      gh<_i522.ClearAllPhotosFromMomentUseCase>(),
+      gh<_i283.CreateTimeLineUseCase>(),
+      gh<_i13.GetTimeLineFromIdUseCase>(),
+    ),
+  );
   return getIt;
 }
 

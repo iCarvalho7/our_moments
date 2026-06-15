@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nossos_momentos/di/injection.dart';
+import 'package:nossos_momentos/modules/core/presenter/widgets/custom_delete_dialog.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
 import '../../domain/entities/comment.dart';
@@ -102,27 +103,54 @@ class _ReactionPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: InteractionsSection.emojis.map((emoji) {
-        return InkWell(
-          borderRadius: BorderRadius.circular(999),
-          onTap: () => context
-              .read<InteractionsBloc>()
-              .add(InteractionsReactionAdded(emoji)),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest
-                  .withValues(alpha: 0.4),
+    return BlocBuilder<InteractionsBloc, InteractionsState>(
+      buildWhen: (previous, current) =>
+          previous.reactions != current.reactions ||
+          previous.currentUser != current.currentUser,
+      builder: (context, state) {
+        final myEmojis = state.reactions
+            .where((r) => r.author == state.currentUser)
+            .map((r) => r.emoji)
+            .toSet();
+
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: InteractionsSection.emojis.map((emoji) {
+            final selected = myEmojis.contains(emoji);
+            return InkWell(
               borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(emoji, style: const TextStyle(fontSize: 20)),
-          ),
+              onTap: () => _toggle(context, state, emoji),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? theme.colorScheme.primaryContainer.withValues(alpha: 0.6)
+                      : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(999),
+                  border: selected
+                      ? Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.6))
+                      : null,
+                ),
+                child: Text(emoji, style: const TextStyle(fontSize: 20)),
+              ),
+            );
+          }).toList(),
         );
-      }).toList(),
+      },
     );
+  }
+
+  void _toggle(BuildContext context, InteractionsState state, String emoji) {
+    final bloc = context.read<InteractionsBloc>();
+    final mine = state.reactions
+        .where((r) => r.author == state.currentUser && r.emoji == emoji)
+        .toList();
+    if (mine.isNotEmpty) {
+      bloc.add(InteractionsReactionRemoved(mine.first.id));
+    } else {
+      bloc.add(InteractionsReactionAdded(emoji));
+    }
   }
 }
 
@@ -291,22 +319,55 @@ class _CommentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isMine = comment.author == context.read<InteractionsBloc>().state.currentUser;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            comment.author,
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: theme.colorScheme.primary,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onLongPress: isMine ? () => _confirmDelete(context) : null,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    comment.author,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+                if (isMine) ...[
+                  const SizedBox(width: 6),
+                  Text(
+                    '· segure para remover',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(comment.text, style: theme.textTheme.bodyMedium),
-        ],
+            const SizedBox(height: 2),
+            Text(comment.text, style: theme.textTheme.bodyMedium),
+          ],
+        ),
       ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    final bloc = context.read<InteractionsBloc>();
+    CustomDeleteDialog.show(
+      context,
+      text: 'Remover este comentário?',
+      onTapPositive: () {
+        bloc.add(InteractionsCommentRemoved(comment.id));
+        Navigator.pop(context);
+      },
     );
   }
 }

@@ -297,6 +297,7 @@ _i174.GetIt $initGetIt(
       gh<_i753.AddCommentUseCase>(),
       gh<_i606.RemoveReactionUseCase>(),
       gh<_i937.RemoveCommentUseCase>(),
+      gh<_i884.AuthRepository>(),
     ),
   );
   gh.factory<_i11.SelectTimeLineBloc>(

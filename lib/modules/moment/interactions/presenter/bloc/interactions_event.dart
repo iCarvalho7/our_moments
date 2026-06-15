@@ -33,3 +33,15 @@ class InteractionsCommentAdded extends InteractionsEvent {
 
   const InteractionsCommentAdded(this.text);
 }
+
+class InteractionsReactionRemoved extends InteractionsEvent {
+  final String reactionId;
+
+  const InteractionsReactionRemoved(this.reactionId);
+}
+
+class InteractionsCommentRemoved extends InteractionsEvent {
+  final String commentId;
+
+  const InteractionsCommentRemoved(this.commentId);
+}

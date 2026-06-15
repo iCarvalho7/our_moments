@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:nossos_momentos/modules/login/domain/repository/auth_repository.dart';
 
 import '../../domain/entities/comment.dart';
 import '../../domain/entities/reaction.dart';
@@ -24,6 +25,7 @@ class InteractionsBloc extends Bloc<InteractionsEvent, InteractionsState> {
   final AddCommentUseCase addCommentUseCase;
   final RemoveReactionUseCase removeReactionUseCase;
   final RemoveCommentUseCase removeCommentUseCase;
+  final AuthRepository authRepository;
 
   StreamSubscription<List<Reaction>>? _reactionsSubscription;
   StreamSubscription<List<Comment>>? _commentsSubscription;
@@ -35,19 +37,26 @@ class InteractionsBloc extends Bloc<InteractionsEvent, InteractionsState> {
     this.addCommentUseCase,
     this.removeReactionUseCase,
     this.removeCommentUseCase,
+    this.authRepository,
   ) : super(const InteractionsState.initial()) {
     on<InteractionsStarted>(_onStarted);
     on<InteractionsReactionsUpdated>(_onReactionsUpdated);
     on<InteractionsCommentsUpdated>(_onCommentsUpdated);
     on<InteractionsReactionAdded>(_onReactionAdded);
     on<InteractionsCommentAdded>(_onCommentAdded);
+    on<InteractionsReactionRemoved>(_onReactionRemoved);
+    on<InteractionsCommentRemoved>(_onCommentRemoved);
   }
 
   FutureOr<void> _onStarted(
     InteractionsStarted event,
     Emitter<InteractionsState> emit,
   ) {
-    emit(state.copyWith(momentId: event.momentId, isLoading: true));
+    emit(state.copyWith(
+      momentId: event.momentId,
+      isLoading: true,
+      currentUser: authRepository.getCurrentUser()?.email,
+    ));
 
     _reactionsSubscription?.cancel();
     _commentsSubscription?.cancel();
@@ -93,6 +102,24 @@ class InteractionsBloc extends Bloc<InteractionsEvent, InteractionsState> {
     }
     await addCommentUseCase.call(
       AddCommentParams(momentId: state.momentId, text: text),
+    );
+  }
+
+  FutureOr<void> _onReactionRemoved(
+    InteractionsReactionRemoved event,
+    Emitter<InteractionsState> emit,
+  ) async {
+    await removeReactionUseCase.call(
+      RemoveReactionParams(momentId: state.momentId, reactionId: event.reactionId),
+    );
+  }
+
+  FutureOr<void> _onCommentRemoved(
+    InteractionsCommentRemoved event,
+    Emitter<InteractionsState> emit,
+  ) async {
+    await removeCommentUseCase.call(
+      RemoveCommentParams(momentId: state.momentId, commentId: event.commentId),
     );
   }
 

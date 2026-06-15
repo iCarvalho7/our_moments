@@ -17,8 +17,9 @@ class PickedLocation {
   final String name;
 }
 
-/// Full-screen OpenStreetMap picker: drag the map to move the centered pin,
-/// optionally jump to the device's location, and edit the place name.
+/// Full-screen map picker styled to match the app: search a place, drag the
+/// centered pin, or jump to the device's location. Tiles follow the theme
+/// (light/dark) and the name is auto-filled (reverse geocoding) yet editable.
 class LocationPickerPage extends StatefulWidget {
   const LocationPickerPage({super.key, this.initialLatitude, this.initialLongitude, this.initialName});
 
@@ -35,10 +36,12 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
 
   final MapController _mapController = MapController();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   late LatLng _center;
   bool _nameEditedManually = false;
   bool _resolvingName = false;
+  bool _searching = false;
   Timer? _debounce;
 
   @override
@@ -55,6 +58,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
   void dispose() {
     _debounce?.cancel();
     _nameController.dispose();
+    _searchController.dispose();
     _mapController.dispose();
     super.dispose();
   }
@@ -73,8 +77,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
         _nameController.text = _formatPlacemark(marks.first);
       }
     } catch (_) {
-      // Reverse geocoding can fail (no result, offline, unsupported on web) —
-      // keep whatever name is there.
+      // No result / offline / unsupported on web — keep the current name.
     } finally {
       if (mounted) setState(() => _resolvingName = false);
     }
@@ -87,6 +90,31 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
         .toSet()
         .toList();
     return parts.isEmpty ? '' : parts.take(2).join(', ');
+  }
+
+  Future<void> _search() async {
+    final query = _searchController.text.trim();
+    if (query.isEmpty) return;
+    FocusScope.of(context).unfocus();
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _searching = true);
+    try {
+      final results = await locationFromAddress(query);
+      if (results.isEmpty) {
+        messenger.showSnackBar(const SnackBar(content: Text('Nenhum lugar encontrado.')));
+        return;
+      }
+      final latLng = LatLng(results.first.latitude, results.first.longitude);
+      _nameEditedManually = false;
+      _nameController.text = query;
+      setState(() => _center = latLng);
+      _mapController.move(latLng, 15);
+      _scheduleReverseGeocode();
+    } catch (_) {
+      messenger.showSnackBar(const SnackBar(content: Text('Busca de endereço indisponível.')));
+    } finally {
+      if (mounted) setState(() => _searching = false);
+    }
   }
 
   Future<void> _useCurrentLocation() async {
@@ -129,9 +157,16 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final tileUrl = palette.isDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Escolher local')),
+      appBar: AppBar(
+        backgroundColor: palette.surface,
+        surfaceTintColor: Colors.transparent,
+        title: const Text('Escolher local'),
+      ),
       body: Stack(
         children: [
           FlutterMap(
@@ -146,11 +181,19 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: tileUrl,
+                subdomains: const ['a', 'b', 'c', 'd'],
                 userAgentPackageName: 'com.nossosmomentos.app',
+              ),
+              const RichAttributionWidget(
+                attributions: [
+                  TextSourceAttribution('OpenStreetMap contributors'),
+                  TextSourceAttribution('CARTO'),
+                ],
               ),
             ],
           ),
+
           // Center pin (its tip points at the map center).
           IgnorePointer(
             child: Center(
@@ -160,15 +203,32 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
               ),
             ),
           ),
+
+          // Search bar.
+          Positioned(
+            top: 10,
+            left: 12,
+            right: 12,
+            child: _SearchBar(
+              controller: _searchController,
+              searching: _searching,
+              onSubmit: _search,
+            ),
+          ),
+
+          // Jump to current location.
           Positioned(
             right: 16,
-            bottom: 180,
+            bottom: 190,
             child: FloatingActionButton(
               heroTag: 'my_location',
+              backgroundColor: palette.primary,
+              foregroundColor: palette.onPrimary,
               onPressed: _useCurrentLocation,
               child: const Icon(Icons.my_location_rounded),
             ),
           ),
+
           Align(
             alignment: Alignment.bottomCenter,
             child: _BottomPanel(
@@ -179,6 +239,46 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SearchBar extends StatelessWidget {
+  const _SearchBar({required this.controller, required this.searching, required this.onSubmit});
+
+  final TextEditingController controller;
+  final bool searching;
+  final VoidCallback onSubmit;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Container(
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(AppRadii.input),
+        boxShadow: AppShadows.soft(context),
+      ),
+      child: TextField(
+        controller: controller,
+        textInputAction: TextInputAction.search,
+        onSubmitted: (_) => onSubmit(),
+        decoration: InputDecoration(
+          filled: false,
+          hintText: 'Buscar endereço ou lugar...',
+          prefixIcon: const Icon(Icons.search_rounded),
+          suffixIcon: searching
+              ? const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+                )
+              : IconButton(icon: const Icon(Icons.arrow_forward_rounded), onPressed: onSubmit),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        ),
       ),
     );
   }
@@ -222,11 +322,7 @@ class _BottomPanel extends StatelessWidget {
               suffixIcon: resolving
                   ? const Padding(
                       padding: EdgeInsets.all(12),
-                      child: SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
+                      child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
                     )
                   : null,
             ),

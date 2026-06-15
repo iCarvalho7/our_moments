@@ -18,6 +18,7 @@ class StoryBloc extends Bloc<StoryEvent, StoryState> {
     on<StoryEventPlay>(_play);
     on<StoryEventPauseStories>(_pauseStories);
     on<StoryEventNextStory>(_handleNextStory);
+    on<StoryEventPreviousStory>(_handlePreviousStory);
     on<StoryEventNextFinish>(_finish);
   }
 
@@ -50,6 +51,23 @@ class StoryBloc extends Bloc<StoryEvent, StoryState> {
     } else {
       emit(const StoryStateFinished());
     }
+  }
+
+  FutureOr<void> _handlePreviousStory(
+    StoryEventPreviousStory event,
+    Emitter<StoryState> emit,
+  ) {
+    final previousIndex = _currentIndex - 1;
+
+    // Go back when possible; on the first story, restart it (Instagram-like).
+    if (previousIndex >= 0) {
+      _currentIndex = previousIndex;
+    }
+
+    emit(StoryStateSetUpControllers(
+      story: stories[_currentIndex],
+      stories: stories,
+    ));
   }
 
   FutureOr<void> _finish(

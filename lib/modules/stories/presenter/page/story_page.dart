@@ -84,7 +84,14 @@ class _StoryPageState extends State<_StoryPage> with TickerProviderStateMixin {
         await _videoPlayerController?.pause();
         controller?.stop(canceled: false);
       },
-      onTap: () => context.read<StoryBloc>().add(const StoryEventNextStory()),
+      onTapUp: (details) {
+        final width = MediaQuery.of(context).size.width;
+        if (details.globalPosition.dx < width / 3) {
+          context.read<StoryBloc>().add(const StoryEventPreviousStory());
+        } else {
+          context.read<StoryBloc>().add(const StoryEventNextStory());
+        }
+      },
       child: Stack(
         children: [
           SizedBox(

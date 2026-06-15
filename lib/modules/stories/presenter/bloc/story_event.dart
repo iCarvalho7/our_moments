@@ -29,6 +29,10 @@ class StoryEventNextStory extends StoryEvent {
   const StoryEventNextStory();
 }
 
+class StoryEventPreviousStory extends StoryEvent {
+  const StoryEventPreviousStory();
+}
+
 class StoryEventNextFinish extends StoryEvent {
   const StoryEventNextFinish();
 }

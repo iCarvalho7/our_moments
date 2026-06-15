@@ -53,6 +53,22 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     on<TimeLineEventToggleFavorite>(_handleToggleFavorite);
     on<TimeLineEventChangeEyeToggle>(_handleChangeToggle);
     on<TimeLineEventDeleteMoment>(_deleteMoment);
+    on<TimeLineEventReloadTimeline>(_handleReloadTimeline);
+  }
+
+  /// Re-fetches the [TimeLine] entity (name + accent color, emails) and reloads
+  /// the moments. Used when returning from Settings, where these can change.
+  FutureOr<void> _handleReloadTimeline(
+    TimeLineEventReloadTimeline event,
+    Emitter<TimeLineState> emit,
+  ) async {
+    final result = await _getTimeLineFromIdUseCase.call(timeLine.id);
+
+    if (result.isSuccess && result.data != null) {
+      timeLine = result.data!;
+    }
+
+    add(TimeLineEventChangeDate());
   }
 
   FutureOr<void> _init(

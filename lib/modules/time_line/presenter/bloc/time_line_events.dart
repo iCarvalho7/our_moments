@@ -43,3 +43,7 @@ class TimeLineEventToggleFavorite extends TimeLineEvent {
 
   const TimeLineEventToggleFavorite({required this.moment});
 }
+
+class TimeLineEventReloadTimeline extends TimeLineEvent {
+  const TimeLineEventReloadTimeline();
+}

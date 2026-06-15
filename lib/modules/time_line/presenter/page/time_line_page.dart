@@ -569,8 +569,12 @@ class _TimeLinePageState extends State<TimeLinePage> {
     );
   }
 
-  void _goToSettings(BuildContext context, TimeLine timeLine) {
-    Navigator.pushNamed(context, AppRoute.settings.tag, arguments: timeLine.id);
+  Future<void> _goToSettings(BuildContext context, TimeLine timeLine) async {
+    final bloc = context.read<TimeLineBloc>();
+    await Navigator.pushNamed(context, AppRoute.settings.tag, arguments: timeLine.id);
+    // The name/accent color (and emails) may have changed in Settings — re-fetch
+    // the timeline so the title and theme update on return.
+    bloc.add(const TimeLineEventReloadTimeline());
   }
 }
 

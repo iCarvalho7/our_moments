@@ -83,6 +83,30 @@ class AppPalette {
 
   bool get isDark => brightness == Brightness.dark;
 
+  /// Returns a copy of this palette re-themed around [accent] (used to let a
+  /// timeline carry its own accent color).
+  AppPalette withAccent(Color accent) {
+    final onAccent = accent.computeLuminance() > 0.55 ? const Color(0xFF2B2330) : Colors.white;
+    return AppPalette(
+      brightness: brightness,
+      primary: accent,
+      secondaryAccent: Color.lerp(accent, Colors.white, 0.22) ?? accent,
+      onPrimary: onAccent,
+      primarySoft: accent.withValues(alpha: isDark ? 0.26 : 0.14),
+      background: background,
+      surface: surface,
+      surfaceAlt: surfaceAlt,
+      onSurface: onSurface,
+      onSurfaceMuted: onSurfaceMuted,
+      outline: outline,
+      gradient: gradient,
+      danger: danger,
+      bad: bad,
+      romantic: romantic,
+      good: good,
+    );
+  }
+
   static const light = AppPalette(
     brightness: Brightness.light,
     primary: Color(0xFFFF6B7A),
@@ -123,10 +147,28 @@ class AppPalette {
   );
 }
 
-/// Resolves the active [AppPalette] from the current [Theme] brightness.
+/// Provides an optional accent color override to a subtree (e.g. a timeline
+/// with its own color). Widgets read it transparently via `context.palette`.
+class AppAccent extends InheritedWidget {
+  const AppAccent({super.key, required this.color, required super.child});
+
+  final Color? color;
+
+  static Color? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<AppAccent>()?.color;
+
+  @override
+  bool updateShouldNotify(AppAccent oldWidget) => oldWidget.color != color;
+}
+
+/// Resolves the active [AppPalette] from the current [Theme] brightness,
+/// re-themed around the nearest [AppAccent] override if present.
 extension PaletteX on BuildContext {
-  AppPalette get palette =>
-      Theme.of(this).brightness == Brightness.dark ? AppPalette.dark : AppPalette.light;
+  AppPalette get palette {
+    final base = Theme.of(this).brightness == Brightness.dark ? AppPalette.dark : AppPalette.light;
+    final accent = AppAccent.of(this);
+    return accent == null ? base : base.withAccent(accent);
+  }
 }
 
 // ============================================================================

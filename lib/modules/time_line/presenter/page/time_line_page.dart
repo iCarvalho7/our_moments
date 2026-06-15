@@ -37,7 +37,13 @@ class _TimeLinePageState extends State<TimeLinePage> {
       create: (_) => getIt<TimeLineBloc>()..add(TimeLineEventInit(timeLineId: timeLine)),
       child: BlocBuilder<TimeLineBloc, TimeLineState>(
         builder: (context, state) {
-          return Stack(
+          final accentValue = (state is TimeLineStateLoaded || state is TimeLineStateEmpty)
+              ? context.read<TimeLineBloc>().timeLine.accentColor
+              : null;
+          return AppAccent(
+            color: accentValue == null ? null : Color(accentValue),
+            child: Builder(builder: (context) {
+              return Stack(
             children: [
               Scaffold(
                 appBar: PrimaryAppBar(
@@ -81,6 +87,8 @@ class _TimeLinePageState extends State<TimeLinePage> {
                     : _buildLoadingState(),
               ),
             ],
+              );
+            }),
           );
         },
       ),

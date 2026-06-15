@@ -11,12 +11,16 @@ import '../../../core/presenter/widgets/background_gradient.dart';
 import '../../../core/utils/theme/app_theme.dart';
 
 const List<Color> _kAccentColors = [
-  Color(0xFFFF6B7A),
-  Color(0xFFB451D6),
-  Color(0xFF4A8DFF),
-  Color(0xFF2E9E68),
-  Color(0xFFFF9E7D),
-  Color(0xFFF2B705),
+  Color(0xFFFF6B7A), // coral
+  Color(0xFFE84D8A), // rose
+  Color(0xFF8B5CF6), // violet
+  Color(0xFF6366F1), // indigo
+  Color(0xFF3B82F6), // blue
+  Color(0xFF14B8A6), // teal
+  Color(0xFF22C55E), // green
+  Color(0xFFF59E0B), // amber
+  Color(0xFFFB7185), // pink
+  Color(0xFF64748B), // slate
 ];
 
 class SettingsPage extends StatefulWidget {
@@ -260,48 +264,158 @@ class _TimelineDetailsSectionState extends State<_TimelineDetailsSection> {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final textTheme = Theme.of(context).textTheme;
+    final accent = _accentColor != null ? Color(_accentColor!) : palette.primary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Personalizar', style: textTheme.headlineSmall),
-        kSpacerHeight12,
+        kSpacerHeight16,
         TextField(
           controller: _nameController,
           textCapitalization: TextCapitalization.sentences,
+          onChanged: (_) => setState(() {}),
           decoration: const InputDecoration(
             hintText: 'Nome da linha do tempo',
             prefixIcon: Icon(Icons.drive_file_rename_outline),
           ),
         ),
-        kSpacerHeight16,
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: _kAccentColors.map((color) {
-            final value = color.toARGB32();
-            final selected = _accentColor == value;
-            return GestureDetector(
-              onTap: () => setState(() => _accentColor = value),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                  border: selected ? Border.all(color: palette.onSurface, width: 3) : null,
-                ),
-                child: selected ? const Icon(Icons.check, color: Colors.white, size: 18) : null,
-              ),
-            );
-          }).toList(),
+        kSpacerHeight24,
+        Text(
+          'Cor de destaque',
+          style: textTheme.titleSmall?.copyWith(color: palette.onSurfaceMuted),
         ),
-        kSpacerHeight16,
+        kSpacerHeight12,
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            _Swatch(
+              selected: _accentColor == null,
+              background: palette.surfaceAlt,
+              onTap: () => setState(() => _accentColor = null),
+              child: Icon(Icons.format_color_reset_outlined, size: 18, color: palette.onSurfaceMuted),
+            ),
+            ..._kAccentColors.map((color) {
+              final value = color.toARGB32();
+              return _Swatch(
+                selected: _accentColor == value,
+                background: color,
+                onTap: () => setState(() => _accentColor = value),
+                child: _accentColor == value
+                    ? const Icon(Icons.check, color: Colors.white, size: 18)
+                    : null,
+              );
+            }),
+          ],
+        ),
+        kSpacerHeight24,
+        _AccentPreview(accent: accent, name: _nameController.text),
+        kSpacerHeight24,
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(onPressed: _save, child: const Text('Salvar')),
         ),
       ],
+    );
+  }
+}
+
+class _Swatch extends StatelessWidget {
+  const _Swatch({
+    required this.selected,
+    required this.background,
+    required this.onTap,
+    this.child,
+  });
+
+  final bool selected;
+  final Color background;
+  final VoidCallback onTap;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: background,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: selected ? palette.onSurface : palette.outline,
+            width: selected ? 3 : 1,
+          ),
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _AccentPreview extends StatelessWidget {
+  const _AccentPreview({required this.accent, required this.name});
+
+  final Color accent;
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+    final onAccent = accent.computeLuminance() > 0.55 ? const Color(0xFF2B2330) : Colors.white;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: palette.surfaceAlt,
+        borderRadius: BorderRadius.circular(AppRadii.input),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.favorite_rounded, color: accent, size: 18),
+              kSpacerWidth8,
+              Expanded(
+                child: Text(
+                  name.trim().isEmpty ? 'Sua linha do tempo' : name.trim(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.titleMedium,
+                ),
+              ),
+            ],
+          ),
+          kSpacerHeight12,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: BorderRadius.circular(AppRadii.pill),
+                ),
+                child: Text('Botão', style: textTheme.titleSmall?.copyWith(color: onAccent)),
+              ),
+              kSpacerWidth12,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(AppRadii.pill),
+                ),
+                child: Text('Chip', style: textTheme.titleSmall?.copyWith(color: accent)),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

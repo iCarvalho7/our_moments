@@ -12,6 +12,7 @@ import 'package:nossos_momentos/modules/moment/domain/entities/moment_type.dart'
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/utils/relationship_duration.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/page/moments_map_page.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/widgets/memory_card.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
@@ -49,6 +50,10 @@ class _TimeLinePageState extends State<TimeLinePage> {
                     IconButton(
                       icon: Icon(Icons.filter_alt_outlined),
                       onPressed: () => _showDatePicker(context, state),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.map_outlined),
+                      onPressed: () => _openMomentsMap(context),
                     ),
                     IconButton(
                       icon: Icon(Icons.settings_outlined),
@@ -406,6 +411,16 @@ class _TimeLinePageState extends State<TimeLinePage> {
     final month = DateFormat.MMMM('pt_BR').format(d);
     final capitalized = '${month[0].toUpperCase()}${month.substring(1)}';
     return d.year == today.year ? capitalized : '$capitalized de ${d.year}';
+  }
+
+  Future<void> _openMomentsMap(BuildContext context) async {
+    final bloc = context.read<TimeLineBloc>();
+    final moment = await Navigator.of(context).push<Moment>(
+      MaterialPageRoute(builder: (_) => MomentsMapPage(moments: bloc.allMoments)),
+    );
+    if (moment != null && context.mounted) {
+      _openMoment(context, moment);
+    }
   }
 
   void _openMoment(BuildContext context, Moment moment) {

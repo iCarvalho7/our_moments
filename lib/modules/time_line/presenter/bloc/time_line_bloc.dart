@@ -33,6 +33,9 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   /// months — used to mark dates in the calendar filter.
   List<DateTime> momentDates = [];
 
+  /// All moments of the timeline (any date) — used by the moments map.
+  List<Moment> allMoments = [];
+
   String get timelineId => timeLine.id;
 
   TimeLineBloc(
@@ -128,6 +131,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     ));
 
     if (result.isSuccess && result.data != null) {
+      allMoments = result.data!;
       momentDates = result.data!
           .map((m) => DateTime(m.dateTime.year, m.dateTime.month, m.dateTime.day))
           .toSet()

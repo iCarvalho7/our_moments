@@ -54,7 +54,15 @@ Roteiro pra validar as features construídas nesta leva. Marque ✅/❌ conforme
 - [ ] Feche e reabra a timeline → o estado de favorito **persiste**.
 - [ ] Tocar no coração **não** deve abrir a tela de edição (só o resto do card abre).
 
-## 7. Regressões (não pode ter quebrado)
+## 7. Mapa dos momentos
+- [ ] Na timeline, toque no ícone de **mapa** (app bar) → abre o **"Mapa dos momentos"**.
+- [ ] Os momentos **com localização** aparecem como **pinos** (cor do tipo); o mapa **enquadra** todos.
+- [ ] Toque num **pino** → aparece um card embaixo (ícone do tipo + título + data/local).
+- [ ] Toque em **"Abrir"** no card → vai pra **edição** daquele momento.
+- [ ] Sem nenhum momento com local → tela mostra **"Nenhum momento com localização"**.
+- [ ] O mapa segue o **tema** (claro/escuro), igual ao seletor.
+
+## 8. Regressões (não pode ter quebrado)
 - [ ] **Momentos antigos** aparecem (use o filtro de calendário → chip **"Tudo"**).
 - [ ] **Criar** um momento novo (tipo + foto + data + título + descrição) → salva e aparece no feed.
 - [ ] **Excluir** um momento (segurar o card → confirmar) → some.

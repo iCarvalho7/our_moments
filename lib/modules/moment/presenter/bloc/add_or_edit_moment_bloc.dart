@@ -41,6 +41,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     on<AddOrEditMomentEventTypeTitle>(_handleTypeTitle);
     on<AddOrEditMomentEvenTypeBodyText>(_handleTypeBodyText);
     on<AddOrEditMomentEventTypeLocation>(_handleTypeLocation);
+    on<AddOrEditMomentEventSetLocation>(_handleSetLocation);
     on<AddOrEditMomentEventCreateOrUpdateMoment>(_handleCreateOrUpdateMoment);
   }
 
@@ -50,6 +51,20 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
   ) {
     emit(AddOrEditMomentStateUpdate(
       moment: state.moment.copyWith(locationName: event.location),
+      photosToDelete: state.photosToDelete,
+    ));
+  }
+
+  FutureOr<void> _handleSetLocation(
+    AddOrEditMomentEventSetLocation event,
+    Emitter<AddOrEditMomentState> emit,
+  ) {
+    emit(AddOrEditMomentStateUpdate(
+      moment: state.moment.copyWith(
+        latitude: event.latitude,
+        longitude: event.longitude,
+        locationName: event.name,
+      ),
       photosToDelete: state.photosToDelete,
     ));
   }

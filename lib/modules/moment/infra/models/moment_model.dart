@@ -24,12 +24,16 @@ class MomentModel extends Moment {
     required this.timelineId,
     this.isFavorite = false,
     this.locationName = '',
+    this.latitude,
+    this.longitude,
   }) : super(
           dateTime: dateTime,
           type: type,
           timelineId: timelineId,
           isFavorite: isFavorite,
           locationName: locationName,
+          latitude: latitude,
+          longitude: longitude,
         );
 
   @override
@@ -51,6 +55,16 @@ class MomentModel extends Moment {
   @override
   @JsonKey(name: 'location_name', defaultValue: '')
   final String locationName;
+
+  @override
+  @JsonKey(fromJson: _doubleFromJson)
+  final double? latitude;
+
+  @override
+  @JsonKey(fromJson: _doubleFromJson)
+  final double? longitude;
+
+  static double? _doubleFromJson(dynamic value) => (value as num?)?.toDouble();
 
   static _fromJsonDate(String dateTime) {
     return DateFormat(DateFormat.YEAR_MONTH_DAY).parse(dateTime);
@@ -95,6 +109,8 @@ class MomentModel extends Moment {
       timelineId: timelineId,
       isFavorite: isFavorite,
       locationName: locationName,
+      latitude: latitude,
+      longitude: longitude,
     );
   }
 
@@ -112,6 +128,8 @@ class MomentModel extends Moment {
       timelineId: moment.timelineId,
       isFavorite: moment.isFavorite,
       locationName: moment.locationName,
+      latitude: moment.latitude,
+      longitude: moment.longitude,
     );
   }
 }

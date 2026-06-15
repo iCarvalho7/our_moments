@@ -20,6 +20,8 @@ class Moment {
   final String timelineId;
   final bool isFavorite;
   final String locationName;
+  final double? latitude;
+  final double? longitude;
 
   const Moment(
       {required this.id,
@@ -34,7 +36,11 @@ class Moment {
       required this.timelineId,
       this.isEditing = false,
       this.isFavorite = false,
-      this.locationName = ''});
+      this.locationName = '',
+      this.latitude,
+      this.longitude});
+
+  bool get hasLocation => latitude != null && longitude != null;
 
   Moment copyWith({
     String? id,
@@ -50,6 +56,8 @@ class Moment {
     String? timelineId,
     bool? isFavorite,
     String? locationName,
+    double? latitude,
+    double? longitude,
   }) {
     return Moment(
       id: id ?? this.id,
@@ -65,6 +73,8 @@ class Moment {
       timelineId: timelineId ?? this.timelineId,
       isFavorite: isFavorite ?? this.isFavorite,
       locationName: locationName ?? this.locationName,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 

@@ -21,6 +21,8 @@ MomentModel _$MomentModelFromJson(Map<String, dynamic> json) => MomentModel(
   timelineId: json['time_line_id'] as String,
   isFavorite: json['is_favorite'] as bool? ?? false,
   locationName: json['location_name'] as String? ?? '',
+  latitude: MomentModel._doubleFromJson(json['latitude']),
+  longitude: MomentModel._doubleFromJson(json['longitude']),
 );
 
 Map<String, dynamic> _$MomentModelToJson(MomentModel instance) =>
@@ -37,4 +39,6 @@ Map<String, dynamic> _$MomentModelToJson(MomentModel instance) =>
       'time_line_id': instance.timelineId,
       'is_favorite': instance.isFavorite,
       'location_name': instance.locationName,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
     };

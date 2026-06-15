@@ -64,6 +64,18 @@ class AddOrEditMomentEventTypeLocation extends AddOrEditMomentEvent {
   const AddOrEditMomentEventTypeLocation({required this.location});
 }
 
+class AddOrEditMomentEventSetLocation extends AddOrEditMomentEvent {
+  final double latitude;
+  final double longitude;
+  final String name;
+
+  const AddOrEditMomentEventSetLocation({
+    required this.latitude,
+    required this.longitude,
+    required this.name,
+  });
+}
+
 class AddOrEditMomentEventCreateOrUpdateMoment extends AddOrEditMomentEvent {
   const AddOrEditMomentEventCreateOrUpdateMoment();
 }

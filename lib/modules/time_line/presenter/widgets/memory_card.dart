@@ -97,7 +97,7 @@ class MemoryCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (moment.locationName.isNotEmpty) ...[
+                  if (moment.locationName.isNotEmpty || moment.hasLocation) ...[
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -105,7 +105,7 @@ class MemoryCard extends StatelessWidget {
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
-                            moment.locationName,
+                            moment.locationName.isNotEmpty ? moment.locationName : 'Local marcado',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: textTheme.bodySmall?.copyWith(color: Colors.white70),

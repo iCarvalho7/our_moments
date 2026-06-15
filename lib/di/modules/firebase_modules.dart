@@ -6,6 +6,7 @@ import 'package:nossos_momentos/modules/time_line/infra/model/time_line_model.da
 
 import '../../modules/moment/external/firebase/firebase_moments_data_source.dart';
 import '../../modules/moment/infra/models/moment_model.dart';
+import '../../modules/moment/interactions/external/firebase/firebase_interactions_data_source.dart';
 import '../../modules/photos/external/firebase_storage_photo_data_source.dart';
 
 @module
@@ -28,4 +29,8 @@ abstract class FirebaseModule {
   Reference get momentsPhotoRef => FirebaseStorage.instance.ref().child('moments_photo');
 
   FirebaseAuth get firebaseAuth => FirebaseAuth.instance;
+
+  @Named(FirebaseInteractionsDataSource.momentsRawCollectionParam)
+  CollectionReference<Map<String, dynamic>> get momentsRawCollectionRef =>
+      FirebaseFirestore.instance.collection('moments');
 }

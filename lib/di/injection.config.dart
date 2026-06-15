@@ -39,6 +39,28 @@ import '../modules/moment/infra/data_source/moments_data_source.dart' as _i771;
 import '../modules/moment/infra/models/moment_model.dart' as _i797;
 import '../modules/moment/infra/repository/register_moment_repository_impl.dart'
     as _i775;
+import '../modules/moment/interactions/domain/repository/interactions_repository.dart'
+    as _i323;
+import '../modules/moment/interactions/domain/use_case/add_comment_use_case.dart'
+    as _i753;
+import '../modules/moment/interactions/domain/use_case/add_reaction_use_case.dart'
+    as _i426;
+import '../modules/moment/interactions/domain/use_case/remove_comment_use_case.dart'
+    as _i937;
+import '../modules/moment/interactions/domain/use_case/remove_reaction_use_case.dart'
+    as _i606;
+import '../modules/moment/interactions/domain/use_case/watch_comments_use_case.dart'
+    as _i1067;
+import '../modules/moment/interactions/domain/use_case/watch_reactions_use_case.dart'
+    as _i787;
+import '../modules/moment/interactions/external/firebase/firebase_interactions_data_source.dart'
+    as _i832;
+import '../modules/moment/interactions/infra/data_source/interactions_data_source.dart'
+    as _i271;
+import '../modules/moment/interactions/infra/repository/interactions_repository_impl.dart'
+    as _i737;
+import '../modules/moment/interactions/presenter/bloc/interactions_bloc.dart'
+    as _i315;
 import '../modules/moment/presenter/bloc/add_or_edit_moment_bloc.dart' as _i321;
 import '../modules/photos/domain/repository/photos_repository.dart' as _i179;
 import '../modules/photos/domain/use_case/delete_all_photos_from_moment_use_case.dart'
@@ -101,9 +123,20 @@ _i174.GetIt $initGetIt(
     () => firebaseModule.momentsDBRef,
     instanceName: 'momentsDBParam',
   );
+  gh.factory<_i974.CollectionReference<Map<String, dynamic>>>(
+    () => firebaseModule.momentsRawCollectionRef,
+    instanceName: 'momentsRawCollectionParam',
+  );
   gh.factory<_i457.Reference>(
     () => firebaseModule.momentsPhotoRef,
     instanceName: 'photosStorage',
+  );
+  gh.factory<_i271.InteractionsDataSource>(
+    () => _i832.FirebaseInteractionsDataSource(
+      gh<_i974.CollectionReference<Map<String, dynamic>>>(
+        instanceName: 'momentsRawCollectionParam',
+      ),
+    ),
   );
   gh.factory<_i370.FilePickerDataSource>(
     () => _i370.FilePickerDataSource(gh<_i388.FilePicker>()),
@@ -125,8 +158,23 @@ _i174.GetIt $initGetIt(
       gh<_i457.Reference>(instanceName: 'photosStorage'),
     ),
   );
+  gh.factory<_i323.InteractionsRepository>(
+    () => _i737.InteractionsRepositoryImpl(gh<_i271.InteractionsDataSource>()),
+  );
   gh.factory<_i283.AuthRemoteDataSource>(
     () => _i678.FirebaseAuthRemoteDataSource(gh<_i59.FirebaseAuth>()),
+  );
+  gh.factory<_i937.RemoveCommentUseCase>(
+    () => _i937.RemoveCommentUseCase(gh<_i323.InteractionsRepository>()),
+  );
+  gh.factory<_i606.RemoveReactionUseCase>(
+    () => _i606.RemoveReactionUseCase(gh<_i323.InteractionsRepository>()),
+  );
+  gh.factory<_i1067.WatchCommentsUseCase>(
+    () => _i1067.WatchCommentsUseCase(gh<_i323.InteractionsRepository>()),
+  );
+  gh.factory<_i787.WatchReactionsUseCase>(
+    () => _i787.WatchReactionsUseCase(gh<_i323.InteractionsRepository>()),
   );
   gh.factory<_i179.PhotosRepository>(
     () => _i724.PhotosRepositoryImpl(
@@ -198,6 +246,18 @@ _i174.GetIt $initGetIt(
       gh<_i393.IsUserAuthenticatedUseCase>(),
     ),
   );
+  gh.factory<_i753.AddCommentUseCase>(
+    () => _i753.AddCommentUseCase(
+      gh<_i323.InteractionsRepository>(),
+      gh<_i884.AuthRepository>(),
+    ),
+  );
+  gh.factory<_i426.AddReactionUseCase>(
+    () => _i426.AddReactionUseCase(
+      gh<_i323.InteractionsRepository>(),
+      gh<_i884.AuthRepository>(),
+    ),
+  );
   gh.factory<_i773.SignUpBloc>(
     () => _i773.SignUpBloc(gh<_i480.SignUpUseCase>()),
   );
@@ -220,6 +280,16 @@ _i174.GetIt $initGetIt(
     () => _i283.CreateTimeLineUseCase(
       gh<_i184.TimeLineRepository>(),
       gh<_i884.AuthRepository>(),
+    ),
+  );
+  gh.factory<_i315.InteractionsBloc>(
+    () => _i315.InteractionsBloc(
+      gh<_i787.WatchReactionsUseCase>(),
+      gh<_i1067.WatchCommentsUseCase>(),
+      gh<_i426.AddReactionUseCase>(),
+      gh<_i753.AddCommentUseCase>(),
+      gh<_i606.RemoveReactionUseCase>(),
+      gh<_i937.RemoveCommentUseCase>(),
     ),
   );
   gh.factory<_i11.SelectTimeLineBloc>(

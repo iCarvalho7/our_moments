@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/utils/theme/app_theme.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
+import '../../interactions/presenter/widget/interactions_section.dart';
 import '../widget/date_time_section.dart';
 import '../widget/description_section.dart';
 import '../widget/history_container_loading.dart';
@@ -48,17 +49,21 @@ class AddOrEditMomentPage extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                _SectionLabel('Como foi esse momento?'),
-                SelectTypeToggle(),
-                _SectionLabel('Fotos e vídeos'),
-                PhotosContainer(),
-                _SectionLabel('Quando aconteceu'),
-                DateTimeSection(),
-                _SectionLabel('Título'),
-                TitleSection(),
-                _SectionLabel('Descrição'),
-                DescriptionSection(),
+              children: [
+                const _SectionLabel('Como foi esse momento?'),
+                const SelectTypeToggle(),
+                const _SectionLabel('Fotos e vídeos'),
+                const PhotosContainer(),
+                const _SectionLabel('Quando aconteceu'),
+                const DateTimeSection(),
+                const _SectionLabel('Título'),
+                const TitleSection(),
+                const _SectionLabel('Descrição'),
+                const DescriptionSection(),
+                if (state.moment.isEditing) ...[
+                  const _SectionLabel('Reações e comentários'),
+                  InteractionsSection(momentId: state.moment.id),
+                ],
               ],
             ),
           ),

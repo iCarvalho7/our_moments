@@ -7,19 +7,19 @@ part of 'moment_model.dart';
 // **************************************************************************
 
 MomentModel _$MomentModelFromJson(Map<String, dynamic> json) => MomentModel(
-      id: json['id'] as String,
-      dateTime: MomentModel._fromJsonDate(json['dateTime'] as String),
-      title: json['title'] as String,
-      body: json['body'] as String,
-      type: MomentModel._fromJsonType(json['type'] as String),
-      month: json['month'] as String,
-      monthDay: json['monthDay'] as String,
-      year: json['year'] as String,
-      downloadUrlList: (json['downloadUrlList'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
-      timelineId: json['time_line_id'] as String,
-    );
+  id: json['id'] as String,
+  dateTime: MomentModel._fromJsonDate(json['dateTime'] as String),
+  title: json['title'] as String,
+  body: json['body'] as String,
+  type: MomentModel._fromJsonType(json['type'] as String),
+  month: json['month'] as String,
+  monthDay: json['monthDay'] as String,
+  year: json['year'] as String,
+  downloadUrlList: (json['downloadUrlList'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
+  timelineId: json['time_line_id'] as String,
+);
 
 Map<String, dynamic> _$MomentModelToJson(MomentModel instance) =>
     <String, dynamic>{

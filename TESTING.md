@@ -57,7 +57,8 @@ Roteiro pra validar as features construídas nesta leva. Marque ✅/❌ conforme
 ## 7. Mapa dos momentos
 - [ ] Na timeline, toque no ícone de **mapa** (app bar) → abre o **"Mapa dos momentos"**.
 - [ ] Os momentos **com localização** aparecem como **pinos** (cor do tipo); o mapa **enquadra** todos.
-- [ ] Toque num **pino** → aparece um card embaixo (ícone do tipo + título + data/local).
+- [ ] Toque num **pino** → card embaixo com foto + título + data/local + **hora** (se definida) + **"Juntos há X"** naquela data (se houver data de relacionamento).
+- [ ] Ao criar/editar, na seção "Quando aconteceu" você escolhe **data e depois a hora**; a hora aparece no campo e no card do mapa.
 - [ ] Toque em **"Abrir"** no card → vai pra **edição** daquele momento.
 - [ ] Sem nenhum momento com local → tela mostra **"Nenhum momento com localização"**.
 - [ ] O mapa segue o **tema** (claro/escuro), igual ao seletor.

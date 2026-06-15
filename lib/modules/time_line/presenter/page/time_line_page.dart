@@ -416,7 +416,12 @@ class _TimeLinePageState extends State<TimeLinePage> {
   Future<void> _openMomentsMap(BuildContext context) async {
     final bloc = context.read<TimeLineBloc>();
     final moment = await Navigator.of(context).push<Moment>(
-      MaterialPageRoute(builder: (_) => MomentsMapPage(moments: bloc.allMoments)),
+      MaterialPageRoute(
+        builder: (_) => MomentsMapPage(
+          moments: bloc.allMoments,
+          relationshipStartDate: bloc.timeLine.relationshipStartDate,
+        ),
+      ),
     );
     if (moment != null && context.mounted) {
       _openMoment(context, moment);

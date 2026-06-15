@@ -11,12 +11,20 @@ class DateTimeSection extends StatelessWidget {
     final palette = context.palette;
     return BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
       builder: (context, state) {
-        final label = state.moment.dateTimeComplete;
-        final isPlaceholder = label == addDate;
+        final moment = state.moment;
+        final dateLabel = moment.dateTimeComplete;
+        final isPlaceholder = dateLabel == addDate;
+
+        final hasTime = !isPlaceholder &&
+            (moment.dateTime.hour != 0 || moment.dateTime.minute != 0);
+        final label = isPlaceholder
+            ? 'Selecionar data e hora'
+            : (hasTime ? '$dateLabel · ${_timeLabel(moment.dateTime)}' : dateLabel);
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: GestureDetector(
-            onTap: () => _showDatePicker(context),
+            onTap: () => _pickDateTime(context),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
@@ -27,13 +35,14 @@ class DateTimeSection extends StatelessWidget {
                 children: [
                   Icon(Icons.calendar_today_rounded, size: 20, color: palette.onSurfaceMuted),
                   kSpacerWidth12,
-                  Text(
-                    isPlaceholder ? 'Selecionar data' : label,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: isPlaceholder ? palette.onSurfaceMuted : palette.onSurface,
-                        ),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: isPlaceholder ? palette.onSurfaceMuted : palette.onSurface,
+                          ),
+                    ),
                   ),
-                  const Spacer(),
                   Icon(Icons.chevron_right_rounded, color: palette.onSurfaceMuted),
                 ],
               ),
@@ -44,21 +53,30 @@ class DateTimeSection extends StatelessWidget {
     );
   }
 
-  void _showDatePicker(BuildContext context) {
+  Future<void> _pickDateTime(BuildContext context) async {
     final bloc = BlocProvider.of<AddOrEditMomentBloc>(context);
-    showDatePicker(
+    final current = bloc.state.moment.dateTime;
+    final hasDate = current != AddOrEditMomentBloc.defaultDateTime;
+
+    final date = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      lastDate: DateTime(2030, 1, 1),
+      initialDate: hasDate ? current : DateTime.now(),
       firstDate: DateTime(2018, 1, 1),
-    ).then((date) => _sendAddDateTime(bloc, date));
+      lastDate: DateTime(2030, 1, 1),
+    );
+    if (date == null || !context.mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: hasDate ? TimeOfDay.fromDateTime(current) : TimeOfDay.now(),
+    );
+
+    final combined = DateTime(date.year, date.month, date.day, time?.hour ?? 0, time?.minute ?? 0);
+    bloc.add(AddOrEditMomentEventAddDateTime(date: combined));
   }
 
-  void _sendAddDateTime(AddOrEditMomentBloc bloc, DateTime? date) {
-    if (date != null) {
-      bloc.add(AddOrEditMomentEventAddDateTime(date: date));
-    }
-  }
+  String _timeLabel(DateTime dt) =>
+      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
   static const addDate = 'Adicionar Data +';
 }

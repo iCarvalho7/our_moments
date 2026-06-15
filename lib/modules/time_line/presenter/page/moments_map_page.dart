@@ -4,13 +4,15 @@ import 'package:latlong2/latlong.dart' hide Path;
 
 import '../../../core/utils/theme/app_theme.dart';
 import '../../../moment/domain/entities/moment.dart';
+import '../utils/relationship_duration.dart';
 
 /// Plots every moment that has coordinates on an OpenStreetMap map.
 /// Tapping a pin shows a card; "Abrir" pops with the selected moment.
 class MomentsMapPage extends StatefulWidget {
-  const MomentsMapPage({super.key, required this.moments});
+  const MomentsMapPage({super.key, required this.moments, this.relationshipStartDate});
 
   final List<Moment> moments;
+  final DateTime? relationshipStartDate;
 
   @override
   State<MomentsMapPage> createState() => _MomentsMapPageState();
@@ -110,6 +112,7 @@ class _MomentsMapPageState extends State<MomentsMapPage> {
               bottom: 24,
               child: _MomentMapCard(
                 moment: _selected!,
+                relationshipStartDate: widget.relationshipStartDate,
                 onOpen: () => Navigator.pop(context, _selected),
               ),
             ),
@@ -213,15 +216,44 @@ class _PinPointer extends CustomPainter {
 }
 
 class _MomentMapCard extends StatelessWidget {
-  const _MomentMapCard({required this.moment, required this.onOpen});
+  const _MomentMapCard({
+    required this.moment,
+    required this.relationshipStartDate,
+    required this.onOpen,
+  });
 
   final Moment moment;
+  final DateTime? relationshipStartDate;
   final VoidCallback onOpen;
+
+  bool get _hasTime => moment.dateTime.hour != 0 || moment.dateTime.minute != 0;
+
+  String get _meta {
+    final dt = moment.dateTime;
+    return [
+      moment.dateTimeFormatted,
+      if (_hasTime)
+        'às ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}',
+      if (moment.locationName.isNotEmpty) moment.locationName,
+    ].join(' · ');
+  }
+
+  /// "Juntos há X" computed for the moment's date (only if it falls after the
+  /// relationship started).
+  String? get _togetherLabel {
+    final start = relationshipStartDate;
+    if (start == null) return null;
+    final startDay = DateTime(start.year, start.month, start.day);
+    final momentDay = DateTime(moment.dateTime.year, moment.dateTime.month, moment.dateTime.day);
+    if (momentDay.isBefore(startDay)) return null;
+    return 'Juntos há ${RelationshipDuration.friendly(start, now: moment.dateTime)}';
+  }
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
     final textTheme = Theme.of(context).textTheme;
+    final together = _togetherLabel;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -246,13 +278,31 @@ class _MomentMapCard extends StatelessWidget {
                   style: textTheme.titleMedium,
                 ),
                 Text(
-                  moment.locationName.isNotEmpty
-                      ? '${moment.dateTimeFormatted} · ${moment.locationName}'
-                      : moment.dateTimeFormatted,
+                  _meta,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
                 ),
+                if (together != null) ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(Icons.favorite_rounded, size: 12, color: palette.primary),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          together,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: palette.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

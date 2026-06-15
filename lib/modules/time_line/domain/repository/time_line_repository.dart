@@ -28,4 +28,6 @@ abstract class TimeLineRepository {
   Future<TimeLine> deleteTimeLineEmails(TimeLine timeline, String email);
 
   Future<TimeLine> getTimeLineById(String id);
+
+  Future<TimeLine> updateRelationshipStartDate(TimeLine timeline, DateTime date);
 }

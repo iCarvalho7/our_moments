@@ -98,4 +98,20 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
   Future<TimeLine> getTimeLineById(String id) {
     return timeLineDataSource.getTimeLineById(id);
   }
+
+  @override
+  Future<TimeLine> updateRelationshipStartDate(TimeLine timeline, DateTime date) async {
+    final model = TimeLineModel(
+      createdDate: timeline.createdDate,
+      emails: timeline.emails,
+      id: timeline.id,
+      owner: timeline.owner,
+      momentIds: timeline.momentIds,
+      relationshipStartDate: date,
+    );
+
+    await timeLineDataSource.updateTimeline(timeline.id, model.toJson());
+
+    return model;
+  }
 }

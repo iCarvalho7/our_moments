@@ -8,7 +8,9 @@ import 'package:nossos_momentos/modules/core/presenter/widgets/primary_app_bar.d
 import 'package:nossos_momentos/modules/core/presenter/widgets/primary_button.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
+import 'package:nossos_momentos/modules/moment/domain/entities/moment_type.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/utils/relationship_duration.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/widgets/memory_card.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -61,11 +63,159 @@ class _TimeLinePageState extends State<TimeLinePage> {
                     ],
                   ),
                 ),
-                body: state is TimeLineStateLoading ? _buildLoadingState() : _buildTimeLine(state),
+                body: state is TimeLineStateLoading
+                    ? _buildLoadingState()
+                    : Column(
+                        children: [
+                          _buildTogetherCounter(context),
+                          _buildControls(context),
+                          Expanded(child: _buildTimeLine(state)),
+                        ],
+                      ),
               ),
             ],
           );
         },
+      ),
+    );
+  }
+
+  String _searchQuery = '';
+  MomentType? _typeFilter;
+
+  Widget _buildTogetherCounter(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+    final startDate = context.read<TimeLineBloc>().timeLine.relationshipStartDate;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 2),
+      child: GestureDetector(
+        onTap: () => _pickRelationshipDate(context, startDate),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [palette.primary, palette.secondaryAccent]),
+            borderRadius: BorderRadius.circular(AppRadii.card),
+            boxShadow: AppShadows.soft(context),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.favorite_rounded, color: Colors.white),
+              kSpacerWidth12,
+              Expanded(
+                child: startDate == null
+                    ? Text(
+                        'Definir início do relacionamento',
+                        style: textTheme.titleMedium?.copyWith(color: Colors.white),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Juntos há',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.85),
+                            ),
+                          ),
+                          Text(
+                            RelationshipDuration.friendly(startDate),
+                            style: textTheme.titleMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+              Icon(
+                startDate == null ? Icons.add_rounded : Icons.edit_calendar_outlined,
+                color: Colors.white,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _pickRelationshipDate(BuildContext context, DateTime? current) {
+    final bloc = context.read<TimeLineBloc>();
+    showDatePicker(
+      context: context,
+      initialDate: current ?? DateTime.now(),
+      firstDate: DateTime(1990),
+      lastDate: DateTime.now(),
+    ).then((date) {
+      if (date != null) bloc.add(TimeLineEventSetRelationshipDate(date: date));
+    });
+  }
+
+  Widget _buildControls(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: TextField(
+            onChanged: (value) => setState(() => _searchQuery = value),
+            textInputAction: TextInputAction.search,
+            decoration: const InputDecoration(
+              hintText: 'Buscar momentos...',
+              prefixIcon: Icon(Icons.search_rounded),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 38,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            children: [
+              _typeChip(context, null, 'Todos'),
+              ...MomentType.values.map((type) => _typeChip(context, type, type.label)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _typeChip(BuildContext context, MomentType? type, String label) {
+    final palette = context.palette;
+    final selected = _typeFilter == type;
+    final accent = type?.colors(context).accent ?? palette.primary;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: () => setState(() => _typeFilter = selected ? null : type),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? accent.withValues(alpha: 0.16) : palette.surfaceAlt,
+            borderRadius: BorderRadius.circular(AppRadii.pill),
+            border: Border.all(
+              color: selected ? accent.withValues(alpha: 0.5) : Colors.transparent,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (type != null) ...[
+                Icon(type.icon, size: 16, color: selected ? accent : palette.onSurfaceMuted),
+                kSpacerWidth8,
+              ],
+              Text(
+                label,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: selected ? palette.onSurface : palette.onSurfaceMuted,
+                    ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -109,20 +259,34 @@ class _TimeLinePageState extends State<TimeLinePage> {
       momentsList.addAll(state.momentsList);
     }
 
-    if (momentsList.isEmpty) {
+    final query = _searchQuery.trim().toLowerCase();
+    final hasFilters = query.isNotEmpty || _typeFilter != null;
+    final filtered = momentsList.where((m) {
+      final matchesType = _typeFilter == null || m.type == _typeFilter;
+      final matchesQuery = query.isEmpty ||
+          m.title.toLowerCase().contains(query) ||
+          m.body.toLowerCase().contains(query);
+      return matchesType && matchesQuery;
+    }).toList();
+
+    if (filtered.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.auto_awesome_outlined, size: 48, color: context.palette.onSurfaceMuted),
+            Icon(
+              hasFilters ? Icons.search_off_rounded : Icons.auto_awesome_outlined,
+              size: 48,
+              color: context.palette.onSurfaceMuted,
+            ),
             kSpacerHeight16,
             Text(
-              'Nenhum momento nessa data ainda',
+              hasFilters ? 'Nenhum momento encontrado' : 'Nenhum momento nessa data ainda',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             kSpacerHeight8,
             Text(
-              'Toque em + para registrar o primeiro.',
+              hasFilters ? 'Tente outra busca ou filtro.' : 'Toque em + para registrar o primeiro.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: context.palette.onSurfaceMuted,
                   ),
@@ -133,7 +297,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
     }
 
     // Newest first.
-    final sorted = [...momentsList]..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    final sorted = [...filtered]..sort((a, b) => b.dateTime.compareTo(a.dateTime));
     final now = DateTime.now();
 
     // Group consecutive moments under smart, relative date labels.

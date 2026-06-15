@@ -95,6 +95,8 @@ import '../modules/time_line/domain/use_case/get_time_line_from_id_use_case.dart
     as _i13;
 import '../modules/time_line/domain/use_case/get_year_use_case.dart' as _i970;
 import '../modules/time_line/domain/use_case/logout_use_case.dart' as _i44;
+import '../modules/time_line/domain/use_case/update_relationship_start_date_use_case.dart'
+    as _i759;
 import '../modules/time_line/infra/data_source/time_line_data_source.dart'
     as _i1061;
 import '../modules/time_line/infra/model/time_line_model.dart' as _i452;
@@ -276,6 +278,11 @@ _i174.GetIt $initGetIt(
   gh.factory<_i13.GetTimeLineFromIdUseCase>(
     () => _i13.GetTimeLineFromIdUseCase(gh<_i184.TimeLineRepository>()),
   );
+  gh.factory<_i759.UpdateRelationshipStartDateUseCase>(
+    () => _i759.UpdateRelationshipStartDateUseCase(
+      gh<_i184.TimeLineRepository>(),
+    ),
+  );
   gh.factory<_i283.CreateTimeLineUseCase>(
     () => _i283.CreateTimeLineUseCase(
       gh<_i184.TimeLineRepository>(),
@@ -298,6 +305,16 @@ _i174.GetIt $initGetIt(
       gh<_i44.LogoutUseCase>(),
     ),
   );
+  gh.factory<_i716.TimeLineBloc>(
+    () => _i716.TimeLineBloc(
+      gh<_i589.GetMomentsUseCase>(),
+      gh<_i183.DeleteMomentsUseCase>(),
+      gh<_i522.ClearAllPhotosFromMomentUseCase>(),
+      gh<_i283.CreateTimeLineUseCase>(),
+      gh<_i13.GetTimeLineFromIdUseCase>(),
+      gh<_i759.UpdateRelationshipStartDateUseCase>(),
+    ),
+  );
   gh.factory<_i663.RegisterMomentsUseCase>(
     () => _i663.RegisterMomentsUseCase(
       gh<_i980.MomentRepository>(),
@@ -318,15 +335,6 @@ _i174.GetIt $initGetIt(
       gh<_i663.RegisterMomentsUseCase>(),
       gh<_i262.UploadPhotoUseCase>(),
       gh<_i271.DeletePhotoUseCase>(),
-    ),
-  );
-  gh.factory<_i716.TimeLineBloc>(
-    () => _i716.TimeLineBloc(
-      gh<_i589.GetMomentsUseCase>(),
-      gh<_i183.DeleteMomentsUseCase>(),
-      gh<_i522.ClearAllPhotosFromMomentUseCase>(),
-      gh<_i283.CreateTimeLineUseCase>(),
-      gh<_i13.GetTimeLineFromIdUseCase>(),
     ),
   );
   return getIt;

@@ -10,12 +10,16 @@ class TimeLine {
   final List<String> momentIds;
   final String owner;
 
+  /// When the couple's relationship started (used by the "together" counter).
+  final DateTime? relationshipStartDate;
+
   TimeLine({
     required this.createdDate,
     required this.emails,
     required this.id,
     required this.momentIds,
     required this.owner,
+    this.relationshipStartDate,
   });
 
   String get momentsAmount => '${momentIds.length} momentos';

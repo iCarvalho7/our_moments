@@ -31,3 +31,9 @@ class TimeLineEventDeleteMoment extends TimeLineEvent {
 
   const TimeLineEventDeleteMoment({required this.momentId});
 }
+
+class TimeLineEventSetRelationshipDate extends TimeLineEvent {
+  final DateTime date;
+
+  const TimeLineEventSetRelationshipDate({required this.date});
+}

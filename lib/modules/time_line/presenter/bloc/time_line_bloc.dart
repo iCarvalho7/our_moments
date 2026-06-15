@@ -12,6 +12,7 @@ import '../../../photos/domain/use_case/delete_all_photos_from_moment_use_case.d
 import '../../domain/entity/time_line.dart';
 import '../../domain/use_case/create_time_line_use_case.dart';
 import '../../domain/use_case/get_time_line_from_id_use_case.dart';
+import '../../domain/use_case/update_relationship_start_date_use_case.dart';
 
 part 'time_line_events.dart';
 part 'time_line_state.dart';
@@ -23,6 +24,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final ClearAllPhotosFromMomentUseCase _deletePhotoUseCase;
   final CreateTimeLineUseCase _createTimeLineUseCase;
   final GetTimeLineFromIdUseCase _getTimeLineFromIdUseCase;
+  final UpdateRelationshipStartDateUseCase _updateRelationshipStartDateUseCase;
   late TimeLine timeLine;
 
   /// Every day (normalized, no time) that has at least one moment, across all
@@ -37,9 +39,11 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     this._deletePhotoUseCase,
     this._createTimeLineUseCase,
     this._getTimeLineFromIdUseCase,
+    this._updateRelationshipStartDateUseCase,
   ) : super(TimeLineStateInitial()) {
     on<TimeLineEventInit>(_init);
     on<TimeLineEventChangeDate>(_handleChangeDate);
+    on<TimeLineEventSetRelationshipDate>(_handleSetRelationshipDate);
     on<TimeLineEventChangeEyeToggle>(_handleChangeToggle);
     on<TimeLineEventDeleteMoment>(_deleteMoment);
   }
@@ -124,6 +128,20 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
           .map((m) => DateTime(m.dateTime.year, m.dateTime.month, m.dateTime.day))
           .toSet()
           .toList();
+    }
+  }
+
+  FutureOr<void> _handleSetRelationshipDate(
+    TimeLineEventSetRelationshipDate event,
+    Emitter<TimeLineState> emit,
+  ) async {
+    final result = await _updateRelationshipStartDateUseCase.call(
+      UpdateRelationshipStartDateParams(timeline: timeLine, date: event.date),
+    );
+
+    if (result.isSuccess && result.data != null) {
+      timeLine = result.data!;
+      add(TimeLineEventChangeDate());
     }
   }
 

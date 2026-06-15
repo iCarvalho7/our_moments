@@ -15,7 +15,12 @@ class TimeLineModel extends TimeLine {
     required super.id,
     required super.owner,
     required this.momentIds,
-  }) : super(createdDate: createdDate, momentIds: momentIds);
+    this.relationshipStartDate,
+  }) : super(
+          createdDate: createdDate,
+          momentIds: momentIds,
+          relationshipStartDate: relationshipStartDate,
+        );
 
   @override
   @JsonKey(
@@ -27,6 +32,19 @@ class TimeLineModel extends TimeLine {
   @JsonKey(name: 'moment_ids')
   @override
   final List<String> momentIds;
+
+  @JsonKey(name: 'relationship_start_date', fromJson: _dateFromJson, toJson: _dateToJson)
+  @override
+  final DateTime? relationshipStartDate;
+
+  static DateTime? _dateFromJson(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
+  static Object? _dateToJson(DateTime? date) =>
+      date == null ? null : Timestamp.fromDate(date);
 
   Map<String, dynamic> toJson() => _$TimeLineModelToJson(this);
 
@@ -57,6 +75,7 @@ class TimeLineModel extends TimeLine {
       id: timeLine.id,
       momentIds: timeLine.momentIds,
       owner: timeLine.owner,
+      relationshipStartDate: timeLine.relationshipStartDate,
     );
   }
 }

@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 
 import '../../../core/utils/theme/app_theme.dart';
@@ -72,24 +73,21 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
   Future<void> _reverseGeocode() async {
     setState(() => _resolvingName = true);
     try {
-      final marks = await placemarkFromCoordinates(_center.latitude, _center.longitude);
-      if (marks.isNotEmpty && !_nameEditedManually) {
-        _nameController.text = _formatPlacemark(marks.first);
+      final uri = Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse'
+        '?format=jsonv2&lat=${_center.latitude}&lon=${_center.longitude}',
+      );
+      final response = await http.get(uri, headers: _nominatimHeaders);
+      if (response.statusCode == 200 && !_nameEditedManually) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final name = _shortName(data['display_name'] as String?);
+        if (name.isNotEmpty) _nameController.text = name;
       }
     } catch (_) {
-      // No result / offline / unsupported on web — keep the current name.
+      // Offline / rate-limited — keep the current name.
     } finally {
       if (mounted) setState(() => _resolvingName = false);
     }
-  }
-
-  String _formatPlacemark(Placemark p) {
-    final parts = [p.name, p.subLocality, p.locality]
-        .where((e) => e != null && e.trim().isNotEmpty)
-        .map((e) => e!.trim())
-        .toSet()
-        .toList();
-    return parts.isEmpty ? '' : parts.take(2).join(', ');
   }
 
   Future<void> _search() async {
@@ -99,22 +97,42 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _searching = true);
     try {
-      final results = await locationFromAddress(query);
+      final uri = Uri.parse(
+        'https://nominatim.openstreetmap.org/search'
+        '?format=jsonv2&limit=1&q=${Uri.encodeQueryComponent(query)}',
+      );
+      final response = await http.get(uri, headers: _nominatimHeaders);
+      final results = response.statusCode == 200
+          ? jsonDecode(response.body) as List<dynamic>
+          : const [];
       if (results.isEmpty) {
         messenger.showSnackBar(const SnackBar(content: Text('Nenhum lugar encontrado.')));
         return;
       }
-      final latLng = LatLng(results.first.latitude, results.first.longitude);
+      final item = results.first as Map<String, dynamic>;
+      final latLng = LatLng(
+        double.parse(item['lat'] as String),
+        double.parse(item['lon'] as String),
+      );
       _nameEditedManually = false;
-      _nameController.text = query;
+      _nameController.text = _shortName(item['display_name'] as String?);
       setState(() => _center = latLng);
       _mapController.move(latLng, 15);
-      _scheduleReverseGeocode();
     } catch (_) {
       messenger.showSnackBar(const SnackBar(content: Text('Busca de endereço indisponível.')));
     } finally {
       if (mounted) setState(() => _searching = false);
     }
+  }
+
+  static const Map<String, String> _nominatimHeaders = {
+    'User-Agent': 'NossosMomentos/1.0 (contato.lutestudios@gmail.com)',
+  };
+
+  /// Shortens a Nominatim display_name to its first couple of parts.
+  String _shortName(String? displayName) {
+    if (displayName == null || displayName.trim().isEmpty) return '';
+    return displayName.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).take(2).join(', ');
   }
 
   Future<void> _useCurrentLocation() async {

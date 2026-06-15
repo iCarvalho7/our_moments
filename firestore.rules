@@ -1,0 +1,32 @@
+rules_version = '2';
+
+// Security rules for Nossos Momentos.
+//
+// IMPORTANT: deploying this file REPLACES the rules currently in the Firebase
+// console. If your console rules are stricter than this baseline, prefer to just
+// ADD the nested `match /{document=**}` block (below) to your existing
+// `match /moments/{momentId}` block — subcollections (reactions/comments) do NOT
+// inherit the parent document's rules and would otherwise be denied by default.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Moments and every sub-collection under a moment (reactions, comments, ...).
+    match /moments/{momentId} {
+      allow read, write: if isSignedIn();
+
+      // Recursive: covers moments/<id>/reactions/** and moments/<id>/comments/**.
+      match /{document=**} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    // Timelines.
+    match /time_line/{timelineId} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

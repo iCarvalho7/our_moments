@@ -19,7 +19,11 @@ class CardAddMoment extends StatelessWidget {
       child: AppCard(
         onTap: () {
           final timeLineBloc = context.read<TimeLineBloc>();
-          Navigator.pushNamed(context, AppRoute.addMoment.tag).then(
+          Navigator.pushNamed(
+            context,
+            AppRoute.addMoment.tag,
+            arguments: timeLineBloc.timeLine.accentColor,
+          ).then(
             (_) => timeLineBloc.add(TimeLineEventChangeDate()),
           );
 

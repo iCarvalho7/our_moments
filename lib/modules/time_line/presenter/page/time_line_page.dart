@@ -40,8 +40,8 @@ class _TimeLinePageState extends State<TimeLinePage> {
           final accentValue = (state is TimeLineStateLoaded || state is TimeLineStateEmpty)
               ? context.read<TimeLineBloc>().timeLine.accentColor
               : null;
-          return AppAccent(
-            color: accentValue == null ? null : Color(accentValue),
+          return AccentScope(
+            accentColor: accentValue,
             child: Builder(builder: (context) {
               return Stack(
             children: [
@@ -361,7 +361,11 @@ class _TimeLinePageState extends State<TimeLinePage> {
 
   void _goToAddMoment(BuildContext context) {
     final timeLineBloc = context.read<TimeLineBloc>();
-    Navigator.pushNamed(context, AppRoute.addMoment.tag).then(
+    Navigator.pushNamed(
+      context,
+      AppRoute.addMoment.tag,
+      arguments: timeLineBloc.timeLine.accentColor,
+    ).then(
       (_) => timeLineBloc.add(TimeLineEventChangeDate()),
     );
 
@@ -507,6 +511,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
         builder: (_) => MomentsMapPage(
           moments: bloc.allMoments,
           relationshipStartDate: bloc.timeLine.relationshipStartDate,
+          accentColor: bloc.timeLine.accentColor,
         ),
       ),
     );
@@ -517,7 +522,11 @@ class _TimeLinePageState extends State<TimeLinePage> {
 
   void _openMoment(BuildContext context, Moment moment) {
     final timeLineBloc = context.read<TimeLineBloc>();
-    Navigator.pushNamed(context, AppRoute.addMoment.tag).then(
+    Navigator.pushNamed(
+      context,
+      AppRoute.addMoment.tag,
+      arguments: timeLineBloc.timeLine.accentColor,
+    ).then(
       (_) => timeLineBloc.add(TimeLineEventChangeDate()),
     );
 

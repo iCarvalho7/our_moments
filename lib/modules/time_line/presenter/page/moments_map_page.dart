@@ -9,10 +9,16 @@ import '../utils/relationship_duration.dart';
 /// Plots every moment that has coordinates on an OpenStreetMap map.
 /// Tapping a pin shows a card; "Abrir" pops with the selected moment.
 class MomentsMapPage extends StatefulWidget {
-  const MomentsMapPage({super.key, required this.moments, this.relationshipStartDate});
+  const MomentsMapPage({
+    super.key,
+    required this.moments,
+    this.relationshipStartDate,
+    this.accentColor,
+  });
 
   final List<Moment> moments;
   final DateTime? relationshipStartDate;
+  final int? accentColor;
 
   @override
   State<MomentsMapPage> createState() => _MomentsMapPageState();
@@ -25,6 +31,13 @@ class _MomentsMapPageState extends State<MomentsMapPage> {
 
   @override
   Widget build(BuildContext context) {
+    return AccentScope(
+      accentColor: widget.accentColor,
+      child: Builder(builder: _buildScaffold),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     final palette = context.palette;
     final textTheme = Theme.of(context).textTheme;
 

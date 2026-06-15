@@ -20,9 +20,12 @@ class AddOrEditMomentPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
+    final accentColor = ModalRoute.of(context)?.settings.arguments as int?;
+    return AccentScope(
+      accentColor: accentColor,
+      child: SafeArea(
+        child: Scaffold(
+          appBar: AppBar(
           elevation: 0,
           backgroundColor: Colors.transparent,
           title: const Text('Novo momento'),
@@ -49,6 +52,7 @@ class AddOrEditMomentPage extends StatelessWidget {
             return _buildPage(state, context);
           },
         ),
+      ),
       ),
     );
   }

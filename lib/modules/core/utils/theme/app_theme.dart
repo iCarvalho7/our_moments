@@ -171,6 +171,52 @@ extension PaletteX on BuildContext {
   }
 }
 
+/// Re-themes its subtree around [accentColor] — both the [AppPalette]
+/// (`context.palette`) and the Material [ThemeData] (buttons, progress, etc.).
+/// No-op when [accentColor] is null.
+class AccentScope extends StatelessWidget {
+  const AccentScope({super.key, required this.accentColor, required this.child});
+
+  final int? accentColor;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final value = accentColor;
+    if (value == null) return child;
+
+    final accent = Color(value);
+    final onAccent = accent.computeLuminance() > 0.55 ? const Color(0xFF2B2330) : Colors.white;
+    final base = Theme.of(context);
+
+    final themed = base.copyWith(
+      colorScheme: base.colorScheme.copyWith(primary: accent, onPrimary: onAccent),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: base.elevatedButtonTheme.style?.copyWith(
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled) ? accent.withValues(alpha: 0.35) : accent,
+          ),
+          foregroundColor: WidgetStatePropertyAll(onAccent),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: base.outlinedButtonTheme.style?.copyWith(
+          backgroundColor: WidgetStatePropertyAll(accent),
+          foregroundColor: WidgetStatePropertyAll(onAccent),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: base.textButtonTheme.style?.copyWith(
+          foregroundColor: WidgetStatePropertyAll(accent),
+        ),
+      ),
+      progressIndicatorTheme: base.progressIndicatorTheme.copyWith(color: accent),
+    );
+
+    return AppAccent(color: accent, child: Theme(data: themed, child: child));
+  }
+}
+
 // ============================================================================
 // Soft shadows
 // ============================================================================

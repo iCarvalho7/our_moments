@@ -12,12 +12,18 @@ class DescriptionSection extends StatelessWidget {
     final palette = context.palette;
     return BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
       builder: (context, state) {
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(
+              color: palette.surfaceAlt,
+              borderRadius: BorderRadius.circular(AppRadii.input),
+            ),
             child: TextFormField(
               textInputAction: TextInputAction.newline,
               keyboardType: TextInputType.multiline,
+              minLines: 5,
               maxLines: null,
               textCapitalization: TextCapitalization.sentences,
               style: Theme.of(context).textTheme.bodyLarge,
@@ -25,18 +31,16 @@ class DescriptionSection extends StatelessWidget {
               initialValue: state.moment.body,
               decoration: InputDecoration(
                 filled: false,
+                isDense: true,
                 alignLabelWithHint: true,
                 hintText: 'Descreva em detalhes (ou não) esse momento',
                 hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: palette.onSurfaceMuted,
-                ),
-                floatingLabelStyle: Theme.of(context).textTheme.titleMedium,
-                labelStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: palette.onSurfaceMuted,
-                ),
+                      color: palette.onSurfaceMuted,
+                    ),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
               ),
               onChanged: (bodyText) {
                 BlocProvider.of<AddOrEditMomentBloc>(context)
@@ -45,7 +49,7 @@ class DescriptionSection extends StatelessWidget {
             ),
           ),
         );
-      }
+      },
     );
   }
 }

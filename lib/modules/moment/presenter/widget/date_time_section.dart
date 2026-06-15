@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/utils/theme/app_theme.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
 
 class DateTimeSection extends StatelessWidget {
@@ -7,22 +8,35 @@ class DateTimeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
       builder: (context, state) {
         final label = state.moment.dateTimeComplete;
-        return GestureDetector(
-          onTap: () => _showDatePicker(context),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 32.0, left: 8.0),
-            child: Row(
-              children: [
-                Text(
-                  'Aconteceu em: $label',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: label == addDate ? Colors.grey : Colors.black,
+        final isPlaceholder = label == addDate;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: GestureDetector(
+            onTap: () => _showDatePicker(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                color: palette.surfaceAlt,
+                borderRadius: BorderRadius.circular(AppRadii.input),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_today_rounded, size: 20, color: palette.onSurfaceMuted),
+                  kSpacerWidth12,
+                  Text(
+                    isPlaceholder ? 'Selecionar data' : label,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: isPlaceholder ? palette.onSurfaceMuted : palette.onSurface,
+                        ),
                   ),
-                ),
-              ],
+                  const Spacer(),
+                  Icon(Icons.chevron_right_rounded, color: palette.onSurfaceMuted),
+                ],
+              ),
             ),
           ),
         );

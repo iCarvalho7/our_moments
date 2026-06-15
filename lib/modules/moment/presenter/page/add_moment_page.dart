@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/utils/theme/app_theme.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
 import '../widget/date_time_section.dart';
 import '../widget/description_section.dart';
@@ -41,26 +42,28 @@ class AddOrEditMomentPage extends StatelessWidget {
     }
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const SelectTypeToggle(),
-        const PhotosContainer(),
-        const DateTimeSection(),
-        const TitleSection(),
-        const DescriptionSection(),
-        BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
-          builder: (context, state) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: ElevatedButton(
-                onPressed: state.moment.isAllFieldsFilled ? () => _createEvent(context) : null,
-                child: Text(
-                  state.moment.isEditing ? 'Salvar edição' : 'Registrar eternamente',
-                ),
-              ),
-            );
-          },
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                _SectionLabel('Como foi esse momento?'),
+                SelectTypeToggle(),
+                _SectionLabel('Fotos e vídeos'),
+                PhotosContainer(),
+                _SectionLabel('Quando aconteceu'),
+                DateTimeSection(),
+                _SectionLabel('Título'),
+                TitleSection(),
+                _SectionLabel('Descrição'),
+                DescriptionSection(),
+              ],
+            ),
+          ),
         ),
+        const _SubmitButton(),
       ],
     );
   }
@@ -79,8 +82,54 @@ class AddOrEditMomentPage extends StatelessWidget {
     );
   }
 
-  void _createEvent(BuildContext context) {
-    BlocProvider.of<AddOrEditMomentBloc>(context)
-        .add(const AddOrEditMomentEventCreateOrUpdateMoment());
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: context.palette.onSurfaceMuted,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
+            ),
+      ),
+    );
+  }
+}
+
+class _SubmitButton extends StatelessWidget {
+  const _SubmitButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
+      builder: (context, state) {
+        final enabled = state.moment.isAllFieldsFilled;
+        return Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          decoration: BoxDecoration(
+            color: palette.background,
+            border: Border(top: BorderSide(color: palette.outline)),
+          ),
+          child: ElevatedButton(
+            onPressed: enabled
+                ? () => context
+                    .read<AddOrEditMomentBloc>()
+                    .add(const AddOrEditMomentEventCreateOrUpdateMoment())
+                : null,
+            child: Text(state.moment.isEditing ? 'Salvar edição' : 'Registrar eternamente'),
+          ),
+        );
+      },
+    );
   }
 }

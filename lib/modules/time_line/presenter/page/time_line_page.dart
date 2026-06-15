@@ -63,15 +63,15 @@ class _TimeLinePageState extends State<TimeLinePage> {
                     ],
                   ),
                 ),
-                body: state is TimeLineStateLoading
-                    ? _buildLoadingState()
-                    : Column(
+                body: state is TimeLineStateLoaded || state is TimeLineStateEmpty
+                    ? Column(
                         children: [
                           _buildTogetherCounter(context),
                           _buildControls(context),
                           Expanded(child: _buildTimeLine(state)),
                         ],
-                      ),
+                      )
+                    : _buildLoadingState(),
               ),
             ],
           );

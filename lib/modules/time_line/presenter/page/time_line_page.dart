@@ -13,6 +13,7 @@ import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/utils/relationship_duration.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/page/moments_map_page.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/page/on_this_day_page.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/widgets/memory_card.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
@@ -71,6 +72,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
                 body: state is TimeLineStateLoaded || state is TimeLineStateEmpty
                     ? Column(
                         children: [
+                          _buildOnThisDayBanner(context),
                           _buildTogetherCounter(context),
                           _buildControls(context),
                           Expanded(child: _buildTimeLine(state)),
@@ -88,6 +90,75 @@ class _TimeLinePageState extends State<TimeLinePage> {
   String _searchQuery = '';
   MomentType? _typeFilter;
   bool _showFavoritesOnly = false;
+
+  Widget _buildOnThisDayBanner(BuildContext context) {
+    final now = DateTime.now();
+    final onThisDay = context
+        .read<TimeLineBloc>()
+        .allMoments
+        .where((m) =>
+            m.dateTime.month == now.month &&
+            m.dateTime.day == now.day &&
+            m.dateTime.year < now.year)
+        .toList();
+
+    if (onThisDay.isEmpty) return const SizedBox.shrink();
+
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      child: GestureDetector(
+        onTap: () => _openOnThisDay(context, onThisDay),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: palette.primarySoft,
+            borderRadius: BorderRadius.circular(AppRadii.card),
+            border: Border.all(color: palette.primary.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.auto_awesome_rounded, color: palette.primary, size: 20),
+              kSpacerWidth12,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Neste dia',
+                      style: textTheme.titleSmall?.copyWith(
+                        color: palette.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      onThisDay.length == 1
+                          ? '1 memória de outro ano'
+                          : '${onThisDay.length} memórias de outros anos',
+                      style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: palette.primary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openOnThisDay(BuildContext context, List<Moment> moments) async {
+    final selected = await Navigator.of(context).push<Moment>(
+      MaterialPageRoute(builder: (_) => OnThisDayPage(moments: moments)),
+    );
+    if (selected != null && context.mounted) {
+      _openMoment(context, selected);
+    }
+  }
 
   Widget _buildTogetherCounter(BuildContext context) {
     final palette = context.palette;

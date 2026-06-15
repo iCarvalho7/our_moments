@@ -5,6 +5,7 @@ import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/background_gradient.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/primary_app_bar.dart';
+import 'package:nossos_momentos/modules/core/presenter/widgets/primary_button.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
@@ -71,44 +72,35 @@ class _TimeLinePageState extends State<TimeLinePage> {
   }
 
   void _goToAddMoment(BuildContext context) {
+    final timeLineBloc = context.read<TimeLineBloc>();
     Navigator.pushNamed(context, AppRoute.addMoment.tag).then(
-      (_) => context.read<TimeLineBloc>().add(TimeLineEventChangeDate()),
+      (_) => timeLineBloc.add(TimeLineEventChangeDate()),
     );
 
-    final timelineId = context.read<TimeLineBloc>().timelineId;
+    final timelineId = timeLineBloc.timelineId;
 
     BlocProvider.of<AddOrEditMomentBloc>(context).add(SetupAddMomentEvent(timelineId: timelineId));
   }
 
   void _showDatePicker(BuildContext context, TimeLineState state) {
+    final bloc = context.read<TimeLineBloc>();
+    final momentDates = bloc.momentDates;
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
       builder: (_) {
-        return SfDateRangePicker(
-          view: DateRangePickerView.year,
-          selectionMode: DateRangePickerSelectionMode.range,
-          toggleDaySelection: true,
-          showNavigationArrow: true,
-          allowViewNavigation: false,
-          showActionButtons: true,
-          initialDisplayDate: state.startDate,
-          initialSelectedRange: PickerDateRange(
-            state.startDate,
-            state.endDate,
-          ),
-          onSubmit: (date) => _onCalendarSubmit(date, context),
+        return _DateFilterSheet(
+          startDate: state.startDate,
+          endDate: state.endDate,
+          momentDates: momentDates,
+          onApply: (start, end) {
+            bloc.add(TimeLineEventChangeDate(startDate: start, endDate: end));
+          },
         );
       },
     );
-  }
-
-  void _onCalendarSubmit(Object? date, BuildContext context) {
-    if (date is PickerDateRange) {
-      if (date.endDate != null && date.startDate != null) {
-        context.read<TimeLineBloc>().add(TimeLineEventChangeDate(startDate: date.startDate, endDate: date.endDate));
-        Navigator.pop(context);
-      }
-    }
   }
 
   Widget _buildTimeLine(TimeLineState state) {
@@ -120,12 +112,32 @@ class _TimeLinePageState extends State<TimeLinePage> {
 
     if (momentsList.isEmpty) {
       return Center(
-        child: Text('Não encontrei momentos nessa data :('),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.auto_awesome_outlined, size: 48, color: context.palette.onSurfaceMuted),
+            kSpacerHeight16,
+            Text(
+              'Nenhum momento nessa data ainda',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            kSpacerHeight8,
+            Text(
+              'Toque em + para registrar o primeiro.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: context.palette.onSurfaceMuted,
+                  ),
+            ),
+          ],
+        ),
       );
     }
 
+    final lineColor = context.palette.primary.withValues(alpha: 0.4);
+
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: ListView.builder(
         itemCount: momentsList.length,
         shrinkWrap: true,
@@ -139,13 +151,13 @@ class _TimeLinePageState extends State<TimeLinePage> {
             child: TimelineTile(
               alignment: TimelineAlign.manual,
               lineXY: 0.08,
-              beforeLineStyle: const LineStyle(color: AppColors.timeLineColor),
-              afterLineStyle: const LineStyle(color: AppColors.timeLineColor),
-              indicatorStyle: IndicatorStyle(
-                height: 15,
-                width: 15,
+              beforeLineStyle: LineStyle(color: lineColor),
+              afterLineStyle: LineStyle(color: lineColor),
+              indicatorStyle: const IndicatorStyle(
+                height: 16,
+                width: 16,
                 color: Colors.transparent,
-                indicator: const _CircularIndicator(),
+                indicator: _CircularIndicator(),
               ),
               endChild: CardMoment(moment: momentsList[index]),
             ),
@@ -166,9 +178,12 @@ class _TimeLinePageState extends State<TimeLinePage> {
             return LoadingEffect(
               child: Container(
                 width: MediaQuery.of(context).size.width,
-                height: 200,
-                color: Colors.white,
-                margin: const EdgeInsets.symmetric(vertical: 10),
+                height: 160,
+                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: context.palette.surface,
+                  borderRadius: BorderRadius.circular(AppRadii.card),
+                ),
               ),
             );
           },
@@ -198,9 +213,211 @@ class _CircularIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Container(
-      decoration: AppThemes.circularBorder.copyWith(
-        color: AppColors.timeLineColor,
+      decoration: BoxDecoration(
+        color: palette.primary,
+        shape: BoxShape.circle,
+        border: Border.all(color: palette.background, width: 3),
+      ),
+    );
+  }
+}
+
+/// Clean, themed date-range filter shown in a bottom sheet.
+class _DateFilterSheet extends StatefulWidget {
+  const _DateFilterSheet({
+    required this.startDate,
+    required this.endDate,
+    required this.momentDates,
+    required this.onApply,
+  });
+
+  final DateTime startDate;
+  final DateTime endDate;
+  final List<DateTime> momentDates;
+  final void Function(DateTime start, DateTime end) onApply;
+
+  @override
+  State<_DateFilterSheet> createState() => _DateFilterSheetState();
+}
+
+class _DateFilterSheetState extends State<_DateFilterSheet> {
+  final DateRangePickerController _controller = DateRangePickerController();
+  late PickerDateRange _range = PickerDateRange(widget.startDate, widget.endDate);
+
+  /// (label, anos atrás, meses atrás)
+  static const List<(String, int, int)> _presets = [
+    ('Último mês', 0, 1),
+    ('Último ano', 1, 0),
+    ('Últimos 3 anos', 3, 0),
+    ('Últimos 5 anos', 5, 0),
+    ('Tudo', 100, 0),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.selectedRange = _range;
+    _controller.displayDate = widget.startDate;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _applyPreset(int yearsBack, int monthsBack) {
+    final now = DateTime.now();
+    final start = DateTime(now.year - yearsBack, now.month - monthsBack, now.day);
+    final end = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+    setState(() => _range = PickerDateRange(start, end));
+    _controller.selectedRange = _range;
+    _controller.displayDate = DateTime(now.year, now.month);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Filtrar período', style: textTheme.headlineSmall),
+            kSpacerHeight8,
+            Text(
+              'Use um atalho ou escolha as datas no calendário.',
+              style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
+            ),
+            kSpacerHeight16,
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _presets
+                  .map((p) => _PresetChip(label: p.$1, onTap: () => _applyPreset(p.$2, p.$3)))
+                  .toList(),
+            ),
+            kSpacerHeight16,
+            SizedBox(
+              height: 320,
+              child: SfDateRangePicker(
+                controller: _controller,
+                view: DateRangePickerView.month,
+                selectionMode: DateRangePickerSelectionMode.range,
+                allowViewNavigation: false,
+                showNavigationArrow: true,
+                backgroundColor: Colors.transparent,
+                todayHighlightColor: palette.primary,
+                selectionColor: palette.primary,
+                startRangeSelectionColor: palette.primary,
+                endRangeSelectionColor: palette.primary,
+                rangeSelectionColor: palette.primarySoft,
+                selectionTextStyle: TextStyle(
+                  color: palette.onPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+                rangeTextStyle: TextStyle(color: palette.onSurface),
+                headerStyle: DateRangePickerHeaderStyle(
+                  textAlign: TextAlign.center,
+                  backgroundColor: Colors.transparent,
+                  textStyle: textTheme.titleMedium,
+                ),
+                monthCellStyle: DateRangePickerMonthCellStyle(
+                  textStyle: textTheme.bodyMedium,
+                  todayTextStyle: textTheme.bodyMedium?.copyWith(
+                    color: palette.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  specialDatesDecoration: BoxDecoration(
+                    color: palette.primarySoft,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: palette.primary, width: 1.2),
+                  ),
+                  specialDatesTextStyle: textTheme.bodyMedium?.copyWith(
+                    color: palette.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                monthViewSettings: DateRangePickerMonthViewSettings(
+                  firstDayOfWeek: 1,
+                  specialDates: widget.momentDates,
+                ),
+                onSelectionChanged: (args) {
+                  if (args.value is PickerDateRange) {
+                    _range = args.value;
+                  }
+                },
+              ),
+            ),
+            if (widget.momentDates.isNotEmpty) ...[
+              kSpacerHeight12,
+              Row(
+                children: [
+                  Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: palette.primarySoft,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: palette.primary, width: 1.2),
+                    ),
+                  ),
+                  kSpacerWidth8,
+                  Text(
+                    'Dias com momentos',
+                    style: textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ],
+            kSpacerHeight16,
+            PrimaryButton(
+              label: 'Aplicar',
+              onPressed: () {
+                final start = _range.startDate;
+                final end = _range.endDate ?? _range.startDate;
+                if (start != null && end != null) {
+                  widget.onApply(start, end);
+                }
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Quick date-range shortcut chip used in the calendar filter.
+class _PresetChip extends StatelessWidget {
+  const _PresetChip({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Material(
+      color: palette.surfaceAlt,
+      borderRadius: BorderRadius.circular(AppRadii.pill),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.pill),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(color: palette.onSurface),
+          ),
+        ),
       ),
     );
   }

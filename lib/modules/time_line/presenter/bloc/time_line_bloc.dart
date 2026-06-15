@@ -25,6 +25,10 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final GetTimeLineFromIdUseCase _getTimeLineFromIdUseCase;
   late TimeLine timeLine;
 
+  /// Every day (normalized, no time) that has at least one moment, across all
+  /// months — used to mark dates in the calendar filter.
+  List<DateTime> momentDates = [];
+
   String get timelineId => timeLine.id;
 
   TimeLineBloc(
@@ -101,6 +105,25 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
           isMonthEnabled: state.isMonthEnabled,
         ),
       );
+    }
+
+    await _refreshMomentDates();
+  }
+
+  /// Loads the dates of every moment in the timeline (any month) so the
+  /// calendar filter can mark them.
+  Future<void> _refreshMomentDates() async {
+    final result = await _getMomentsUseCase.call(GetMomentsParam(
+      timelineId: timeLine.id,
+      startDate: DateTime(2000),
+      endDate: DateTime(2100),
+    ));
+
+    if (result.isSuccess && result.data != null) {
+      momentDates = result.data!
+          .map((m) => DateTime(m.dateTime.year, m.dateTime.month, m.dateTime.day))
+          .toSet()
+          .toList();
     }
   }
 

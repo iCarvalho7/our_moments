@@ -191,7 +191,10 @@ class _TimeLinePageState extends State<TimeLinePage> {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: GestureDetector(
-        onTap: () => setState(() => _showFavoritesOnly = !_showFavoritesOnly),
+        onTap: () => setState(() {
+          _showFavoritesOnly = !_showFavoritesOnly;
+          if (_showFavoritesOnly) _typeFilter = null;
+        }),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
@@ -225,13 +228,16 @@ class _TimeLinePageState extends State<TimeLinePage> {
 
   Widget _typeChip(BuildContext context, MomentType? type, String label) {
     final palette = context.palette;
-    final selected = _typeFilter == type;
+    final selected = _typeFilter == type && !_showFavoritesOnly;
     final accent = type?.colors(context).accent ?? palette.primary;
 
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: GestureDetector(
-        onTap: () => setState(() => _typeFilter = selected ? null : type),
+        onTap: () => setState(() {
+          _typeFilter = selected ? null : type;
+          _showFavoritesOnly = false;
+        }),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(

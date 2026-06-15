@@ -16,10 +16,14 @@ class TimeLineModel extends TimeLine {
     required super.owner,
     required this.momentIds,
     this.relationshipStartDate,
+    this.name = '',
+    this.accentColor,
   }) : super(
           createdDate: createdDate,
           momentIds: momentIds,
           relationshipStartDate: relationshipStartDate,
+          name: name,
+          accentColor: accentColor,
         );
 
   @override
@@ -36,6 +40,14 @@ class TimeLineModel extends TimeLine {
   @JsonKey(name: 'relationship_start_date', fromJson: _dateFromJson, toJson: _dateToJson)
   @override
   final DateTime? relationshipStartDate;
+
+  @JsonKey(name: 'name', defaultValue: '')
+  @override
+  final String name;
+
+  @JsonKey(name: 'accent_color')
+  @override
+  final int? accentColor;
 
   static DateTime? _dateFromJson(dynamic value) {
     if (value is Timestamp) return value.toDate();
@@ -76,6 +88,8 @@ class TimeLineModel extends TimeLine {
       momentIds: timeLine.momentIds,
       owner: timeLine.owner,
       relationshipStartDate: timeLine.relationshipStartDate,
+      name: timeLine.name,
+      accentColor: timeLine.accentColor,
     );
   }
 }

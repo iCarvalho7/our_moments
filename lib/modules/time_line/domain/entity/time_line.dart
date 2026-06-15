@@ -13,6 +13,10 @@ class TimeLine {
   /// When the couple's relationship started (used by the "together" counter).
   final DateTime? relationshipStartDate;
 
+  /// Optional custom name and accent color (theming) for the timeline.
+  final String name;
+  final int? accentColor;
+
   TimeLine({
     required this.createdDate,
     required this.emails,
@@ -20,6 +24,8 @@ class TimeLine {
     required this.momentIds,
     required this.owner,
     this.relationshipStartDate,
+    this.name = '',
+    this.accentColor,
   });
 
   String get momentsAmount => '${momentIds.length} momentos';

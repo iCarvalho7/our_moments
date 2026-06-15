@@ -10,6 +10,15 @@ import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
 import '../../../core/presenter/widgets/background_gradient.dart';
 import '../../../core/utils/theme/app_theme.dart';
 
+const List<Color> _kAccentColors = [
+  Color(0xFFFF6B7A),
+  Color(0xFFB451D6),
+  Color(0xFF4A8DFF),
+  Color(0xFF2E9E68),
+  Color(0xFFFF9E7D),
+  Color(0xFFF2B705),
+];
+
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -125,14 +134,56 @@ class _SuccessContent extends StatelessWidget {
     final palette = context.palette;
     final textTheme = Theme.of(context).textTheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Quem tem acesso', style: textTheme.headlineSmall),
-        kSpacerHeight16,
-        ListView.builder(
-          shrinkWrap: true,
-          itemCount: timeline.emailsUserFirst(state.email!).length,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Personalizar', style: textTheme.headlineSmall),
+          kSpacerHeight12,
+          TextFormField(
+            initialValue: timeline.name,
+            textCapitalization: TextCapitalization.sentences,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(
+              hintText: 'Nome da linha do tempo',
+              prefixIcon: Icon(Icons.drive_file_rename_outline),
+            ),
+            onFieldSubmitted: (value) => context.read<SettingsBloc>().add(
+                  UpdateTimeLineDetailsEvent(name: value.trim(), accentColor: timeline.accentColor),
+                ),
+          ),
+          kSpacerHeight16,
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: _kAccentColors.map((color) {
+              final value = color.toARGB32();
+              final selected = timeline.accentColor == value;
+              return GestureDetector(
+                onTap: () => context.read<SettingsBloc>().add(
+                      UpdateTimeLineDetailsEvent(name: timeline.name, accentColor: value),
+                    ),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    border: selected ? Border.all(color: palette.onSurface, width: 3) : null,
+                  ),
+                  child: selected ? const Icon(Icons.check, color: Colors.white, size: 18) : null,
+                ),
+              );
+            }).toList(),
+          ),
+          kSpacerHeight32,
+          Text('Quem tem acesso', style: textTheme.headlineSmall),
+          kSpacerHeight16,
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: timeline.emailsUserFirst(state.email!).length,
           itemBuilder: (context, index) {
             final item = timeline.emailsUserFirst(state.email!)[index];
             final isOwner = item == state.timeLine?.owner;
@@ -194,19 +245,19 @@ class _SuccessContent extends StatelessWidget {
             );
           },
         ),
-        Spacer(flex: 20),
-        LoginTextField(
-          startIcon: Icons.person_add_alt_1,
-          endIcon: Icons.send,
-          endIconPressed: () {
-            FocusManager.instance.primaryFocus?.unfocus();
-            context.read<SettingsBloc>().add(AddEmailEvent(email: usernameController.text));
-          },
-          hint: 'exemplo@email.com',
-          controller: usernameController,
-        ),
-        Spacer()
-      ],
+          kSpacerHeight24,
+          LoginTextField(
+            startIcon: Icons.person_add_alt_1,
+            endIcon: Icons.send,
+            endIconPressed: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              context.read<SettingsBloc>().add(AddEmailEvent(email: usernameController.text));
+            },
+            hint: 'exemplo@email.com',
+            controller: usernameController,
+          ),
+        ],
+      ),
     );
   }
 }

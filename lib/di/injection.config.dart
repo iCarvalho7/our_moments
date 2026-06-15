@@ -97,6 +97,8 @@ import '../modules/time_line/domain/use_case/get_year_use_case.dart' as _i970;
 import '../modules/time_line/domain/use_case/logout_use_case.dart' as _i44;
 import '../modules/time_line/domain/use_case/update_relationship_start_date_use_case.dart'
     as _i759;
+import '../modules/time_line/domain/use_case/update_time_line_details_use_case.dart'
+    as _i740;
 import '../modules/time_line/infra/data_source/time_line_data_source.dart'
     as _i1061;
 import '../modules/time_line/infra/model/time_line_model.dart' as _i452;
@@ -283,10 +285,22 @@ _i174.GetIt $initGetIt(
       gh<_i184.TimeLineRepository>(),
     ),
   );
+  gh.factory<_i740.UpdateTimeLineDetailsUseCase>(
+    () => _i740.UpdateTimeLineDetailsUseCase(gh<_i184.TimeLineRepository>()),
+  );
   gh.factory<_i283.CreateTimeLineUseCase>(
     () => _i283.CreateTimeLineUseCase(
       gh<_i184.TimeLineRepository>(),
       gh<_i884.AuthRepository>(),
+    ),
+  );
+  gh.factory<_i970.SettingsBloc>(
+    () => _i970.SettingsBloc(
+      gh<_i619.AddEmailUseCase>(),
+      gh<_i275.DeleteEmailUseCase>(),
+      gh<_i1069.GetCurrentUserUseCase>(),
+      gh<_i13.GetTimeLineFromIdUseCase>(),
+      gh<_i740.UpdateTimeLineDetailsUseCase>(),
     ),
   );
   gh.factory<_i315.InteractionsBloc>(
@@ -321,14 +335,6 @@ _i174.GetIt $initGetIt(
       gh<_i13.GetTimeLineFromIdUseCase>(),
       gh<_i759.UpdateRelationshipStartDateUseCase>(),
       gh<_i272.UpdateMomentUseCase>(),
-    ),
-  );
-  gh.factory<_i970.SettingsBloc>(
-    () => _i970.SettingsBloc(
-      gh<_i619.AddEmailUseCase>(),
-      gh<_i275.DeleteEmailUseCase>(),
-      gh<_i1069.GetCurrentUserUseCase>(),
-      gh<_i13.GetTimeLineFromIdUseCase>(),
     ),
   );
   gh.factory<_i321.AddOrEditMomentBloc>(

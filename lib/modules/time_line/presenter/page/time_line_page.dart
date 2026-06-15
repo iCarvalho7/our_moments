@@ -41,7 +41,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
             children: [
               Scaffold(
                 appBar: PrimaryAppBar(
-                  title: Strings.appName,
+                  title: _timelineTitle(context, state),
                   background: BackgroundGradient(),
                   icons: [
                     IconButton(
@@ -90,6 +90,14 @@ class _TimeLinePageState extends State<TimeLinePage> {
   String _searchQuery = '';
   MomentType? _typeFilter;
   bool _showFavoritesOnly = false;
+
+  String _timelineTitle(BuildContext context, TimeLineState state) {
+    if (state is TimeLineStateLoaded || state is TimeLineStateEmpty) {
+      final name = context.read<TimeLineBloc>().timeLine.name;
+      if (name.isNotEmpty) return name;
+    }
+    return Strings.appName;
+  }
 
   Widget _buildOnThisDayBanner(BuildContext context) {
     final now = DateTime.now();

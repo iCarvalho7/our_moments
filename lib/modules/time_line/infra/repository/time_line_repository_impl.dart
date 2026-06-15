@@ -108,6 +108,30 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
       owner: timeline.owner,
       momentIds: timeline.momentIds,
       relationshipStartDate: date,
+      name: timeline.name,
+      accentColor: timeline.accentColor,
+    );
+
+    await timeLineDataSource.updateTimeline(timeline.id, model.toJson());
+
+    return model;
+  }
+
+  @override
+  Future<TimeLine> updateTimeLineDetails(
+    TimeLine timeline, {
+    required String name,
+    int? accentColor,
+  }) async {
+    final model = TimeLineModel(
+      createdDate: timeline.createdDate,
+      emails: timeline.emails,
+      id: timeline.id,
+      owner: timeline.owner,
+      momentIds: timeline.momentIds,
+      relationshipStartDate: timeline.relationshipStartDate,
+      name: name,
+      accentColor: accentColor,
     );
 
     await timeLineDataSource.updateTimeline(timeline.id, model.toJson());

@@ -20,6 +20,8 @@ TimeLineModel _$TimeLineModelFromJson(Map<String, dynamic> json) =>
       relationshipStartDate: TimeLineModel._dateFromJson(
         json['relationship_start_date'],
       ),
+      name: json['name'] as String? ?? '',
+      accentColor: (json['accent_color'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$TimeLineModelToJson(TimeLineModel instance) =>
@@ -32,4 +34,6 @@ Map<String, dynamic> _$TimeLineModelToJson(TimeLineModel instance) =>
       'relationship_start_date': TimeLineModel._dateToJson(
         instance.relationshipStartDate,
       ),
+      'name': instance.name,
+      'accent_color': instance.accentColor,
     };

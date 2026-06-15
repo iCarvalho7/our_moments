@@ -122,6 +122,32 @@ class _SelectTimeLineItem extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (item.name.isNotEmpty) ...[
+              Row(
+                children: [
+                  if (item.accentColor != null) ...[
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: Color(item.accentColor!),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    kSpacerWidth8,
+                  ],
+                  Expanded(
+                    child: Text(
+                      item.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleLarge,
+                    ),
+                  ),
+                ],
+              ),
+              kSpacerHeight12,
+            ],
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -19,3 +19,10 @@ class AddEmailEvent extends SettingsEvent {
 
   AddEmailEvent({required this.email});
 }
+
+class UpdateTimeLineDetailsEvent extends SettingsEvent {
+  final String name;
+  final int? accentColor;
+
+  UpdateTimeLineDetailsEvent({required this.name, this.accentColor});
+}

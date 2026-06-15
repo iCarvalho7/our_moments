@@ -30,4 +30,10 @@ abstract class TimeLineRepository {
   Future<TimeLine> getTimeLineById(String id);
 
   Future<TimeLine> updateRelationshipStartDate(TimeLine timeline, DateTime date);
+
+  Future<TimeLine> updateTimeLineDetails(
+    TimeLine timeline, {
+    required String name,
+    int? accentColor,
+  });
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/utils/theme/app_theme.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
+import 'share_moment_page.dart';
 import '../../interactions/presenter/widget/interactions_section.dart';
 import '../widget/date_time_section.dart';
 import '../widget/description_section.dart';
@@ -28,6 +29,19 @@ class AddOrEditMomentPage extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
             icon: const Icon(CupertinoIcons.arrow_left),
           ),
+          actions: [
+            BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
+              builder: (context, state) {
+                if (!state.moment.isEditing) return const SizedBox.shrink();
+                return IconButton(
+                  icon: const Icon(Icons.ios_share_rounded),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => ShareMomentPage(moment: state.moment)),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
         body: BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
           builder: (context, state) {

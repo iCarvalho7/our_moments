@@ -10,9 +10,8 @@ import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
-import 'package:nossos_momentos/modules/time_line/presenter/widgets/card_moment.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/widgets/memory_card.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
-import 'package:timeline_tile/timeline_tile.dart';
 
 import '../../../core/presenter/routes.dart';
 import '../../../core/presenter/widgets/custom_delete_dialog.dart';
@@ -133,38 +132,72 @@ class _TimeLinePageState extends State<TimeLinePage> {
       );
     }
 
-    final lineColor = context.palette.primary.withValues(alpha: 0.4);
+    // Newest first.
+    final sorted = [...momentsList]..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    final now = DateTime.now();
 
-    return SingleChildScrollView(
+    // Group consecutive moments under smart, relative date labels.
+    final orderedLabels = <String>[];
+    final byLabel = <String, List<Moment>>{};
+    for (final moment in sorted) {
+      final label = _groupLabel(moment.dateTime, now);
+      if (!byLabel.containsKey(label)) {
+        byLabel[label] = [];
+        orderedLabels.add(label);
+      }
+      byLabel[label]!.add(moment);
+    }
+
+    // Flatten into a header + cards list for a lazy ListView.
+    final items = <Object>[];
+    for (final label in orderedLabels) {
+      items.add((label: label, count: byLabel[label]!.length));
+      items.addAll(byLabel[label]!);
+    }
+
+    return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: ListView.builder(
-        itemCount: momentsList.length,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemBuilder: (parentContext, index) {
+      padding: const EdgeInsets.only(bottom: 16),
+      itemCount: items.length,
+      itemBuilder: (parentContext, index) {
+        final item = items[index];
+        if (item is Moment) {
           return GestureDetector(
-            onLongPress: () => _showDeleteMomentDialog(
-              parentContext,
-              momentsList[index].id,
-            ),
-            child: TimelineTile(
-              alignment: TimelineAlign.manual,
-              lineXY: 0.08,
-              beforeLineStyle: LineStyle(color: lineColor),
-              afterLineStyle: LineStyle(color: lineColor),
-              indicatorStyle: const IndicatorStyle(
-                height: 16,
-                width: 16,
-                color: Colors.transparent,
-                indicator: _CircularIndicator(),
-              ),
-              endChild: CardMoment(moment: momentsList[index]),
-            ),
+            onTap: () => _openMoment(parentContext, item),
+            onLongPress: () => _showDeleteMomentDialog(parentContext, item.id),
+            child: MemoryCard(moment: item),
           );
-        },
-      ),
+        }
+        final header = item as ({String label, int count});
+        return _DateHeader(label: header.label, count: header.count);
+      },
     );
+  }
+
+  /// Relative, human-friendly bucket for a moment's date (Hoje, Ontem,
+  /// Esta semana, Este mês, "Junho", "Junho de 2023").
+  String _groupLabel(DateTime date, DateTime now) {
+    final d = DateTime(date.year, date.month, date.day);
+    final today = DateTime(now.year, now.month, now.day);
+    final diff = today.difference(d).inDays;
+
+    if (diff == 0) return 'Hoje';
+    if (diff == 1) return 'Ontem';
+    if (diff >= 2 && diff <= 6) return 'Esta semana';
+    if (d.year == today.year && d.month == today.month) return 'Este mês';
+
+    final month = DateFormat.MMMM('pt_BR').format(d);
+    final capitalized = '${month[0].toUpperCase()}${month.substring(1)}';
+    return d.year == today.year ? capitalized : '$capitalized de ${d.year}';
+  }
+
+  void _openMoment(BuildContext context, Moment moment) {
+    final timeLineBloc = context.read<TimeLineBloc>();
+    Navigator.pushNamed(context, AppRoute.addMoment.tag).then(
+      (_) => timeLineBloc.add(TimeLineEventChangeDate()),
+    );
+
+    BlocProvider.of<AddOrEditMomentBloc>(context).add(SetupEditMomentEvent(moment: moment));
   }
 
   Widget _buildLoadingState() {
@@ -205,22 +238,6 @@ class _TimeLinePageState extends State<TimeLinePage> {
 
   void _goToSettings(BuildContext context, TimeLine timeLine) {
     Navigator.pushNamed(context, AppRoute.settings.tag, arguments: timeLine.id);
-  }
-}
-
-class _CircularIndicator extends StatelessWidget {
-  const _CircularIndicator();
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Container(
-      decoration: BoxDecoration(
-        color: palette.primary,
-        shape: BoxShape.circle,
-        border: Border.all(color: palette.background, width: 3),
-      ),
-    );
   }
 }
 
@@ -390,6 +407,42 @@ class _DateFilterSheetState extends State<_DateFilterSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Section header for the grouped memories feed (label + moment count).
+class _DateHeader extends StatelessWidget {
+  const _DateHeader({required this.label, required this.count});
+
+  final String label;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 8),
+      child: Row(
+        children: [
+          Text(label, style: Theme.of(context).textTheme.titleLarge),
+          kSpacerWidth8,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: palette.primarySoft,
+              borderRadius: BorderRadius.circular(AppRadii.pill),
+            ),
+            child: Text(
+              '$count',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: palette.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ),
+        ],
       ),
     );
   }

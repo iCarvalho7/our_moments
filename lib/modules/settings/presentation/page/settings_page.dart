@@ -70,26 +70,29 @@ class _LoadingContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final surface = context.palette.surface;
+    BoxDecoration deco() => BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(AppRadii.input),
+        );
+
     return SingleChildScrollView(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              LoadingEffect(
-                child: Container(
-                  width: MediaQuery.of(context).size.width / 3,
-                  height: kToolbarHeight,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
+          LoadingEffect(
+            child: Container(
+              width: MediaQuery.of(context).size.width / 2.5,
+              height: 36,
+              decoration: deco(),
+            ),
           ),
-          SizedBox(height: 12),
+          SizedBox(height: 16),
           LoadingEffect(
             child: Container(
               width: MediaQuery.of(context).size.width,
               height: kToolbarHeight,
-              color: Colors.grey,
+              decoration: deco(),
             ),
           ),
           SizedBox(height: 12),
@@ -97,7 +100,7 @@ class _LoadingContent extends StatelessWidget {
             child: Container(
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height / 2,
-              color: Colors.grey,
+              decoration: deco(),
             ),
           ),
         ],
@@ -119,41 +122,73 @@ class _SuccessContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Acesso:',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+        Text('Quem tem acesso', style: textTheme.headlineSmall),
+        kSpacerHeight16,
         ListView.builder(
           shrinkWrap: true,
           itemCount: timeline.emailsUserFirst(state.email!).length,
           itemBuilder: (context, index) {
             final item = timeline.emailsUserFirst(state.email!)[index];
+            final isOwner = item == state.timeLine?.owner;
+            final isSelf = item == state.email;
             return Container(
-              margin: EdgeInsets.symmetric(vertical: 8),
-              padding: EdgeInsets.symmetric(vertical: 8),
-              decoration: AppThemes.roundedBorder.copyWith(
-                border: Border.all(color: Colors.transparent),
-                color: Color(0xffF8EEEE),
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              decoration: BoxDecoration(
+                color: palette.surface,
+                borderRadius: BorderRadius.circular(AppRadii.input),
+                border: Border.all(color: palette.outline),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(width: 8),
-                  if (item == state.email) ...[Icon(Icons.person_sharp)],
-                  if (item == state.timeLine?.owner) ...[Icon(Icons.admin_panel_settings_outlined)],
-                  Spacer(),
-                  Text(item, style: Theme.of(context).textTheme.bodyMedium),
-                  Spacer(),
-                  if (item != state.email && item != state.timeLine?.owner) ...[
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: palette.primarySoft,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isOwner ? Icons.admin_panel_settings_outlined : Icons.person_outline,
+                      size: 20,
+                      color: palette.primary,
+                    ),
+                  ),
+                  kSpacerWidth12,
+                  Expanded(
+                    child: Text(
+                      item,
+                      style: textTheme.bodyMedium,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (isOwner || isSelf)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: palette.surfaceAlt,
+                        borderRadius: BorderRadius.circular(AppRadii.pill),
+                      ),
+                      child: Text(
+                        isOwner ? 'Admin' : 'Você',
+                        style: textTheme.bodySmall,
+                      ),
+                    )
+                  else
                     InkWell(
                       onTap: () => context.read<SettingsBloc>().add(DeleteEmailEvent(email: item)),
-                      child: Icon(Icons.delete, color: Colors.red),
-                    )
-                  ],
-                  SizedBox(width: 8)
+                      borderRadius: BorderRadius.circular(AppRadii.pill),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(Icons.delete_outline_rounded, color: palette.danger),
+                      ),
+                    ),
                 ],
               ),
             );

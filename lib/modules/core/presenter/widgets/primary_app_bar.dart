@@ -20,15 +20,27 @@ class PrimaryAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
       title: Text(title),
       flexibleSpace: background,
       centerTitle: true,
       actions: icons,
       leading: back,
-      bottom: bottom != null ? PreferredSize(preferredSize: Size.fromHeight(50.0), child: bottom!) : null,
+      bottom: bottom != null
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(48.0),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: DefaultTextStyle.merge(
+                  style: Theme.of(context).textTheme.bodySmall,
+                  child: bottom!,
+                ),
+              ),
+            )
+          : null,
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(100);
+  Size get preferredSize => Size.fromHeight(bottom != null ? 112 : 64);
 }

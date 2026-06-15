@@ -20,12 +20,10 @@ class AddOrEditMomentPage extends StatelessWidget {
         appBar: AppBar(
           elevation: 0,
           backgroundColor: Colors.transparent,
+          title: const Text('Novo momento'),
           leading: IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(
-              CupertinoIcons.arrow_left,
-              color: Colors.black,
-            ),
+            icon: const Icon(CupertinoIcons.arrow_left),
           ),
         ),
         body: BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
@@ -53,14 +51,11 @@ class AddOrEditMomentPage extends StatelessWidget {
         BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
           builder: (context, state) {
             return Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               child: ElevatedButton(
                 onPressed: state.moment.isAllFieldsFilled ? () => _createEvent(context) : null,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(MediaQuery.of(context).size.width, kTextTabBarHeight),
-                ),
                 child: Text(
-                  state.moment.isEditing ? 'Salvar Edição' : 'Registrar Eternamente',
+                  state.moment.isEditing ? 'Salvar edição' : 'Registrar eternamente',
                 ),
               ),
             );

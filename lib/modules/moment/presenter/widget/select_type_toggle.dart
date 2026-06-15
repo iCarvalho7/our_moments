@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/utils/theme/app_theme.dart';
@@ -12,25 +11,18 @@ class SelectTypeToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
       builder: (context, state) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _TypeToggle(
-              isSelected: state.moment.type == MomentType.bad,
-              type: MomentType.bad,
-              onPressed: () => _addType(MomentType.bad, context),
-            ),
-            _TypeToggle(
-              isSelected: state.moment.type == MomentType.romantic,
-              type: MomentType.romantic,
-              onPressed: () => _addType(MomentType.romantic, context),
-            ),
-            _TypeToggle(
-              isSelected: state.moment.type == MomentType.good,
-              type: MomentType.good,
-              onPressed: () => _addType(MomentType.good, context),
-            ),
-          ],
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: MomentType.values.map((type) {
+              return _TypeToggle(
+                isSelected: state.moment.type == type,
+                type: type,
+                onPressed: () => _addType(type, context),
+              );
+            }).toList(),
+          ),
         );
       },
     );
@@ -54,40 +46,38 @@ class _TypeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+    final colors = type.colors(context);
+
     return GestureDetector(
       onTap: onPressed,
-      child: Row(
-        children: [
-          _getIcon(),
-          const SizedBox(width: 5),
-          Text(
-            type.value,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: isSelected ? Colors.black : Colors.grey,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? colors.bg : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadii.pill),
+          border: Border.all(
+            color: isSelected ? colors.accent.withValues(alpha: 0.4) : palette.outline,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              type.icon,
+              size: 20,
+              color: isSelected ? colors.accent : palette.onSurfaceMuted,
             ),
-          )
-        ],
+            kSpacerWidth8,
+            Text(
+              type.label,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: isSelected ? colors.onBg : palette.onSurfaceMuted,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  Icon _getIcon() {
-    switch (type) {
-      case MomentType.bad:
-        return Icon(
-          Icons.mood_bad_sharp,
-          color: isSelected ? AppColors.badColor : Colors.grey,
-        );
-      case MomentType.romantic:
-        return Icon(
-          CupertinoIcons.heart_fill,
-          color: isSelected ? AppColors.romanticColor : Colors.grey,
-        );
-      case MomentType.good:
-        return Icon(
-          Icons.tag_faces,
-          color: isSelected ? AppColors.goodColor : Colors.grey,
-        );
-    }
   }
 }

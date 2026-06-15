@@ -41,42 +41,10 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          fontFamily: 'Inter',
-          colorScheme: ColorScheme.light(
-            primary: Colors.black,
-          ),
-          appBarTheme: const AppBarTheme(
-            titleTextStyle: TextStyle(
-              fontFamily: 'GrandHotel',
-              fontSize: 30,
-              color: Colors.black,
-            ),
-          ),
-          textTheme: const TextTheme(
-              titleLarge: TextStyle(
-                fontFamily: 'GrandHotel',
-                fontSize: 35,
-              ),
-              titleSmall: TextStyle(
-                fontFamily: 'GrandHotel',
-                fontSize: 20,
-              ),
-              titleMedium: TextStyle(fontFamily: 'GrandHotel', fontSize: 25),
-              bodyMedium: TextStyle(fontFamily: 'GrandHotel', fontSize: 17)),
-          outlinedButtonTheme: OutlinedButtonThemeData(
-            style: OutlinedButton.styleFrom(
-              side: BorderSide.none,
-              backgroundColor: AppColors.timeLineColor,
-              minimumSize: Size(MediaQuery.of(context).size.width, 55),
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(15),
-                ),
-              ),
-            ),
-          ),
-        ),
+        title: Strings.appName,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: ThemeMode.system,
         routes: AppRoute.allRoutes,
         initialRoute: AppRoute.login.tag,
       ),

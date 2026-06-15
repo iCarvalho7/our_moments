@@ -59,8 +59,8 @@ class _StoryPageState extends State<_StoryPage> with TickerProviderStateMixin {
             if (state is StoryStateSetUpControllers) {
               return Container(
                 alignment: Alignment.center,
-                color: Colors.grey,
-                child: const CircularProgressIndicator(),
+                color: Colors.black,
+                child: const CircularProgressIndicator(color: Colors.white),
               );
             }
             if (state is StoryStateLoaded) {
@@ -213,7 +213,7 @@ class _MediaSection extends StatelessWidget {
                   loadingBuilder: (context, widget, event) {
                     if (event == null) return widget;
                     return Container(
-                      color: Colors.grey,
+                      color: Colors.black,
                       padding: const EdgeInsets.all(250),
                       child: const CircularProgressIndicator(
                         strokeWidth: 2.0,
@@ -254,7 +254,7 @@ class _AnimatedBar extends StatelessWidget {
               children: [
                 _buildContainer(
                   double.infinity,
-                  position < currentIndex ? Colors.white : Colors.white.withOpacity(0.5),
+                  position < currentIndex ? Colors.white : Colors.white.withValues(alpha: 0.5),
                 ),
                 position == currentIndex
                     ? AnimatedBuilder(

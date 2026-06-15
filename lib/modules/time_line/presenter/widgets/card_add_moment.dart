@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/presenter/routes.dart';
+import '../../../core/presenter/widgets/app_card.dart';
+import '../../../core/utils/theme/app_theme.dart';
 import '../../../moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 import '../bloc/time_line_bloc.dart';
 
@@ -10,35 +12,39 @@ class CardAddMoment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(context, AppRoute.addMoment.tag).then(
-              (_) => context.read<TimeLineBloc>().add(TimeLineEventChangeDate()),
-        );
+    final palette = context.palette;
 
-        final timelineId = context.read<TimeLineBloc>().timelineId;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      child: AppCard(
+        onTap: () {
+          final timeLineBloc = context.read<TimeLineBloc>();
+          Navigator.pushNamed(context, AppRoute.addMoment.tag).then(
+            (_) => timeLineBloc.add(TimeLineEventChangeDate()),
+          );
 
-        BlocProvider.of<AddOrEditMomentBloc>(context)
-            .add(SetupAddMomentEvent(timelineId: timelineId));
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8),
-        alignment: Alignment.topCenter,
-        child: Material(
-          elevation: 8,
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            padding: const EdgeInsets.all(15),
-            child: Text(
-              'Adcionar Momento +',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w100,
-                  ),
-              textAlign: TextAlign.center,
+          final timelineId = timeLineBloc.timelineId;
+
+          BlocProvider.of<AddOrEditMomentBloc>(context)
+              .add(SetupAddMomentEvent(timelineId: timelineId));
+        },
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: palette.primarySoft,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.add_rounded, color: palette.primary, size: 26),
             ),
-          ),
+            kSpacerWidth16,
+            Text(
+              'Adicionar momento',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ],
         ),
       ),
     );

@@ -1,7 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class CustomDeleteDialog extends StatefulWidget {
+import '../../utils/theme/app_theme.dart';
+
+class CustomDeleteDialog extends StatelessWidget {
   const CustomDeleteDialog({
     required this.text,
     required this.onTapPositive,
@@ -11,9 +12,6 @@ class CustomDeleteDialog extends StatefulWidget {
   final String text;
   final VoidCallback onTapPositive;
 
-  @override
-  State<CustomDeleteDialog> createState() => _CustomDeleteDialogState();
-
   static void show(
     BuildContext parentContext, {
     required String text,
@@ -22,60 +20,58 @@ class CustomDeleteDialog extends StatefulWidget {
     showDialog(
       context: parentContext,
       builder: (context) {
-        return CustomDeleteDialog(
-          text: text,
-          onTapPositive: onTapPositive,
-        );
+        return CustomDeleteDialog(text: text, onTapPositive: onTapPositive);
       },
     );
   }
-}
 
-class _CustomDeleteDialogState extends State<CustomDeleteDialog> {
   @override
   Widget build(BuildContext context) {
-    return CupertinoAlertDialog(
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.card)),
+      contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
       content: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.delete,
-            color: Colors.red,
-            size: 50,
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: palette.danger.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.delete_outline_rounded, color: palette.danger, size: 32),
           ),
-          const SizedBox(height: 10),
-          Text(widget.text, style: const TextStyle(fontSize: 15)),
-          const SizedBox(height: 10),
+          kSpacerHeight16,
+          Text(text, textAlign: TextAlign.center, style: textTheme.bodyLarge),
+          kSpacerHeight24,
           Row(
             children: [
               Expanded(
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateColor.resolveWith((_) => Colors.red),
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: palette.surfaceAlt,
+                    foregroundColor: palette.onSurface,
                   ),
                   onPressed: () => Navigator.pop(context),
                   child: const Text('Não'),
                 ),
               ),
-              const SizedBox(width: 10),
+              kSpacerWidth12,
               Expanded(
                 child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateColor.resolveWith((_) => Colors.white),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: palette.danger,
+                    foregroundColor: Colors.white,
                   ),
-                  onPressed: widget.onTapPositive,
-                  child: const Text(
-                    'Sim',
-                    style: TextStyle(
-                      color: Colors.black,
-                    ),
-                  ),
+                  onPressed: onTapPositive,
+                  child: const Text('Sim'),
                 ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );

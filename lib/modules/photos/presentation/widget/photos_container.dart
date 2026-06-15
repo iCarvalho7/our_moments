@@ -183,6 +183,7 @@ class _ColoredContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final surface = context.palette.surface;
     return Container(
       margin: const EdgeInsets.only(right: 8.0),
       decoration: AppThemes.coloredBorder,
@@ -191,9 +192,9 @@ class _ColoredContainer extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.all(3),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.white),
-          borderRadius: BorderRadius.circular(40),
+          color: surface,
+          border: Border.all(color: surface),
+          shape: BoxShape.circle,
         ),
         child: ClipOval(child: child),
       ),

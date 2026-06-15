@@ -8,6 +8,7 @@ import 'package:nossos_momentos/modules/signup/presentation/bloc/sign_up_bloc.da
 
 import '../../../core/presenter/widgets/background_gradient.dart';
 import '../../../core/presenter/widgets/primary_app_bar.dart';
+import '../../../core/presenter/widgets/primary_button.dart';
 import '../../../login/presentation/widget/login_text_field.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -73,58 +74,64 @@ class _SignUpPageState extends State<SignUpPage> {
         builder: (context, state) {
           return Stack(
             children: [
-              const BackgroundGradient(),
+              const Positioned.fill(child: BackgroundGradient()),
               Scaffold(
                 backgroundColor: Colors.transparent,
-                appBar: const PrimaryAppBar(title: 'Cadastrar-se'),
-                body: Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.all(16.0),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final width = constraints.maxWidth > 1200
-                          ? 500.0
-                          : constraints.maxWidth;
-
-                      return SizedBox(
-                        width: width,
+                appBar: const PrimaryAppBar(title: 'Criar conta'),
+                body: SafeArea(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 460),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const Spacer(flex: 2),
+                            Text(
+                              'Vamos começar',
+                              style: Theme.of(context).textTheme.headlineMedium,
+                            ),
+                            kSpacerHeight8,
+                            Text(
+                              'Crie sua conta para guardar os momentos.',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: context.palette.onSurfaceMuted,
+                                  ),
+                            ),
+                            kSpacerHeight32,
                             LoginTextField(
                               startIcon: Icons.alternate_email_rounded,
                               errorText: _emailErrorTxt,
                               hint: 'seu@email.com',
                               controller: _emailController,
                             ),
-                            kSpacerHeight32,
+                            kSpacerHeight16,
                             LoginTextField(
-                              startIcon: Icons.lock_person_sharp,
-                              endIcon: Icons.remove_red_eye,
+                              startIcon: Icons.lock_outline,
+                              endIcon: Icons.remove_red_eye_outlined,
                               errorText: _passwordErrorTxt,
                               isPassword: true,
                               hint: '*********',
                               controller: _passwordController,
                             ),
-                            kSpacerHeight32,
+                            kSpacerHeight16,
                             LoginTextField(
-                              startIcon: Icons.lock_person_sharp,
-                              endIcon: Icons.remove_red_eye,
+                              startIcon: Icons.lock_outline,
+                              endIcon: Icons.remove_red_eye_outlined,
                               hint: '*********',
                               isPassword: true,
                               errorText: _confirmPasswordErrorTxt,
                               controller: _confirmPasswordController,
                             ),
-                            const Spacer(flex: 2),
-                            OutlinedButton(
+                            kSpacerHeight32,
+                            PrimaryButton(
+                              label: 'Criar conta',
                               onPressed: () => _signUp(context),
-                              child: const Text('Criar Conta'),
                             ),
-                            const Spacer(),
                           ],
                         ),
-                      );
-                    }
+                      ),
+                    ),
                   ),
                 ),
               )
@@ -192,38 +199,43 @@ class _SignUpPageState extends State<SignUpPage> {
     showModalBottomSheet(
       context: context,
       isDismissible: false,
-      backgroundColor: Colors.transparent,
-      builder: (_) {
-        return Material(
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Expanded(
-              child: Column(
-                children: [
-                  kSpacerHeight16,
-                  Text(
-                    'Sua conta foi criada com sucesso.',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  Image.asset(
-                    'assets/images/login_success.png',
-                    width: 400,
-                  ),
-                  OutlinedButton(
-                    style: Theme.of(context).outlinedButtonTheme.style?.copyWith(
-                          backgroundColor: const WidgetStatePropertyAll(
-                            AppColors.timeLineColor,
-                          ),
-                        ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Fazer Login'),
-                  ),
-                ],
-              ),
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Image.asset(
+                  'assets/images/login_success.png',
+                  height: 200,
+                  fit: BoxFit.contain,
+                ),
+                kSpacerHeight16,
+                Text(
+                  'Conta criada com sucesso!',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(sheetContext).textTheme.headlineSmall,
+                ),
+                kSpacerHeight8,
+                Text(
+                  'Agora é só entrar e começar a guardar seus momentos.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(sheetContext).textTheme.bodyMedium?.copyWith(
+                        color: sheetContext.palette.onSurfaceMuted,
+                      ),
+                ),
+                kSpacerHeight24,
+                PrimaryButton(
+                  label: 'Fazer login',
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
             ),
           ),
         );

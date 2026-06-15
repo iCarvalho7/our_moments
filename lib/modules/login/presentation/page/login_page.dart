@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/background_gradient.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/dialog_loading.dart';
+import 'package:nossos_momentos/modules/core/presenter/widgets/primary_button.dart';
 import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
@@ -54,67 +55,68 @@ class _LoginPageState extends State<LoginPage> {
       child: BlocConsumer<LoginBloc, LoginState>(
         listener: _listerStateChanges,
         builder: (context, state) {
+          final palette = context.palette;
+          final textTheme = Theme.of(context).textTheme;
           return Scaffold(
             body: Stack(
               children: [
-                const BackgroundGradient(),
-                Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.all(16.0),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final width = constraints.maxWidth > 1200 ? 500.0 : constraints.maxWidth;
-                      return SizedBox(
-                        width: width,
+                const Positioned.fill(child: BackgroundGradient()),
+                SafeArea(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 460),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const Spacer(flex: 2),
+                            const _BrandMark(),
+                            kSpacerHeight24,
                             Text(
                               'Nossos\nMomentos',
-                              style: Theme.of(context).textTheme.titleLarge,
+                              textAlign: TextAlign.center,
+                              style: textTheme.displaySmall,
                             ),
-                            const Spacer(flex: 1),
+                            kSpacerHeight8,
+                            Text(
+                              'Guarde o que importa, a dois.',
+                              textAlign: TextAlign.center,
+                              style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
+                            ),
+                            kSpacerHeight32,
                             LoginTextField(
                               controller: _userNameTextController,
                               errorText: _usernameErrorText,
-                              startIcon: Icons.person,
+                              startIcon: Icons.person_outline,
                               hint: 'exemplo@email.com',
                             ),
                             kSpacerHeight16,
                             LoginTextField(
                               controller: _passwordTextController,
                               errorText: _passwordErrorText,
-                              startIcon: Icons.lock,
-                              endIcon: Icons.remove_red_eye,
+                              startIcon: Icons.lock_outline,
+                              endIcon: Icons.remove_red_eye_outlined,
                               hint: '********',
                               isPassword: true,
                             ),
                             kSpacerHeight32,
-                            const Spacer(flex: 3),
-                            Material(
-                              elevation: 4,
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(15),
-                              child: OutlinedButton(
-                                onPressed: () => _signIn(context),
-                                child: const Text('Login'),
-                              ),
+                            PrimaryButton(
+                              label: 'Entrar',
+                              onPressed: () => _signIn(context),
                             ),
-                            kSpacerHeight32,
+                            kSpacerHeight8,
                             TextButton(
                               onPressed: () {
                                 Navigator.pushNamed(context, AppRoute.signup.tag);
                               },
                               child: const Text('Criar uma conta'),
                             ),
-                            const Spacer(flex: 1),
                           ],
                         ),
-                      );
-                    },
+                      ),
+                    ),
                   ),
-                )
+                ),
               ],
             ),
           );
@@ -168,5 +170,36 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.of(context).pushReplacementNamed(AppRoute.createTimeLine.tag);
       });
     }
+  }
+}
+
+class _BrandMark extends StatelessWidget {
+  const _BrandMark();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Center(
+      child: Container(
+        width: 84,
+        height: 84,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [palette.primary, palette.secondaryAccent],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: palette.primary.withValues(alpha: 0.4),
+              blurRadius: 24,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: const Icon(Icons.favorite_rounded, color: Colors.white, size: 40),
+      ),
+    );
   }
 }

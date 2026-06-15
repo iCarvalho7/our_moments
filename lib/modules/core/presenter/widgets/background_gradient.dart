@@ -2,18 +2,22 @@ import 'package:flutter/material.dart';
 
 import '../../utils/theme/app_theme.dart';
 
+/// Full-bleed soft gradient used as the app's ambient background.
+/// Adapts automatically to light / dark theme.
 class BackgroundGradient extends StatelessWidget {
   const BackgroundGradient({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: AppColors.loginGradient,
-          stops: [0.0, 1.0],
+    return SizedBox.expand(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: context.palette.gradient,
+            stops: const [0.0, 0.55],
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
+import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
 class MomentFormSectionLoading extends StatelessWidget {
   const MomentFormSectionLoading({super.key});
@@ -15,7 +16,7 @@ class MomentFormSectionLoading extends StatelessWidget {
           child: Container(
             height: 40,
             width: MediaQuery.of(context).size.width / 2,
-            color: Colors.white,
+            color: context.palette.surface,
           ),
         ),
         const SizedBox(height: 10,),
@@ -23,7 +24,7 @@ class MomentFormSectionLoading extends StatelessWidget {
           child: Container(
             height: 30,
             width: MediaQuery.of(context).size.width / 2.5,
-            color: Colors.white,
+            color: context.palette.surface,
           ),
         ),
         const SizedBox(height: 20,),
@@ -31,7 +32,7 @@ class MomentFormSectionLoading extends StatelessWidget {
           child: Container(
             height: 20,
             width: MediaQuery.of(context).size.width,
-            color: Colors.white,
+            color: context.palette.surface,
           ),
         ),
       ],

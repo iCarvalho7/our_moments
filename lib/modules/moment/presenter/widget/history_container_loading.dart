@@ -7,6 +7,7 @@ class HistoryContainerLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final surface = context.palette.surface;
     return SizedBox(
       height: 55,
       child: ListView.builder(
@@ -19,8 +20,9 @@ class HistoryContainerLoading extends StatelessWidget {
                 height: 55,
                 width: 55,
                 margin: const EdgeInsets.only(right: 20),
-                decoration: AppThemes.circularBorder.copyWith(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: surface,
+                  shape: BoxShape.circle,
                 ),
               ),
             );

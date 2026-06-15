@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/core/presenter/routes.dart';
+import 'package:nossos_momentos/modules/core/presenter/widgets/app_card.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/background_gradient.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/primary_app_bar.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
@@ -107,74 +107,59 @@ class _SelectTimeLineItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(context, AppRoute.timeLine.tag, arguments: item.id).then((e) {
-          context.read<SelectTimeLineBloc>().add(SelectTimeLineEventFetchAll());
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.all(8.0),
-        child: Material(
-          elevation: 5,
-          borderRadius: BorderRadius.circular(10),
-          color: Colors.white,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 20.0,
-                  right: 20.0,
-                  top: 8.0,
+    final textTheme = Theme.of(context).textTheme;
+    final palette = context.palette;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: AppCard(
+        onTap: () {
+          final bloc = context.read<SelectTimeLineBloc>();
+          Navigator.pushNamed(context, AppRoute.timeLine.tag, arguments: item.id).then((e) {
+            bloc.add(SelectTimeLineEventFetchAll());
+          });
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: item.emailsFormatted
+                        .map((e) => Text(e, style: textTheme.titleSmall))
+                        .toList(),
+                  ),
                 ),
-                child: Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: item.emailsFormatted
-                          .map(
-                            (e) => Text(
-                              e,
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                          )
-                          .toList(),
-                    ),
-                    const Spacer(),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          item.dateMonth,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                        Text(
-                          item.momentsAmount,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(color: Colors.grey),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
+                    Text(item.dateMonth, textAlign: TextAlign.end, style: textTheme.titleSmall),
                     Text(
-                      'Ver os momentos',
-                      style: Theme.of(context).textTheme.titleSmall,
+                      item.momentsAmount,
+                      style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
                     ),
-                    const Spacer(),
-                    SvgPicture.asset('assets/images/eyes.svg')
                   ],
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 10),
+              child: Divider(height: 1),
+            ),
+            Row(
+              children: [
+                Text(
+                  'Ver os momentos',
+                  style: textTheme.titleSmall?.copyWith(color: palette.primary),
+                ),
+                const Spacer(),
+                Icon(Icons.chevron_right_rounded, color: palette.primary),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -186,52 +171,72 @@ class _CreateTimeLineContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final palette = context.palette;
+
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: SizedBox.shrink()),
-          GestureDetector(
+          const Expanded(child: SizedBox.shrink()),
+          AppCard(
             onTap: () {
+              final bloc = context.read<SelectTimeLineBloc>();
               Navigator.pushNamed(context, AppRoute.timeLine.tag)
-                  .then((_) => context.read<SelectTimeLineBloc>().add(SelectTimeLineEventFetchAll()));
+                  .then((_) => bloc.add(SelectTimeLineEventFetchAll()));
             },
-            child: Column(
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Text(
-                      'Criar sua Linha do Tempo',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    kSpacerWidth16,
-                    SvgPicture.asset('assets/images/player_next.svg')
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Criar sua linha do tempo', style: textTheme.titleLarge),
+                      kSpacerHeight8,
+                      Text(
+                        'Crie seus momentos e compartilhe com quem quiser.',
+                        style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
+                      ),
+                    ],
+                  ),
                 ),
-                Text(
-                  'Aqui você pode criar seus momentos e compartilhar com quem quiser',
-                  style: Theme.of(context).textTheme.titleSmall,
+                kSpacerWidth16,
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: palette.primarySoft,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.arrow_forward_rounded, color: palette.primary),
                 ),
               ],
             ),
           ),
-          SizedBox(height: 16),
+          kSpacerHeight16,
           Text(
-            '* Para ver uma linha do tempo existente, você precisa pedir acesso ao criador(a) da linha do tempo.\n',
-            style: Theme.of(context).textTheme.titleSmall,
+            '* Para ver uma linha do tempo existente, você precisa pedir acesso ao criador(a) da linha do tempo.',
+            style: textTheme.bodySmall,
           ),
-          Expanded(child: SizedBox.shrink()),
-          Row(
-            children: [
-              const Icon(Icons.warning_rounded),
-              kSpacerWidth16,
-              Flexible(
-                child: Text(
-                  'Caso tenha perdido acesso a sua linha do tempo, entre em contato : contato.lutestudios@gmail.com',
-                  style: Theme.of(context).textTheme.bodySmall,
+          const Expanded(child: SizedBox.shrink()),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: palette.surfaceAlt,
+              borderRadius: BorderRadius.circular(AppRadii.input),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline_rounded, size: 20, color: palette.onSurfaceMuted),
+                kSpacerWidth12,
+                Flexible(
+                  child: Text(
+                    'Perdeu acesso à sua linha do tempo? Fale com: contato.lutestudios@gmail.com',
+                    style: textTheme.bodySmall,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

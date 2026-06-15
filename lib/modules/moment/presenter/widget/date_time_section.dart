@@ -31,18 +31,18 @@ class DateTimeSection extends StatelessWidget {
   }
 
   void _showDatePicker(BuildContext context) {
+    final bloc = BlocProvider.of<AddOrEditMomentBloc>(context);
     showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       lastDate: DateTime(2030, 1, 1),
       firstDate: DateTime(2018, 1, 1),
-    ).then((date) => _sendAddDateTime(context, date));
+    ).then((date) => _sendAddDateTime(bloc, date));
   }
 
-  void _sendAddDateTime(BuildContext context, DateTime? date) {
+  void _sendAddDateTime(AddOrEditMomentBloc bloc, DateTime? date) {
     if (date != null) {
-      BlocProvider.of<AddOrEditMomentBloc>(context)
-          .add(AddOrEditMomentEventAddDateTime(date: date));
+      bloc.add(AddOrEditMomentEventAddDateTime(date: date));
     }
   }
 

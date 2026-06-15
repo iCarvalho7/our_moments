@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/utils/theme/app_theme.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
 
 class DescriptionSection extends StatelessWidget {
@@ -8,27 +9,34 @@ class DescriptionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
       builder: (context, state) {
         return Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
             child: TextFormField(
               textInputAction: TextInputAction.newline,
               keyboardType: TextInputType.multiline,
               maxLines: null,
               textCapitalization: TextCapitalization.sentences,
               style: Theme.of(context).textTheme.bodyLarge,
-              cursorColor: Colors.black,
+              cursorColor: palette.primary,
               initialValue: state.moment.body,
               decoration: InputDecoration(
+                filled: false,
                 alignLabelWithHint: true,
                 hintText: 'Descreva em detalhes (ou não) esse momento',
+                hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: palette.onSurfaceMuted,
+                ),
                 floatingLabelStyle: Theme.of(context).textTheme.titleMedium,
                 labelStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.grey
+                  color: palette.onSurfaceMuted,
                 ),
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
               ),
               onChanged: (bodyText) {
                 BlocProvider.of<AddOrEditMomentBloc>(context)

@@ -139,44 +139,7 @@ class _SuccessContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Personalizar', style: textTheme.headlineSmall),
-          kSpacerHeight12,
-          TextFormField(
-            initialValue: timeline.name,
-            textCapitalization: TextCapitalization.sentences,
-            textInputAction: TextInputAction.done,
-            decoration: const InputDecoration(
-              hintText: 'Nome da linha do tempo',
-              prefixIcon: Icon(Icons.drive_file_rename_outline),
-            ),
-            onFieldSubmitted: (value) => context.read<SettingsBloc>().add(
-                  UpdateTimeLineDetailsEvent(name: value.trim(), accentColor: timeline.accentColor),
-                ),
-          ),
-          kSpacerHeight16,
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: _kAccentColors.map((color) {
-              final value = color.toARGB32();
-              final selected = timeline.accentColor == value;
-              return GestureDetector(
-                onTap: () => context.read<SettingsBloc>().add(
-                      UpdateTimeLineDetailsEvent(name: timeline.name, accentColor: value),
-                    ),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                    border: selected ? Border.all(color: palette.onSurface, width: 3) : null,
-                  ),
-                  child: selected ? const Icon(Icons.check, color: Colors.white, size: 18) : null,
-                ),
-              );
-            }).toList(),
-          ),
+          _TimelineDetailsSection(timeline: timeline),
           kSpacerHeight32,
           Text('Quem tem acesso', style: textTheme.headlineSmall),
           kSpacerHeight16,
@@ -258,6 +221,87 @@ class _SuccessContent extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TimelineDetailsSection extends StatefulWidget {
+  const _TimelineDetailsSection({required this.timeline});
+
+  final TimeLine timeline;
+
+  @override
+  State<_TimelineDetailsSection> createState() => _TimelineDetailsSectionState();
+}
+
+class _TimelineDetailsSectionState extends State<_TimelineDetailsSection> {
+  late final TextEditingController _nameController =
+      TextEditingController(text: widget.timeline.name);
+  late int? _accentColor = widget.timeline.accentColor;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    FocusScope.of(context).unfocus();
+    context.read<SettingsBloc>().add(UpdateTimeLineDetailsEvent(
+          name: _nameController.text.trim(),
+          accentColor: _accentColor,
+        ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Linha do tempo atualizada.')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Personalizar', style: textTheme.headlineSmall),
+        kSpacerHeight12,
+        TextField(
+          controller: _nameController,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(
+            hintText: 'Nome da linha do tempo',
+            prefixIcon: Icon(Icons.drive_file_rename_outline),
+          ),
+        ),
+        kSpacerHeight16,
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: _kAccentColors.map((color) {
+            final value = color.toARGB32();
+            final selected = _accentColor == value;
+            return GestureDetector(
+              onTap: () => setState(() => _accentColor = value),
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  border: selected ? Border.all(color: palette.onSurface, width: 3) : null,
+                ),
+                child: selected ? const Icon(Icons.check, color: Colors.white, size: 18) : null,
+              ),
+            );
+          }).toList(),
+        ),
+        kSpacerHeight16,
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(onPressed: _save, child: const Text('Salvar')),
+        ),
+      ],
     );
   }
 }

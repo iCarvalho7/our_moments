@@ -45,7 +45,18 @@ class MomentModel extends Moment {
   }
 
   static MomentType _fromJsonType(String type) {
-    return MomentType.values.firstWhere((e) => e.value.contains(type));
+    final normalized = type.toLowerCase().trim();
+    return MomentType.values.firstWhere(
+      (e) => e.value.toLowerCase() == normalized || e.label.toLowerCase() == normalized,
+      orElse: () => MomentType.values.firstWhere(
+        (e) =>
+            e.value.toLowerCase().contains(normalized) ||
+            normalized.contains(e.value.toLowerCase()),
+        // Never throw on an unknown/legacy value — fall back to a safe default
+        // so a single record can't break the whole moments query.
+        orElse: () => MomentType.good,
+      ),
+    );
   }
 
   static String _toJsonType(MomentType type) => type.value;

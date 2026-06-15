@@ -63,7 +63,25 @@ Roteiro pra validar as features construídas nesta leva. Marque ✅/❌ conforme
 - [ ] Sem nenhum momento com local → tela mostra **"Nenhum momento com localização"**.
 - [ ] O mapa segue o **tema** (claro/escuro), igual ao seletor.
 
-## 8. Regressões (não pode ter quebrado)
+## 8. Neste dia
+- [ ] Se houver momentos do **mesmo dia/mês** em anos anteriores, aparece o banner **"Neste dia"** no topo da timeline.
+- [ ] Toque → abre a tela agrupada por **"Há X anos"** → toque num card → abre o momento.
+
+## 9. Compartilhar como imagem
+- [ ] Abra um momento → toque no ícone de **compartilhar** (app bar) → vê o **preview** do card.
+- [ ] Toque em **"Compartilhar"** → abre a folha de compartilhamento do sistema com a **imagem** (PNG).
+
+## 10. Timeline temática (nome/cor)
+- [ ] Em **Configurações** (engrenagem), seção **"Personalizar"**: defina um **nome** (enter) e escolha uma **cor**.
+- [ ] Volte → o **nome** vira o título da timeline; na lista de timelines aparece o nome + **bolinha da cor**.
+
+## 11. Recado de voz (áudio) — testar no celular
+- [ ] Criar/editar momento → seção **"Recado de voz"** → toque no **microfone** → conceda a permissão → grave → **parar**.
+- [ ] Aparece o player → **play/pause** toca o áudio; **lixeira** remove.
+- [ ] Salve → reabra o momento → o áudio **persiste** e toca; o card do feed mostra um **ícone de microfone**.
+- [ ] No **web** a gravação fica indisponível (mensagem), mas tocar um áudio já salvo funciona.
+
+## 12. Regressões (não pode ter quebrado)
 - [ ] **Momentos antigos** aparecem (use o filtro de calendário → chip **"Tudo"**).
 - [ ] **Criar** um momento novo (tipo + foto + data + título + descrição) → salva e aparece no feed.
 - [ ] **Excluir** um momento (segurar o card → confirmar) → some.

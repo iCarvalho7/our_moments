@@ -5,6 +5,7 @@ import '../../../core/utils/theme/app_theme.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
 import 'share_moment_page.dart';
 import '../../interactions/presenter/widget/interactions_section.dart';
+import '../widget/audio_section.dart';
 import '../widget/date_time_section.dart';
 import '../widget/description_section.dart';
 import '../widget/location_section.dart';
@@ -77,6 +78,8 @@ class AddOrEditMomentPage extends StatelessWidget {
                 const TitleSection(),
                 const _SectionLabel('Descrição'),
                 const DescriptionSection(),
+                const _SectionLabel('Recado de voz'),
+                const AudioSection(),
                 if (state.moment.isEditing) ...[
                   const _SectionLabel('Reações e comentários'),
                   InteractionsSection(momentId: state.moment.id),

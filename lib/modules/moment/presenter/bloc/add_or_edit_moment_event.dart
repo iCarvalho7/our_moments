@@ -76,6 +76,16 @@ class AddOrEditMomentEventSetLocation extends AddOrEditMomentEvent {
   });
 }
 
+class AddOrEditMomentEventSetAudio extends AddOrEditMomentEvent {
+  final String path;
+
+  const AddOrEditMomentEventSetAudio({required this.path});
+}
+
+class AddOrEditMomentEventRemoveAudio extends AddOrEditMomentEvent {
+  const AddOrEditMomentEventRemoveAudio();
+}
+
 class AddOrEditMomentEventCreateOrUpdateMoment extends AddOrEditMomentEvent {
   const AddOrEditMomentEventCreateOrUpdateMoment();
 }

@@ -51,5 +51,7 @@
 	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Usamos sua localização para marcar onde um momento aconteceu.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Usamos o microfone para gravar um recado de voz no momento.</string>
 </dict>
 </plist>

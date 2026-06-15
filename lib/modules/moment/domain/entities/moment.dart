@@ -22,6 +22,7 @@ class Moment {
   final String locationName;
   final double? latitude;
   final double? longitude;
+  final String audioUrl;
 
   const Moment(
       {required this.id,
@@ -38,9 +39,12 @@ class Moment {
       this.isFavorite = false,
       this.locationName = '',
       this.latitude,
-      this.longitude});
+      this.longitude,
+      this.audioUrl = ''});
 
   bool get hasLocation => latitude != null && longitude != null;
+
+  bool get hasAudio => audioUrl.isNotEmpty;
 
   Moment copyWith({
     String? id,
@@ -58,6 +62,7 @@ class Moment {
     String? locationName,
     double? latitude,
     double? longitude,
+    String? audioUrl,
   }) {
     return Moment(
       id: id ?? this.id,
@@ -75,6 +80,7 @@ class Moment {
       locationName: locationName ?? this.locationName,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      audioUrl: audioUrl ?? this.audioUrl,
     );
   }
 

@@ -42,7 +42,37 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     on<AddOrEditMomentEvenTypeBodyText>(_handleTypeBodyText);
     on<AddOrEditMomentEventTypeLocation>(_handleTypeLocation);
     on<AddOrEditMomentEventSetLocation>(_handleSetLocation);
+    on<AddOrEditMomentEventSetAudio>(_handleSetAudio);
+    on<AddOrEditMomentEventRemoveAudio>(_handleRemoveAudio);
     on<AddOrEditMomentEventCreateOrUpdateMoment>(_handleCreateOrUpdateMoment);
+  }
+
+  FutureOr<void> _handleSetAudio(
+    AddOrEditMomentEventSetAudio event,
+    Emitter<AddOrEditMomentState> emit,
+  ) {
+    emit(AddOrEditMomentStateUpdate(
+      moment: state.moment.copyWith(audioUrl: event.path),
+      photosToDelete: state.photosToDelete,
+    ));
+  }
+
+  FutureOr<void> _handleRemoveAudio(
+    AddOrEditMomentEventRemoveAudio event,
+    Emitter<AddOrEditMomentState> emit,
+  ) {
+    emit(AddOrEditMomentStateUpdate(
+      moment: state.moment.copyWith(audioUrl: ''),
+      photosToDelete: state.photosToDelete,
+    ));
+  }
+
+  Future<String> _resolveAudioUrl() async {
+    final audio = state.moment.audioUrl;
+    if (audio.isEmpty || audio.isHttpUrl) return audio;
+    final res = await uploadPhotoUseCase.call(PhotoParams(paths: [audio], momentId: state.moment.id));
+    if (res.isSuccess && res.data!.isNotEmpty) return res.data!.first;
+    return audio;
   }
 
   FutureOr<void> _handleTypeLocation(
@@ -175,7 +205,11 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
 
     if (result.isSuccess) {
       final uploadedImgList = state.moment.uploadedImgList;
-      final moment = state.moment.copyWith(downloadUrlList: result.data!..addAll(uploadedImgList));
+      final audioUrl = await _resolveAudioUrl();
+      final moment = state.moment.copyWith(
+        downloadUrlList: result.data!..addAll(uploadedImgList),
+        audioUrl: audioUrl,
+      );
       await registerMomentsUseCase.call(moment);
       emit(AddOrEditMomentStateUpdate(
         moment: moment,
@@ -196,8 +230,10 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     ));
 
     if (result.isSuccess && deleteResult.isSuccess) {
+      final audioUrl = await _resolveAudioUrl();
       final editedMoment = state.moment.copyWith(
         downloadUrlList: result.data!..addAll(state.moment.uploadedImgList),
+        audioUrl: audioUrl,
       );
       await updateMomentUseCase(editedMoment);
 

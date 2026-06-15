@@ -95,6 +95,10 @@ class MemoryCard extends StatelessWidget {
                         moment.dateTimeFormatted,
                         style: textTheme.bodySmall?.copyWith(color: Colors.white70),
                       ),
+                      if (moment.hasAudio) ...[
+                        const SizedBox(width: 10),
+                        const Icon(Icons.mic_rounded, size: 14, color: Colors.white70),
+                      ],
                     ],
                   ),
                   if (moment.locationName.isNotEmpty || moment.hasLocation) ...[

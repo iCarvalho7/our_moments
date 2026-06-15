@@ -18,6 +18,8 @@ class Moment {
   final List<String> downloadUrlList;
   final bool isEditing;
   final String timelineId;
+  final bool isFavorite;
+  final String locationName;
 
   const Moment(
       {required this.id,
@@ -30,7 +32,9 @@ class Moment {
       required this.year,
       required this.downloadUrlList,
       required this.timelineId,
-      this.isEditing = false});
+      this.isEditing = false,
+      this.isFavorite = false,
+      this.locationName = ''});
 
   Moment copyWith({
     String? id,
@@ -44,6 +48,8 @@ class Moment {
     List<String>? downloadUrlList,
     bool? isEditing,
     String? timelineId,
+    bool? isFavorite,
+    String? locationName,
   }) {
     return Moment(
       id: id ?? this.id,
@@ -57,6 +63,8 @@ class Moment {
       downloadUrlList: downloadUrlList ?? this.downloadUrlList,
       isEditing: isEditing ?? this.isEditing,
       timelineId: timelineId ?? this.timelineId,
+      isFavorite: isFavorite ?? this.isFavorite,
+      locationName: locationName ?? this.locationName,
     );
   }
 

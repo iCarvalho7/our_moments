@@ -82,6 +82,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
 
   String _searchQuery = '';
   MomentType? _typeFilter;
+  bool _showFavoritesOnly = false;
 
   Widget _buildTogetherCounter(BuildContext context) {
     final palette = context.palette;
@@ -173,12 +174,52 @@ class _TimeLinePageState extends State<TimeLinePage> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             children: [
+              _favoritesChip(context),
               _typeChip(context, null, 'Todos'),
               ...MomentType.values.map((type) => _typeChip(context, type, type.label)),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _favoritesChip(BuildContext context) {
+    final palette = context.palette;
+    final selected = _showFavoritesOnly;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: () => setState(() => _showFavoritesOnly = !_showFavoritesOnly),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? palette.primary.withValues(alpha: 0.16) : palette.surfaceAlt,
+            borderRadius: BorderRadius.circular(AppRadii.pill),
+            border: Border.all(
+              color: selected ? palette.primary.withValues(alpha: 0.5) : Colors.transparent,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                selected ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                size: 16,
+                color: selected ? palette.primary : palette.onSurfaceMuted,
+              ),
+              kSpacerWidth8,
+              Text(
+                'Favoritos',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: selected ? palette.onSurface : palette.onSurfaceMuted,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -260,13 +301,14 @@ class _TimeLinePageState extends State<TimeLinePage> {
     }
 
     final query = _searchQuery.trim().toLowerCase();
-    final hasFilters = query.isNotEmpty || _typeFilter != null;
+    final hasFilters = query.isNotEmpty || _typeFilter != null || _showFavoritesOnly;
     final filtered = momentsList.where((m) {
       final matchesType = _typeFilter == null || m.type == _typeFilter;
+      final matchesFavorite = !_showFavoritesOnly || m.isFavorite;
       final matchesQuery = query.isEmpty ||
           m.title.toLowerCase().contains(query) ||
           m.body.toLowerCase().contains(query);
-      return matchesType && matchesQuery;
+      return matchesType && matchesFavorite && matchesQuery;
     }).toList();
 
     if (filtered.isEmpty) {
@@ -329,7 +371,12 @@ class _TimeLinePageState extends State<TimeLinePage> {
           return GestureDetector(
             onTap: () => _openMoment(parentContext, item),
             onLongPress: () => _showDeleteMomentDialog(parentContext, item.id),
-            child: MemoryCard(moment: item),
+            child: MemoryCard(
+              moment: item,
+              onFavoriteToggle: () => parentContext
+                  .read<TimeLineBloc>()
+                  .add(TimeLineEventToggleFavorite(moment: item)),
+            ),
           );
         }
         final header = item as ({String label, int count});

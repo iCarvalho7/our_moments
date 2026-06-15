@@ -19,6 +19,8 @@ MomentModel _$MomentModelFromJson(Map<String, dynamic> json) => MomentModel(
       .map((e) => e as String)
       .toList(),
   timelineId: json['time_line_id'] as String,
+  isFavorite: json['is_favorite'] as bool? ?? false,
+  locationName: json['location_name'] as String? ?? '',
 );
 
 Map<String, dynamic> _$MomentModelToJson(MomentModel instance) =>
@@ -33,4 +35,6 @@ Map<String, dynamic> _$MomentModelToJson(MomentModel instance) =>
       'dateTime': MomentModel._toJsonDate(instance.dateTime),
       'type': MomentModel._toJsonType(instance.type),
       'time_line_id': instance.timelineId,
+      'is_favorite': instance.isFavorite,
+      'location_name': instance.locationName,
     };

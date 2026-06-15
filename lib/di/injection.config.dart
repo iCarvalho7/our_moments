@@ -306,6 +306,12 @@ _i174.GetIt $initGetIt(
       gh<_i44.LogoutUseCase>(),
     ),
   );
+  gh.factory<_i663.RegisterMomentsUseCase>(
+    () => _i663.RegisterMomentsUseCase(
+      gh<_i980.MomentRepository>(),
+      gh<_i184.TimeLineRepository>(),
+    ),
+  );
   gh.factory<_i716.TimeLineBloc>(
     () => _i716.TimeLineBloc(
       gh<_i589.GetMomentsUseCase>(),
@@ -314,12 +320,7 @@ _i174.GetIt $initGetIt(
       gh<_i283.CreateTimeLineUseCase>(),
       gh<_i13.GetTimeLineFromIdUseCase>(),
       gh<_i759.UpdateRelationshipStartDateUseCase>(),
-    ),
-  );
-  gh.factory<_i663.RegisterMomentsUseCase>(
-    () => _i663.RegisterMomentsUseCase(
-      gh<_i980.MomentRepository>(),
-      gh<_i184.TimeLineRepository>(),
+      gh<_i272.UpdateMomentUseCase>(),
     ),
   );
   gh.factory<_i970.SettingsBloc>(

@@ -37,3 +37,9 @@ class TimeLineEventSetRelationshipDate extends TimeLineEvent {
 
   const TimeLineEventSetRelationshipDate({required this.date});
 }
+
+class TimeLineEventToggleFavorite extends TimeLineEvent {
+  final Moment moment;
+
+  const TimeLineEventToggleFavorite({required this.moment});
+}

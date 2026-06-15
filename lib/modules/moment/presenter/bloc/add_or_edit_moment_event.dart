@@ -58,6 +58,12 @@ class AddOrEditMomentEvenTypeBodyText extends AddOrEditMomentEvent {
   });
 }
 
+class AddOrEditMomentEventTypeLocation extends AddOrEditMomentEvent {
+  final String location;
+
+  const AddOrEditMomentEventTypeLocation({required this.location});
+}
+
 class AddOrEditMomentEventCreateOrUpdateMoment extends AddOrEditMomentEvent {
   const AddOrEditMomentEventCreateOrUpdateMoment();
 }

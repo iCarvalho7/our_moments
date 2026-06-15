@@ -6,6 +6,7 @@ import '../bloc/add_or_edit_moment_bloc.dart';
 import '../../interactions/presenter/widget/interactions_section.dart';
 import '../widget/date_time_section.dart';
 import '../widget/description_section.dart';
+import '../widget/location_section.dart';
 import '../widget/history_container_loading.dart';
 import '../../../photos/presentation/widget/photos_container.dart';
 import '../widget/moment_form_section_loading.dart';
@@ -56,6 +57,8 @@ class AddOrEditMomentPage extends StatelessWidget {
                 const PhotosContainer(),
                 const _SectionLabel('Quando aconteceu'),
                 const DateTimeSection(),
+                const _SectionLabel('Onde foi'),
+                const LocationSection(),
                 const _SectionLabel('Título'),
                 const TitleSection(),
                 const _SectionLabel('Descrição'),

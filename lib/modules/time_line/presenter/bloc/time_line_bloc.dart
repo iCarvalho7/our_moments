@@ -8,6 +8,7 @@ import 'package:nossos_momentos/modules/moment/domain/use_case/get_moments_use_c
 import '../../../core/entity/result.dart';
 import '../../../moment/domain/entities/moment.dart';
 import '../../../moment/domain/use_case/delete_moments_use_case.dart';
+import '../../../moment/domain/use_case/update_moment_use_case.dart';
 import '../../../photos/domain/use_case/delete_all_photos_from_moment_use_case.dart';
 import '../../domain/entity/time_line.dart';
 import '../../domain/use_case/create_time_line_use_case.dart';
@@ -25,6 +26,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final CreateTimeLineUseCase _createTimeLineUseCase;
   final GetTimeLineFromIdUseCase _getTimeLineFromIdUseCase;
   final UpdateRelationshipStartDateUseCase _updateRelationshipStartDateUseCase;
+  final UpdateMomentUseCase _updateMomentUseCase;
   late TimeLine timeLine;
 
   /// Every day (normalized, no time) that has at least one moment, across all
@@ -40,10 +42,12 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     this._createTimeLineUseCase,
     this._getTimeLineFromIdUseCase,
     this._updateRelationshipStartDateUseCase,
+    this._updateMomentUseCase,
   ) : super(TimeLineStateInitial()) {
     on<TimeLineEventInit>(_init);
     on<TimeLineEventChangeDate>(_handleChangeDate);
     on<TimeLineEventSetRelationshipDate>(_handleSetRelationshipDate);
+    on<TimeLineEventToggleFavorite>(_handleToggleFavorite);
     on<TimeLineEventChangeEyeToggle>(_handleChangeToggle);
     on<TimeLineEventDeleteMoment>(_deleteMoment);
   }
@@ -129,6 +133,15 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
           .toSet()
           .toList();
     }
+  }
+
+  FutureOr<void> _handleToggleFavorite(
+    TimeLineEventToggleFavorite event,
+    Emitter<TimeLineState> emit,
+  ) async {
+    final updated = event.moment.copyWith(isFavorite: !event.moment.isFavorite);
+    await _updateMomentUseCase.call(updated);
+    add(TimeLineEventChangeDate());
   }
 
   FutureOr<void> _handleSetRelationshipDate(

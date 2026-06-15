@@ -22,7 +22,15 @@ class MomentModel extends Moment {
     required super.year,
     required super.downloadUrlList,
     required this.timelineId,
-  }) : super(dateTime: dateTime, type: type, timelineId: timelineId);
+    this.isFavorite = false,
+    this.locationName = '',
+  }) : super(
+          dateTime: dateTime,
+          type: type,
+          timelineId: timelineId,
+          isFavorite: isFavorite,
+          locationName: locationName,
+        );
 
   @override
   @JsonKey(fromJson: _fromJsonDate, toJson: _toJsonDate)
@@ -35,6 +43,14 @@ class MomentModel extends Moment {
   @override
   @JsonKey(name: 'time_line_id')
   final String timelineId;
+
+  @override
+  @JsonKey(name: 'is_favorite', defaultValue: false)
+  final bool isFavorite;
+
+  @override
+  @JsonKey(name: 'location_name', defaultValue: '')
+  final String locationName;
 
   static _fromJsonDate(String dateTime) {
     return DateFormat(DateFormat.YEAR_MONTH_DAY).parse(dateTime);
@@ -76,7 +92,9 @@ class MomentModel extends Moment {
       monthDay: monthDay,
       month: month,
       downloadUrlList: downloadUrlList,
-      timelineId: timelineId
+      timelineId: timelineId,
+      isFavorite: isFavorite,
+      locationName: locationName,
     );
   }
 
@@ -92,6 +110,8 @@ class MomentModel extends Moment {
       month: moment.month,
       monthDay: moment.monthDay,
       timelineId: moment.timelineId,
+      isFavorite: moment.isFavorite,
+      locationName: moment.locationName,
     );
   }
 }

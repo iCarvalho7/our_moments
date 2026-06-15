@@ -7,9 +7,10 @@ import '../../../moment/domain/entities/moment.dart';
 /// gradient scrim and the title/date overlaid. Falls back to a colored
 /// gradient (by moment type) when there is no photo or it fails to load.
 class MemoryCard extends StatelessWidget {
-  const MemoryCard({super.key, required this.moment});
+  const MemoryCard({super.key, required this.moment, this.onFavoriteToggle});
 
   final Moment moment;
+  final VoidCallback? onFavoriteToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +52,23 @@ class MemoryCard extends StatelessWidget {
                 accent: colors.accent,
               ),
             ),
+            if (onFavoriteToggle != null)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Material(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    iconSize: 22,
+                    onPressed: onFavoriteToggle,
+                    icon: Icon(
+                      moment.isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                      color: moment.isFavorite ? const Color(0xFFFF6B7A) : Colors.white,
+                    ),
+                  ),
+                ),
+              ),
             Positioned(
               left: 20,
               right: 20,
@@ -79,6 +97,23 @@ class MemoryCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (moment.locationName.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.place_rounded, size: 14, color: Colors.white70),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            moment.locationName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.bodySmall?.copyWith(color: Colors.white70),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

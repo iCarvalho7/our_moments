@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
         title: Strings.appName,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
-        themeMode: ThemeMode.system,
+        themeMode: ThemeMode.light,
         routes: AppRoute.allRoutes,
         initialRoute: AppRoute.login.tag,
       ),

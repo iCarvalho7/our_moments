@@ -1,19 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/presenter/widgets/floating_cta_bar.dart';
+import '../../../core/presenter/widgets/overlay_sheet.dart';
 import '../../../core/utils/theme/app_theme.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
 import 'share_moment_page.dart';
 import '../../interactions/presenter/widget/interactions_section.dart';
-import '../widget/audio_section.dart';
-import '../widget/date_time_section.dart';
-import '../widget/description_section.dart';
-import '../widget/location_section.dart';
 import '../widget/history_container_loading.dart';
-import '../../../photos/presentation/widget/photos_container.dart';
 import '../widget/moment_form_section_loading.dart';
-import '../widget/select_type_toggle.dart';
-import '../widget/tile_section.dart';
+import '../widget/moment_meta_rows.dart';
+import '../widget/moment_photo_hero.dart';
+import '../widget/moment_type_selector.dart';
 
 class AddOrEditMomentPage extends StatelessWidget {
   const AddOrEditMomentPage({super.key});
@@ -23,24 +21,29 @@ class AddOrEditMomentPage extends StatelessWidget {
     final accentColor = ModalRoute.of(context)?.settings.arguments as int?;
     return AccentScope(
       accentColor: accentColor,
-      child: SafeArea(
-        child: Scaffold(
-          appBar: AppBar(
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
           elevation: 0,
           backgroundColor: Colors.transparent,
-          title: const Text('Novo momento'),
-          leading: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(CupertinoIcons.arrow_left),
+          leading: _CircleIconButton(
+            icon: CupertinoIcons.arrow_left,
+            onTap: () => Navigator.pop(context),
           ),
           actions: [
             BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
+              buildWhen: (p, c) => p.moment.isEditing != c.moment.isEditing,
               builder: (context, state) {
                 if (!state.moment.isEditing) return const SizedBox.shrink();
-                return IconButton(
-                  icon: const Icon(Icons.ios_share_rounded),
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => ShareMomentPage(moment: state.moment)),
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _CircleIconButton(
+                    icon: Icons.ios_share_rounded,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ShareMomentPage(moment: state.moment),
+                      ),
+                    ),
                   ),
                 );
               },
@@ -49,45 +52,49 @@ class AddOrEditMomentPage extends StatelessWidget {
         ),
         body: BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
           builder: (context, state) {
+            if (state is AddOrEditMomentStateLoading) {
+              return _buildLoadingState();
+            }
             return _buildPage(state, context);
           },
         ),
-      ),
       ),
     );
   }
 
   Widget _buildPage(AddOrEditMomentState state, BuildContext context) {
-    if (state is AddOrEditMomentStateLoading) {
-      return _buildLoadingState();
-    }
-
     return Column(
       children: [
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 16),
+            padding: EdgeInsets.zero,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const _SectionLabel('Como foi esse momento?'),
-                const SelectTypeToggle(),
-                const _SectionLabel('Fotos e vídeos'),
-                const PhotosContainer(),
-                const _SectionLabel('Quando aconteceu'),
-                const DateTimeSection(),
-                const _SectionLabel('Onde foi'),
-                const LocationSection(),
-                const _SectionLabel('Título'),
-                const TitleSection(),
-                const _SectionLabel('Descrição'),
-                const DescriptionSection(),
-                const _SectionLabel('Recado de voz'),
-                const AudioSection(),
-                if (state.moment.isEditing) ...[
-                  const _SectionLabel('Reações e comentários'),
-                  InteractionsSection(momentId: state.moment.id),
-                ],
+                const MomentPhotoHero(),
+                OverlaySheet(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const MomentTypeSelector(),
+                      kSpacerHeight24,
+                      const _TitleField(),
+                      kSpacerHeight8,
+                      const _BodyField(),
+                      kSpacerHeight24,
+                      const MomentMetaRows(),
+                      if (state.moment.isEditing) ...[
+                        kSpacerHeight24,
+                        Text(
+                          'Reações e comentários',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        kSpacerHeight8,
+                        InteractionsSection(momentId: state.moment.id),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -110,26 +117,106 @@ class AddOrEditMomentPage extends StatelessWidget {
       ),
     );
   }
-
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text);
+/// Translucent circular button used over the hero photo (back / share).
+class _CircleIconButton extends StatelessWidget {
+  const _CircleIconButton({required this.icon, required this.onTap});
 
-  final String text;
+  final IconData icon;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: context.palette.onSurfaceMuted,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.2,
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(left: 8),
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.4),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: Colors.white, size: 20),
       ),
+    );
+  }
+}
+
+/// Large heading-style title field that reads like writing a memory's name.
+class _TitleField extends StatelessWidget {
+  const _TitleField();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
+      buildWhen: (p, c) => false, // keep TextFormField's own state
+      builder: (context, state) {
+        return TextFormField(
+          initialValue: state.moment.title,
+          textInputAction: TextInputAction.next,
+          textCapitalization: TextCapitalization.sentences,
+          style: Theme.of(context).textTheme.headlineMedium,
+          cursorColor: palette.primary,
+          decoration: InputDecoration(
+            isDense: true,
+            filled: false,
+            hintText: 'Dê um título a esse momento',
+            hintStyle: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: palette.onSurfaceMuted,
+                ),
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            contentPadding: EdgeInsets.zero,
+          ),
+          onChanged: (title) => context
+              .read<AddOrEditMomentBloc>()
+              .add(AddOrEditMomentEventTypeTitle(title: title)),
+        );
+      },
+    );
+  }
+}
+
+/// Multiline description field.
+class _BodyField extends StatelessWidget {
+  const _BodyField();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
+      buildWhen: (p, c) => false,
+      builder: (context, state) {
+        return TextFormField(
+          initialValue: state.moment.body,
+          textInputAction: TextInputAction.newline,
+          keyboardType: TextInputType.multiline,
+          minLines: 3,
+          maxLines: null,
+          textCapitalization: TextCapitalization.sentences,
+          style: Theme.of(context).textTheme.bodyLarge,
+          cursorColor: palette.primary,
+          decoration: InputDecoration(
+            filled: false,
+            isDense: true,
+            hintText: 'Conte como foi esse momento…',
+            hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: palette.onSurfaceMuted,
+                ),
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            contentPadding: EdgeInsets.zero,
+          ),
+          onChanged: (body) => context
+              .read<AddOrEditMomentBloc>()
+              .add(AddOrEditMomentEvenTypeBodyText(bodyText: body)),
+        );
+      },
     );
   }
 }
@@ -139,16 +226,10 @@ class _SubmitButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
     return BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
       builder: (context, state) {
         final enabled = state.moment.isAllFieldsFilled;
-        return Container(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          decoration: BoxDecoration(
-            color: palette.background,
-            border: Border(top: BorderSide(color: palette.outline)),
-          ),
+        return FloatingCtaBar(
           child: ElevatedButton(
             onPressed: enabled
                 ? () => context

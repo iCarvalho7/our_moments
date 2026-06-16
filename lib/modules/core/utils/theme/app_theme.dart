@@ -22,6 +22,12 @@ class AppRadii {
   static const double button = 16;
   static const double input = 14;
   static const double pill = 999;
+
+  /// Large radius for the overlay sheet that rides over a hero image.
+  static const double sheet = 28;
+
+  /// Radius for hero/media surfaces.
+  static const double hero = 28;
 }
 
 // ============================================================================
@@ -230,6 +236,20 @@ class AppShadows {
             : const Color(0xFFFF6B7A).withValues(alpha: 0.12),
         blurRadius: 24,
         offset: const Offset(0, 10),
+      ),
+    ];
+  }
+
+  /// Stronger, upward shadow for floating bars/buttons (sticky CTA).
+  static List<BoxShadow> lift(BuildContext context) {
+    final isDark = context.palette.isDark;
+    return [
+      BoxShadow(
+        color: isDark
+            ? Colors.black.withValues(alpha: 0.55)
+            : const Color(0xFFFF6B7A).withValues(alpha: 0.18),
+        blurRadius: 28,
+        offset: const Offset(0, -6),
       ),
     ];
   }

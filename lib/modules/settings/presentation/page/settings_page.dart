@@ -34,6 +34,12 @@ class _SettingsPageState extends State<SettingsPage> {
   final usernameController = TextEditingController();
 
   @override
+  void dispose() {
+    usernameController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final timeLineId = ModalRoute.of(context)?.settings.arguments as String;
 
@@ -47,9 +53,9 @@ class _SettingsPageState extends State<SettingsPage> {
               return SafeArea(
                 child: Scaffold(
                   backgroundColor: Colors.transparent,
-                  appBar: PrimaryAppBar(title: 'Gerenciar Acesso'),
-                  body: Container(
-                    padding: EdgeInsets.all(16),
+                  appBar: PrimaryAppBar(title: 'Gerenciar acesso'),
+                  body: Padding(
+                    padding: const EdgeInsets.all(16),
                     child: Builder(
                       builder: (_) {
                         if (state is SettingsSuccess) {
@@ -59,12 +65,10 @@ class _SettingsPageState extends State<SettingsPage> {
                             state: state,
                           );
                         }
-
                         if (state is SettingsLoading) {
-                          return _LoadingContent();
+                          return const _LoadingContent();
                         }
-
-                        return SizedBox.shrink();
+                        return const SizedBox.shrink();
                       },
                     ),
                   ),
@@ -86,7 +90,7 @@ class _LoadingContent extends StatelessWidget {
     final surface = context.palette.surface;
     BoxDecoration deco() => BoxDecoration(
           color: surface,
-          borderRadius: BorderRadius.circular(AppRadii.input),
+          borderRadius: BorderRadius.circular(AppRadii.card),
         );
 
     return SingleChildScrollView(
@@ -95,24 +99,16 @@ class _LoadingContent extends StatelessWidget {
         children: [
           LoadingEffect(
             child: Container(
-              width: MediaQuery.of(context).size.width / 2.5,
-              height: 36,
+              width: MediaQuery.of(context).size.width,
+              height: 260,
               decoration: deco(),
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           LoadingEffect(
             child: Container(
               width: MediaQuery.of(context).size.width,
-              height: kToolbarHeight,
-              decoration: deco(),
-            ),
-          ),
-          SizedBox(height: 12),
-          LoadingEffect(
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height / 2,
+              height: MediaQuery.of(context).size.height / 3,
               decoration: deco(),
             ),
           ),
@@ -135,96 +131,185 @@ class _SuccessContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-    final textTheme = Theme.of(context).textTheme;
+    final emails = timeline.emailsUserFirst(state.email!);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _TimelineDetailsSection(timeline: timeline),
-          kSpacerHeight32,
-          Text('Quem tem acesso', style: textTheme.headlineSmall),
+          _SettingsSection(
+            icon: Icons.palette_outlined,
+            title: 'Personalizar',
+            subtitle: 'Nome e cor da sua linha do tempo',
+            child: _TimelineDetailsSection(timeline: timeline),
+          ),
           kSpacerHeight16,
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: timeline.emailsUserFirst(state.email!).length,
-          itemBuilder: (context, index) {
-            final item = timeline.emailsUserFirst(state.email!)[index];
-            final isOwner = item == state.timeLine?.owner;
-            final isSelf = item == state.email;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-              decoration: BoxDecoration(
-                color: palette.surface,
-                borderRadius: BorderRadius.circular(AppRadii.input),
-                border: Border.all(color: palette.outline),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: palette.primarySoft,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isOwner ? Icons.admin_panel_settings_outlined : Icons.person_outline,
-                      size: 20,
-                      color: palette.primary,
-                    ),
-                  ),
-                  kSpacerWidth12,
-                  Expanded(
-                    child: Text(
-                      item,
-                      style: textTheme.bodyMedium,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (isOwner || isSelf)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: palette.surfaceAlt,
-                        borderRadius: BorderRadius.circular(AppRadii.pill),
-                      ),
-                      child: Text(
-                        isOwner ? 'Admin' : 'Você',
-                        style: textTheme.bodySmall,
-                      ),
-                    )
-                  else
-                    InkWell(
-                      onTap: () => context.read<SettingsBloc>().add(DeleteEmailEvent(email: item)),
-                      borderRadius: BorderRadius.circular(AppRadii.pill),
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: Icon(Icons.delete_outline_rounded, color: palette.danger),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          },
-        ),
-          kSpacerHeight24,
-          LoginTextField(
-            startIcon: Icons.person_add_alt_1,
-            endIcon: Icons.send,
-            endIconPressed: () {
-              FocusManager.instance.primaryFocus?.unfocus();
-              context.read<SettingsBloc>().add(AddEmailEvent(email: usernameController.text));
-            },
-            hint: 'exemplo@email.com',
-            controller: usernameController,
+          _SettingsSection(
+            icon: Icons.group_outlined,
+            title: 'Quem tem acesso',
+            subtitle: emails.length == 1 ? '1 pessoa' : '${emails.length} pessoas',
+            child: _AccessList(
+              emails: emails,
+              state: state,
+              usernameController: usernameController,
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// A titled rounded card grouping a settings area.
+class _SettingsSection extends StatelessWidget {
+  const _SettingsSection({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.child,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: palette.outline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: palette.primarySoft,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: palette.primary, size: 22),
+              ),
+              kSpacerWidth12,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: textTheme.titleMedium),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          kSpacerHeight24,
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _AccessList extends StatelessWidget {
+  const _AccessList({
+    required this.emails,
+    required this.state,
+    required this.usernameController,
+  });
+
+  final List<String> emails;
+  final SettingsState state;
+  final TextEditingController usernameController;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      children: [
+        ...emails.map((item) {
+          final isOwner = item == state.timeLine?.owner;
+          final isSelf = item == state.email;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+            decoration: BoxDecoration(
+              color: palette.surfaceAlt,
+              borderRadius: BorderRadius.circular(AppRadii.input),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: palette.primarySoft,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    item.isNotEmpty ? item[0].toUpperCase() : '?',
+                    style: textTheme.titleSmall?.copyWith(
+                      color: palette.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                kSpacerWidth12,
+                Expanded(
+                  child: Text(item, style: textTheme.bodyMedium, overflow: TextOverflow.ellipsis),
+                ),
+                if (isOwner || isSelf)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: palette.surface,
+                      borderRadius: BorderRadius.circular(AppRadii.pill),
+                    ),
+                    child: Text(isOwner ? 'Admin' : 'Você', style: textTheme.bodySmall),
+                  )
+                else
+                  InkWell(
+                    onTap: () => context.read<SettingsBloc>().add(DeleteEmailEvent(email: item)),
+                    borderRadius: BorderRadius.circular(AppRadii.pill),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(Icons.delete_outline_rounded, color: palette.danger),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }),
+        kSpacerHeight12,
+        LoginTextField(
+          startIcon: Icons.person_add_alt_1,
+          endIcon: Icons.send,
+          endIconPressed: () {
+            FocusManager.instance.primaryFocus?.unfocus();
+            context.read<SettingsBloc>().add(AddEmailEvent(email: usernameController.text));
+            usernameController.clear();
+          },
+          hint: 'exemplo@email.com',
+          controller: usernameController,
+        ),
+      ],
     );
   }
 }
@@ -269,8 +354,8 @@ class _TimelineDetailsSectionState extends State<_TimelineDetailsSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Personalizar', style: textTheme.headlineSmall),
-        kSpacerHeight16,
+        _AccentPreview(accent: accent, name: _nameController.text),
+        kSpacerHeight24,
         TextField(
           controller: _nameController,
           textCapitalization: TextCapitalization.sentences,
@@ -294,7 +379,7 @@ class _TimelineDetailsSectionState extends State<_TimelineDetailsSection> {
               selected: _accentColor == null,
               background: palette.surfaceAlt,
               onTap: () => setState(() => _accentColor = null),
-              child: Icon(Icons.format_color_reset_outlined, size: 18, color: palette.onSurfaceMuted),
+              child: Icon(Icons.format_color_reset_outlined, size: 20, color: palette.onSurfaceMuted),
             ),
             ..._kAccentColors.map((color) {
               final value = color.toARGB32();
@@ -303,18 +388,20 @@ class _TimelineDetailsSectionState extends State<_TimelineDetailsSection> {
                 background: color,
                 onTap: () => setState(() => _accentColor = value),
                 child: _accentColor == value
-                    ? const Icon(Icons.check, color: Colors.white, size: 18)
+                    ? const Icon(Icons.check, color: Colors.white, size: 20)
                     : null,
               );
             }),
           ],
         ),
         kSpacerHeight24,
-        _AccentPreview(accent: accent, name: _nameController.text),
-        kSpacerHeight24,
         SizedBox(
           width: double.infinity,
-          child: ElevatedButton(onPressed: _save, child: const Text('Salvar')),
+          child: ElevatedButton.icon(
+            onPressed: _save,
+            icon: const Icon(Icons.check_rounded, size: 20),
+            label: const Text('Salvar alterações'),
+          ),
         ),
       ],
     );
@@ -339,9 +426,10 @@ class _Swatch extends StatelessWidget {
     final palette = context.palette;
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 40,
-        height: 40,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        width: 46,
+        height: 46,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: background,
@@ -357,6 +445,7 @@ class _Swatch extends StatelessWidget {
   }
 }
 
+/// Live preview that mimics the real timeline header with the chosen accent.
 class _AccentPreview extends StatelessWidget {
   const _AccentPreview({required this.accent, required this.name});
 
@@ -365,54 +454,49 @@ class _AccentPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
     final textTheme = Theme.of(context).textTheme;
     final onAccent = accent.computeLuminance() > 0.55 ? const Color(0xFF2B2330) : Colors.white;
+    final secondary = Color.lerp(accent, Colors.white, 0.22) ?? accent;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: palette.surfaceAlt,
-        borderRadius: BorderRadius.circular(AppRadii.input),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [accent, secondary],
+        ),
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        boxShadow: AppShadows.soft(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.favorite_rounded, color: accent, size: 18),
+              Icon(Icons.favorite_rounded, color: onAccent, size: 20),
               kSpacerWidth8,
               Expanded(
                 child: Text(
                   name.trim().isEmpty ? 'Sua linha do tempo' : name.trim(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: textTheme.titleMedium,
+                  style: textTheme.titleLarge?.copyWith(color: onAccent),
                 ),
               ),
             ],
           ),
-          kSpacerHeight12,
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: accent,
-                  borderRadius: BorderRadius.circular(AppRadii.pill),
-                ),
-                child: Text('Botão', style: textTheme.titleSmall?.copyWith(color: onAccent)),
-              ),
-              kSpacerWidth12,
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(AppRadii.pill),
-                ),
-                child: Text('Chip', style: textTheme.titleSmall?.copyWith(color: accent)),
-              ),
-            ],
+          kSpacerHeight16,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: onAccent.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(AppRadii.pill),
+            ),
+            child: Text(
+              'Prévia da cor',
+              style: textTheme.bodySmall?.copyWith(color: onAccent, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:nossos_momentos/di/injection.dart';
+import 'package:nossos_momentos/modules/core/presenter/widgets/app_bottom_nav.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/background_gradient.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/primary_app_bar.dart';
@@ -49,42 +50,14 @@ class _TimeLinePageState extends State<TimeLinePage> {
                 appBar: PrimaryAppBar(
                   title: _timelineTitle(context, state),
                   background: BackgroundGradient(),
-                  icons: [
-                    IconButton(
-                      icon: Icon(Icons.add_circle_outline),
-                      onPressed: () => _goToAddMoment(context),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.filter_alt_outlined),
-                      onPressed: () => _showDatePicker(context, state),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.map_outlined),
-                      onPressed: () => _openMomentsMap(context),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.settings_outlined),
-                      onPressed: () => _goToSettings(context, context.read<TimeLineBloc>().timeLine),
-                    ),
-                  ],
-                  bottom: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Text('De: ${DateFormat('dd/MM/yyyy').format(state.startDate)}'),
-                      Text('Até: ${DateFormat('dd/MM/yyyy').format(state.endDate)}'),
-                    ],
-                  ),
                 ),
                 body: state is TimeLineStateLoaded || state is TimeLineStateEmpty
-                    ? Column(
-                        children: [
-                          _buildOnThisDayBanner(context),
-                          _buildTogetherCounter(context),
-                          _buildControls(context),
-                          Expanded(child: _buildTimeLine(state)),
-                        ],
-                      )
+                    ? _buildScrollBody(context, state)
                     : _buildLoadingState(),
+                bottomNavigationBar:
+                    (state is TimeLineStateLoaded || state is TimeLineStateEmpty)
+                        ? _buildBottomNav(context)
+                        : null,
               ),
             ],
               );
@@ -98,6 +71,80 @@ class _TimeLinePageState extends State<TimeLinePage> {
   String _searchQuery = '';
   MomentType? _typeFilter;
   bool _showFavoritesOnly = false;
+  final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// Floating bottom navigation: Início · Mapa · (criar) · Neste dia · Ajustes.
+  Widget _buildBottomNav(BuildContext context) {
+    return AppBottomNav(
+      items: [
+        AppNavItem(icon: Icons.home_rounded, label: 'Início', onTap: _scrollToTop),
+        AppNavItem(
+          icon: Icons.map_outlined,
+          label: 'Mapa',
+          onTap: () => _openMomentsMap(context),
+        ),
+        AppNavItem(
+          icon: Icons.add_rounded,
+          label: 'Criar',
+          primary: true,
+          onTap: () => _goToAddMoment(context),
+        ),
+        AppNavItem(
+          icon: Icons.auto_awesome_outlined,
+          label: 'Neste dia',
+          onTap: () => _openOnThisDayFromNav(context),
+        ),
+        AppNavItem(
+          icon: Icons.settings_outlined,
+          label: 'Ajustes',
+          onTap: () => _goToSettings(context, context.read<TimeLineBloc>().timeLine),
+        ),
+      ],
+    );
+  }
+
+  void _scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _openOnThisDayFromNav(BuildContext context) {
+    final now = DateTime.now();
+    final all = context.read<TimeLineBloc>().allMoments;
+    final monthName = DateFormat.MMMM('pt_BR').format(now);
+
+    // Exact same day in a previous year (the classic "On this day").
+    final exact = all
+        .where((m) =>
+            m.dateTime.month == now.month &&
+            m.dateTime.day == now.day &&
+            m.dateTime.year < now.year)
+        .toList();
+    if (exact.isNotEmpty) {
+      _openOnThisDay(context, exact, scopeLabel: '${now.day} de $monthName');
+      return;
+    }
+
+    // Fallback: this same month in previous years (any day). Opens the screen
+    // regardless — empty just shows the friendly empty state.
+    final monthly = all
+        .where((m) => m.dateTime.month == now.month && m.dateTime.year < now.year)
+        .toList();
+    _openOnThisDay(context, monthly, scopeLabel: monthName);
+  }
 
   String _timelineTitle(BuildContext context, TimeLineState state) {
     if (state is TimeLineStateLoaded || state is TimeLineStateEmpty) {
@@ -126,7 +173,11 @@ class _TimeLinePageState extends State<TimeLinePage> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       child: GestureDetector(
-        onTap: () => _openOnThisDay(context, onThisDay),
+        onTap: () => _openOnThisDay(
+          context,
+          onThisDay,
+          scopeLabel: '${now.day} de ${DateFormat.MMMM('pt_BR').format(now)}',
+        ),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
@@ -167,9 +218,15 @@ class _TimeLinePageState extends State<TimeLinePage> {
     );
   }
 
-  Future<void> _openOnThisDay(BuildContext context, List<Moment> moments) async {
+  Future<void> _openOnThisDay(
+    BuildContext context,
+    List<Moment> moments, {
+    String? scopeLabel,
+  }) async {
     final selected = await Navigator.of(context).push<Moment>(
-      MaterialPageRoute(builder: (_) => OnThisDayPage(moments: moments)),
+      MaterialPageRoute(
+        builder: (_) => OnThisDayPage(moments: moments, scopeLabel: scopeLabel),
+      ),
     );
     if (selected != null && context.mounted) {
       _openMoment(context, selected);
@@ -252,6 +309,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: TextField(
+            controller: _searchController,
             onChanged: (value) => setState(() => _searchQuery = value),
             textInputAction: TextInputAction.search,
             decoration: const InputDecoration(
@@ -395,7 +453,79 @@ class _TimeLinePageState extends State<TimeLinePage> {
     );
   }
 
-  Widget _buildTimeLine(TimeLineState state) {
+  /// Body as a single scroll view: the hero (banner + "together" counter)
+  /// scrolls away, the search/filter controls pin to the top, and the grouped
+  /// feed fills the rest.
+  Widget _buildScrollBody(BuildContext context, TimeLineState state) {
+    return CustomScrollView(
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Column(
+            children: [
+              _buildDateRangeChip(context, state),
+              _buildOnThisDayBanner(context),
+              _buildTogetherCounter(context),
+              kSpacerHeight8,
+            ],
+          ),
+        ),
+        SliverPersistentHeader(
+          pinned: true,
+          delegate: _ControlsHeaderDelegate(
+            extent: 120,
+            child: Container(
+              color: context.palette.background,
+              child: _buildControls(context),
+            ),
+          ),
+        ),
+        ..._buildFeedSlivers(context, state),
+      ],
+    );
+  }
+
+  /// Active date-range, shown in the collapsing hero (scrolls away). Tapping it
+  /// opens the period filter.
+  Widget _buildDateRangeChip(BuildContext context, TimeLineState state) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+    final range =
+        '${DateFormat('dd/MM/yyyy').format(state.startDate)}  —  ${DateFormat('dd/MM/yyyy').format(state.endDate)}';
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      child: GestureDetector(
+        onTap: () => _showDatePicker(context, state),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: palette.surfaceAlt,
+            borderRadius: BorderRadius.circular(AppRadii.pill),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.calendar_today_rounded, size: 15, color: palette.onSurfaceMuted),
+              kSpacerWidth8,
+              Text(
+                range,
+                style: textTheme.bodySmall?.copyWith(
+                  color: palette.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              kSpacerWidth8,
+              Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: palette.onSurfaceMuted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildFeedSlivers(BuildContext context, TimeLineState state) {
     final momentsList = <Moment>[];
 
     if (state is TimeLineStateLoaded) {
@@ -414,30 +544,37 @@ class _TimeLinePageState extends State<TimeLinePage> {
     }).toList();
 
     if (filtered.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              hasFilters ? Icons.search_off_rounded : Icons.auto_awesome_outlined,
-              size: 48,
-              color: context.palette.onSurfaceMuted,
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  hasFilters ? Icons.search_off_rounded : Icons.auto_awesome_outlined,
+                  size: 48,
+                  color: context.palette.onSurfaceMuted,
+                ),
+                kSpacerHeight16,
+                Text(
+                  hasFilters ? 'Nenhum momento encontrado' : 'Nenhum momento nessa data ainda',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                kSpacerHeight8,
+                Text(
+                  hasFilters
+                      ? 'Tente outra busca ou filtro.'
+                      : 'Toque em + para registrar o primeiro.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: context.palette.onSurfaceMuted,
+                      ),
+                ),
+              ],
             ),
-            kSpacerHeight16,
-            Text(
-              hasFilters ? 'Nenhum momento encontrado' : 'Nenhum momento nessa data ainda',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            kSpacerHeight8,
-            Text(
-              hasFilters ? 'Tente outra busca ou filtro.' : 'Toque em + para registrar o primeiro.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: context.palette.onSurfaceMuted,
-                  ),
-            ),
-          ],
+          ),
         ),
-      );
+      ];
     }
 
     // Newest first.
@@ -456,35 +593,40 @@ class _TimeLinePageState extends State<TimeLinePage> {
       byLabel[label]!.add(moment);
     }
 
-    // Flatten into a header + cards list for a lazy ListView.
+    // Flatten into a header + cards list for a lazy SliverList.
     final items = <Object>[];
     for (final label in orderedLabels) {
       items.add((label: label, count: byLabel[label]!.length));
       items.addAll(byLabel[label]!);
     }
 
-    return ListView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 16),
-      itemCount: items.length,
-      itemBuilder: (parentContext, index) {
-        final item = items[index];
-        if (item is Moment) {
-          return GestureDetector(
-            onTap: () => _openMoment(parentContext, item),
-            onLongPress: () => _showDeleteMomentDialog(parentContext, item.id),
-            child: MemoryCard(
-              moment: item,
-              onFavoriteToggle: () => parentContext
-                  .read<TimeLineBloc>()
-                  .add(TimeLineEventToggleFavorite(moment: item)),
-            ),
-          );
-        }
-        final header = item as ({String label, int count});
-        return _DateHeader(label: header.label, count: header.count);
-      },
-    );
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.only(bottom: 16),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (parentContext, index) {
+              final item = items[index];
+              if (item is Moment) {
+                return GestureDetector(
+                  onTap: () => _openMoment(parentContext, item),
+                  onLongPress: () => _showDeleteMomentDialog(parentContext, item.id),
+                  child: MemoryCard(
+                    moment: item,
+                    onFavoriteToggle: () => parentContext
+                        .read<TimeLineBloc>()
+                        .add(TimeLineEventToggleFavorite(moment: item)),
+                  ),
+                );
+              }
+              final header = item as ({String label, int count});
+              return _DateHeader(label: header.label, count: header.count);
+            },
+            childCount: items.length,
+          ),
+        ),
+      ),
+    ];
   }
 
   /// Relative, human-friendly bucket for a moment's date (Hoje, Ontem,
@@ -783,6 +925,29 @@ class _DateHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Pins the search + filter controls below the collapsing hero.
+class _ControlsHeaderDelegate extends SliverPersistentHeaderDelegate {
+  _ControlsHeaderDelegate({required this.child, required this.extent});
+
+  final Widget child;
+  final double extent;
+
+  @override
+  double get minExtent => extent;
+
+  @override
+  double get maxExtent => extent;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return SizedBox.expand(child: child);
+  }
+
+  @override
+  bool shouldRebuild(covariant _ControlsHeaderDelegate oldDelegate) =>
+      oldDelegate.child != child || oldDelegate.extent != extent;
 }
 
 /// Quick date-range shortcut chip used in the calendar filter.

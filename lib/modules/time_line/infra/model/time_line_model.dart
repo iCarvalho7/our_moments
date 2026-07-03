@@ -13,17 +13,35 @@ class TimeLineModel extends TimeLine {
     required this.createdDate,
     required super.emails,
     required super.id,
-    required super.owner,
+    required super.owners,
     required this.momentIds,
     this.relationshipStartDate,
+    this.relationshipEndDate,
     this.name = '',
     this.accentColor,
+    this.isPremium = false,
+    this.premiumUntil,
+    this.coverPhotoUrl = '',
+    this.nicknames = const {},
+    this.enforceEndDate = false,
+    this.roles = const {},
+    this.momentEditPolicy = 'individual',
+    this.pendingDeletion,
   }) : super(
           createdDate: createdDate,
           momentIds: momentIds,
           relationshipStartDate: relationshipStartDate,
+          relationshipEndDate: relationshipEndDate,
           name: name,
           accentColor: accentColor,
+          isPremium: isPremium,
+          premiumUntil: premiumUntil,
+          coverPhotoUrl: coverPhotoUrl,
+          nicknames: nicknames,
+          enforceEndDate: enforceEndDate,
+          roles: roles,
+          momentEditPolicy: momentEditPolicy,
+          pendingDeletion: pendingDeletion,
         );
 
   @override
@@ -41,6 +59,10 @@ class TimeLineModel extends TimeLine {
   @override
   final DateTime? relationshipStartDate;
 
+  @JsonKey(name: 'relationship_end_date', fromJson: _dateFromJson, toJson: _dateToJson)
+  @override
+  final DateTime? relationshipEndDate;
+
   @JsonKey(name: 'name', defaultValue: '')
   @override
   final String name;
@@ -48,6 +70,38 @@ class TimeLineModel extends TimeLine {
   @JsonKey(name: 'accent_color')
   @override
   final int? accentColor;
+
+  @JsonKey(name: 'is_premium', defaultValue: false)
+  @override
+  final bool isPremium;
+
+  @JsonKey(name: 'premium_until', fromJson: _dateFromJson, toJson: _dateToJson)
+  @override
+  final DateTime? premiumUntil;
+
+  @JsonKey(name: 'cover_photo_url', defaultValue: '')
+  @override
+  final String coverPhotoUrl;
+
+  @JsonKey(name: 'nicknames', defaultValue: <String, String>{})
+  @override
+  final Map<String, String> nicknames;
+
+  @JsonKey(name: 'enforce_end_date', defaultValue: false)
+  @override
+  final bool enforceEndDate;
+
+  @JsonKey(name: 'roles', defaultValue: <String, String>{})
+  @override
+  final Map<String, String> roles;
+
+  @JsonKey(name: 'moment_edit_policy', defaultValue: 'individual')
+  @override
+  final String momentEditPolicy;
+
+  @JsonKey(name: 'pending_deletion')
+  @override
+  final Map<String, bool>? pendingDeletion;
 
   static DateTime? _dateFromJson(dynamic value) {
     if (value is Timestamp) return value.toDate();
@@ -86,10 +140,19 @@ class TimeLineModel extends TimeLine {
       emails: timeLine.emails,
       id: timeLine.id,
       momentIds: timeLine.momentIds,
-      owner: timeLine.owner,
+      owners: timeLine.owners,
       relationshipStartDate: timeLine.relationshipStartDate,
+      relationshipEndDate: timeLine.relationshipEndDate,
       name: timeLine.name,
       accentColor: timeLine.accentColor,
+      isPremium: timeLine.isPremium,
+      premiumUntil: timeLine.premiumUntil,
+      coverPhotoUrl: timeLine.coverPhotoUrl,
+      nicknames: timeLine.nicknames,
+      enforceEndDate: timeLine.enforceEndDate,
+      roles: timeLine.roles,
+      momentEditPolicy: timeLine.momentEditPolicy,
+      pendingDeletion: timeLine.pendingDeletion,
     );
   }
 }

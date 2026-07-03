@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:injectable/injectable.dart';
+import '../../../core/utils/logging/request_logger.dart';
 import '../../../photos/external/firebase_storage_photo_data_source.dart';
 import '../../infra/data_source/moments_data_source.dart';
 import '../../infra/models/moment_model.dart';
@@ -16,55 +17,100 @@ class FirebaseMomentsDataSource extends MomentsDataSource {
   );
 
   @override
-  Future registerMoment({required MomentModel moment}) => momentsDBRef.doc(moment.id).set(moment);
+  Future registerMoment({required MomentModel moment}) => RequestLogger.track(
+        'Moment.registerMoment',
+        params: {'momentId': moment.id},
+        request: () => momentsDBRef.doc(moment.id).set(moment),
+      );
 
   @override
   Future<MomentModel> fetchMoment({
     required String momentId,
-  }) async {
-    final result = await momentsDBRef.where('id', isEqualTo: momentId).get(const GetOptions(
-          source: Source.server,
-        ));
+  }) =>
+      RequestLogger.track(
+        'Moment.fetchMoment',
+        params: {'momentId': momentId},
+        request: () async {
+          final result = await momentsDBRef.where('id', isEqualTo: momentId).get(const GetOptions(
+                source: Source.server,
+              ));
 
-    return result.docs.first.data();
-  }
+          return result.docs.first.data();
+        },
+      );
 
   @override
-  Future updateMoment(String momentId, Map<String, dynamic> momentModel) async {
-    return await momentsDBRef.doc(momentId).update(momentModel);
-  }
+  Future updateMoment(String momentId, Map<String, dynamic> momentModel) => RequestLogger.track(
+        'Moment.updateMoment',
+        params: {'momentId': momentId, 'fields': momentModel.keys.join('/')},
+        request: () => momentsDBRef.doc(momentId).update(momentModel),
+      );
 
   @override
-  Future deleteMoment(String momentId) async {
-    return await momentsDBRef.doc(momentId).delete();
-  }
+  Future deleteMoment(String momentId) => RequestLogger.track(
+        'Moment.deleteMoment',
+        params: {'momentId': momentId},
+        request: () => momentsDBRef.doc(momentId).delete(),
+      );
+
+  @override
+  Future<void> deleteMomentsByTimeline(String timelineId) => RequestLogger.track(
+        'Moment.deleteMomentsByTimeline',
+        params: {'timelineId': timelineId},
+        request: () async {
+          final result = await momentsDBRef
+              .where('time_line_id', isEqualTo: timelineId)
+              .get(const GetOptions(source: Source.server));
+
+          // Firestore caps a batch at 500 writes, so delete in chunks.
+          const chunkSize = 450;
+          final docs = result.docs;
+          for (var i = 0; i < docs.length; i += chunkSize) {
+            final batch = momentsDBRef.firestore.batch();
+            for (final doc in docs.skip(i).take(chunkSize)) {
+              batch.delete(doc.reference);
+            }
+            await batch.commit();
+          }
+        },
+      );
 
   @override
   Future<List<MomentModel>> fetchAllMomentsByMonthAndYear(
     String year,
     String month,
     String timelineId,
-  ) async {
-    final result =
-        await momentsDBRef.where('time_line_id', isEqualTo: timelineId).get(const GetOptions(source: Source.server));
+  ) =>
+      RequestLogger.track(
+        'Moment.fetchAllMomentsByMonthAndYear',
+        params: {'year': year, 'month': month, 'timelineId': timelineId},
+        request: () async {
+          final result =
+              await momentsDBRef.where('time_line_id', isEqualTo: timelineId).get(const GetOptions(source: Source.server));
 
-    return result.docs
-        .map((e) => e.data())
-        .toList()
-        .where((element) => element.month == month && element.year == year)
-        .toList();
-  }
+          return result.docs
+              .map((e) => e.data())
+              .toList()
+              .where((element) => element.month == month && element.year == year)
+              .toList();
+        },
+      );
 
   @override
   Future<List<MomentModel>> fetchAllMomentsByYear({
     required String year,
     required String timelineId,
-  }) async {
-    final result =
-        await momentsDBRef.where('time_line_id', isEqualTo: timelineId).get(const GetOptions(source: Source.server));
+  }) =>
+      RequestLogger.track(
+        'Moment.fetchAllMomentsByYear',
+        params: {'year': year, 'timelineId': timelineId},
+        request: () async {
+          final result =
+              await momentsDBRef.where('time_line_id', isEqualTo: timelineId).get(const GetOptions(source: Source.server));
 
-    return result.docs.map((e) => e.data()).where((element) => element.year == year).toList();
-  }
+          return result.docs.map((e) => e.data()).where((element) => element.year == year).toList();
+        },
+      );
 
   static const String momentsDBParam = "momentsDBParam";
   static const yearQuery = 'year';
@@ -77,14 +123,22 @@ class FirebaseMomentsDataSource extends MomentsDataSource {
     required DateTime startDate,
     required DateTime endDate,
     required String timelineId,
-  }) async {
-    final result =
-        await momentsDBRef.where('time_line_id', isEqualTo: timelineId).get(const GetOptions(source: Source.server));
+  }) =>
+      RequestLogger.track(
+        'Moment.fetchMomentsByDate',
+        params: {
+          'startDate': startDate.toIso8601String(),
+          'endDate': endDate.toIso8601String(),
+          'timelineId': timelineId,
+        },
+        request: () async {
+          final result =
+              await momentsDBRef.where('time_line_id', isEqualTo: timelineId).get(const GetOptions(source: Source.server));
 
-    return result.docs
-        .map((e) => e.data())
-        .where((e) =>
-            e.dateTime.isBefore(endDate) && e.dateTime.isAfter(startDate))
-        .toList();
-  }
+          return result.docs
+              .map((e) => e.data())
+              .where((e) => e.dateTime.isBefore(endDate) && e.dateTime.isAfter(startDate))
+              .toList();
+        },
+      );
 }

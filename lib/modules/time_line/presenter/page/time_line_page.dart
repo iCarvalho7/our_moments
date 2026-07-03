@@ -1,7 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:nossos_momentos/di/injection.dart';
+import 'package:nossos_momentos/modules/core/premium/premium_feature.dart';
+import 'package:nossos_momentos/modules/core/premium/premium_service.dart';
+import 'package:nossos_momentos/modules/core/premium/widget/premium_gate.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/app_bottom_nav.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/background_gradient.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
@@ -11,8 +15,10 @@ import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/moment/domain/entities/moment_type.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
+import 'package:nossos_momentos/modules/time_line/domain/entity/timeline_permissions.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/utils/relationship_duration.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/page/couple_features_hub_page.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/page/moments_map_page.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/page/on_this_day_page.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/widgets/memory_card.dart';
@@ -36,8 +42,22 @@ class _TimeLinePageState extends State<TimeLinePage> {
 
     return BlocProvider<TimeLineBloc>(
       create: (_) => getIt<TimeLineBloc>()..add(TimeLineEventInit(timeLineId: timeLine)),
-      child: BlocBuilder<TimeLineBloc, TimeLineState>(
-        builder: (context, state) {
+      child: BlocListener<TimeLineBloc, TimeLineState>(
+        listener: (context, state) {
+          if (state is TimeLineStateLoaded && _savedScrollOffset > 0) {
+            final offset = _savedScrollOffset;
+            _savedScrollOffset = 0;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (_scrollController.hasClients) {
+                _scrollController.jumpTo(
+                  offset.clamp(0.0, _scrollController.position.maxScrollExtent),
+                );
+              }
+            });
+          }
+        },
+        child: BlocBuilder<TimeLineBloc, TimeLineState>(
+          builder: (context, state) {
           final accentValue = (state is TimeLineStateLoaded || state is TimeLineStateEmpty)
               ? context.read<TimeLineBloc>().timeLine.accentColor
               : null;
@@ -50,6 +70,15 @@ class _TimeLinePageState extends State<TimeLinePage> {
                 appBar: PrimaryAppBar(
                   title: _timelineTitle(context, state),
                   background: BackgroundGradient(),
+                  icons: (state is TimeLineStateLoaded || state is TimeLineStateEmpty)
+                      ? [
+                          IconButton(
+                            tooltip: 'Recursos do grupo',
+                            icon: const Icon(Icons.auto_awesome_mosaic_outlined),
+                            onPressed: () => _openCoupleFeaturesHub(context),
+                          ),
+                        ]
+                      : null,
                 ),
                 body: state is TimeLineStateLoaded || state is TimeLineStateEmpty
                     ? _buildScrollBody(context, state)
@@ -64,6 +93,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
             }),
           );
         },
+        ),
       ),
     );
   }
@@ -72,6 +102,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
   MomentType? _typeFilter;
   bool _showFavoritesOnly = false;
   final ScrollController _scrollController = ScrollController();
+  double _savedScrollOffset = 0;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -236,7 +267,9 @@ class _TimeLinePageState extends State<TimeLinePage> {
   Widget _buildTogetherCounter(BuildContext context) {
     final palette = context.palette;
     final textTheme = Theme.of(context).textTheme;
-    final startDate = context.read<TimeLineBloc>().timeLine.relationshipStartDate;
+    final timeLine = context.read<TimeLineBloc>().timeLine;
+    final startDate = timeLine.relationshipStartDate;
+    final endDate = timeLine.relationshipEndDate;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 2),
@@ -264,13 +297,13 @@ class _TimeLinePageState extends State<TimeLinePage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Juntos há',
+                            endDate == null ? 'Juntos há' : 'Ficaram juntos por',
                             style: textTheme.bodySmall?.copyWith(
                               color: Colors.white.withValues(alpha: 0.85),
                             ),
                           ),
                           Text(
-                            RelationshipDuration.friendly(startDate),
+                            RelationshipDuration.friendly(startDate, now: endDate),
                             style: textTheme.titleMedium?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
@@ -419,13 +452,27 @@ class _TimeLinePageState extends State<TimeLinePage> {
 
   void _goToAddMoment(BuildContext context) {
     final timeLineBloc = context.read<TimeLineBloc>();
+    final currentEmail = FirebaseAuth.instance.currentUser?.email ?? '';
+    if (!TimelinePermissions.canEdit(timeLineBloc.timeLine, currentEmail)) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+          content: Text('Você tem permissão de visualização — não pode criar momentos.'),
+        ));
+      return;
+    }
     Navigator.pushNamed(
       context,
       AppRoute.addMoment.tag,
-      arguments: timeLineBloc.timeLine.accentColor,
-    ).then(
-      (_) => timeLineBloc.add(TimeLineEventChangeDate()),
-    );
+      arguments: (
+        accentColor: timeLineBloc.timeLine.accentColor,
+        endDate: timeLineBloc.timeLine.enforceEndDate
+            ? timeLineBloc.timeLine.relationshipEndDate
+            : null,
+      ),
+    ).then((saved) {
+      if (saved == true) timeLineBloc.add(TimeLineEventChangeDate());
+    });
 
     final timelineId = timeLineBloc.timelineId;
 
@@ -491,8 +538,9 @@ class _TimeLinePageState extends State<TimeLinePage> {
   Widget _buildDateRangeChip(BuildContext context, TimeLineState state) {
     final palette = context.palette;
     final textTheme = Theme.of(context).textTheme;
-    final range =
-        '${DateFormat('dd/MM/yyyy').format(state.startDate)}  —  ${DateFormat('dd/MM/yyyy').format(state.endDate)}';
+    final range = state.startDate == TimeLineBloc.kAllTimeStart
+        ? 'Tudo'
+        : '${DateFormat('dd/MM/yyyy').format(state.startDate)}  —  ${DateFormat('dd/MM/yyyy').format(state.endDate)}';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
@@ -608,14 +656,44 @@ class _TimeLinePageState extends State<TimeLinePage> {
             (parentContext, index) {
               final item = items[index];
               if (item is Moment) {
-                return GestureDetector(
-                  onTap: () => _openMoment(parentContext, item),
-                  onLongPress: () => _showDeleteMomentDialog(parentContext, item.id),
-                  child: MemoryCard(
-                    moment: item,
-                    onFavoriteToggle: () => parentContext
-                        .read<TimeLineBloc>()
-                        .add(TimeLineEventToggleFavorite(moment: item)),
+                final bloc = parentContext.read<TimeLineBloc>();
+                return Dismissible(
+                  key: ValueKey(item.id),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (_) async {
+                    final currentEmail =
+                        FirebaseAuth.instance.currentUser?.email ?? '';
+                    if (!TimelinePermissions.canEdit(
+                        parentContext.read<TimeLineBloc>().timeLine,
+                        currentEmail)) {
+                      ScaffoldMessenger.of(parentContext)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(const SnackBar(
+                          content: Text(
+                              'Você tem permissão de visualização — não pode remover momentos.'),
+                        ));
+                      return false;
+                    }
+                    return CustomDeleteDialog.confirm(
+                      parentContext,
+                      text:
+                          'Você tem certeza que deseja remover esse momento das areias do tempo?',
+                    );
+                  },
+                  onDismissed: (_) =>
+                      bloc.add(TimeLineEventDeleteMoment(momentId: item.id)),
+                  background: _SwipeDeleteBackground(
+                      alignment: Alignment.centerRight),
+                  child: GestureDetector(
+                    onTap: () => _openMoment(parentContext, item),
+                    child: MemoryCard(
+                      moment: item,
+                      nicknames: bloc.timeLine.nicknames,
+                      currentUserEmail:
+                          FirebaseAuth.instance.currentUser?.email ?? '',
+                      onFavoriteToggle: () =>
+                          bloc.add(TimeLineEventToggleFavorite(moment: item)),
+                    ),
                   ),
                 );
               }
@@ -648,6 +726,16 @@ class _TimeLinePageState extends State<TimeLinePage> {
 
   Future<void> _openMomentsMap(BuildContext context) async {
     final bloc = context.read<TimeLineBloc>();
+    // Map view is premium-only; open the paywall instead of navigating when
+    // locked. If the user becomes premium, reload the timeline (re-binds the
+    // PremiumService) and let them tap again.
+    if (!getIt<PremiumService>().can(PremiumFeature.mapView)) {
+      final unlocked = await showPremiumPlaceholder(context, PremiumFeature.mapView);
+      if (unlocked) {
+        bloc.add(TimeLineEventReloadTimeline());
+      }
+      return;
+    }
     final moment = await Navigator.of(context).push<Moment>(
       MaterialPageRoute(
         builder: (_) => MomentsMapPage(
@@ -662,15 +750,40 @@ class _TimeLinePageState extends State<TimeLinePage> {
     }
   }
 
+  /// Opens the couple-features hub (bucket list, special dates, time capsule,
+  /// stats, year in review, couple book). The hub is a separate route and gates
+  /// each feature on tap; it pops `true` when the user unlocked premium during
+  /// the session, so we reload the timeline (re-binding the PremiumService).
+  Future<void> _openCoupleFeaturesHub(BuildContext context) async {
+    final bloc = context.read<TimeLineBloc>();
+    final unlocked = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => CoupleFeaturesHubPage(
+          moments: bloc.allMoments,
+          timeLine: bloc.timeLine,
+        ),
+      ),
+    );
+    if (unlocked == true) {
+      bloc.add(TimeLineEventReloadTimeline());
+    }
+  }
+
   void _openMoment(BuildContext context, Moment moment) {
+    _savedScrollOffset = _scrollController.hasClients ? _scrollController.offset : 0;
     final timeLineBloc = context.read<TimeLineBloc>();
     Navigator.pushNamed(
       context,
       AppRoute.addMoment.tag,
-      arguments: timeLineBloc.timeLine.accentColor,
-    ).then(
-      (_) => timeLineBloc.add(TimeLineEventChangeDate()),
-    );
+      arguments: (
+        accentColor: timeLineBloc.timeLine.accentColor,
+        endDate: timeLineBloc.timeLine.enforceEndDate
+            ? timeLineBloc.timeLine.relationshipEndDate
+            : null,
+      ),
+    ).then((saved) {
+      if (saved == true) timeLineBloc.add(TimeLineEventChangeDate());
+    });
 
     BlocProvider.of<AddOrEditMomentBloc>(context).add(SetupEditMomentEvent(moment: moment));
   }
@@ -700,23 +813,33 @@ class _TimeLinePageState extends State<TimeLinePage> {
     );
   }
 
-  void _showDeleteMomentDialog(BuildContext context, String momentId) {
-    CustomDeleteDialog.show(
-      context,
-      text: 'Você tem certeza que deseja remover esse momento das areias do tempo?',
-      onTapPositive: () {
-        context.read<TimeLineBloc>().add(TimeLineEventDeleteMoment(momentId: momentId));
-        Navigator.pop(context);
-      },
-    );
-  }
-
   Future<void> _goToSettings(BuildContext context, TimeLine timeLine) async {
     final bloc = context.read<TimeLineBloc>();
     await Navigator.pushNamed(context, AppRoute.settings.tag, arguments: timeLine.id);
     // The name/accent color (and emails) may have changed in Settings — re-fetch
     // the timeline so the title and theme update on return.
     bloc.add(const TimeLineEventReloadTimeline());
+  }
+}
+
+/// Red delete affordance shown behind a card while swiping.
+class _SwipeDeleteBackground extends StatelessWidget {
+  const _SwipeDeleteBackground({required this.alignment});
+
+  final Alignment alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: palette.danger,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+      ),
+      alignment: Alignment.center,
+      child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 28),
+    );
   }
 }
 

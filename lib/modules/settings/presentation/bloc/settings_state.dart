@@ -18,3 +18,23 @@ final class SettingsSuccess extends SettingsState {
 final class SettingsError extends SettingsState {
   SettingsError({required super.timeLine, required super.email});
 }
+
+final class SettingsTimeLineDeleted extends SettingsState {
+  SettingsTimeLineDeleted({required super.timeLine, required super.email});
+}
+
+/// The account and its data were deleted; the UI should route to login.
+final class SettingsAccountDeleted extends SettingsState {
+  SettingsAccountDeleted({required super.timeLine, required super.email});
+}
+
+/// Firebase requires a recent login before deleting the account; the UI should
+/// prompt for the password and dispatch [ReauthenticateAndDeleteAccountEvent].
+final class SettingsReauthRequired extends SettingsState {
+  SettingsReauthRequired({required super.timeLine, required super.email});
+}
+
+/// Deleting the account failed (and it was not a reauth requirement).
+final class SettingsAccountDeleteError extends SettingsState {
+  SettingsAccountDeleteError({required super.timeLine, required super.email});
+}

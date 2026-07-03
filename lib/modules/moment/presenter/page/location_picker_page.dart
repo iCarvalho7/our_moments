@@ -103,13 +103,27 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
     _searchDebounce = Timer(const Duration(milliseconds: 600), () => _runSearch(query));
   }
 
+  /// Viewbox de ±12° ao redor de [_center] (≈ 1 300 km em cada direção).
+  /// bounded=0 → prioriza resultados dentro da caixa mas não exclui os de fora,
+  /// então locais famosos (ex: Disney World) ainda aparecem mesmo buscando do Brasil.
+  String get _searchViewbox {
+    const d = 12.0;
+    final w = (_center.longitude - d).clamp(-180.0, 180.0);
+    final e = (_center.longitude + d).clamp(-180.0, 180.0);
+    final n = (_center.latitude + d).clamp(-90.0, 90.0);
+    final s = (_center.latitude - d).clamp(-90.0, 90.0);
+    return '$w,$n,$e,$s';
+  }
+
   Future<void> _runSearch(String query) async {
     if (query.trim().length < 3) return;
     setState(() => _searching = true);
     try {
       final uri = Uri.parse(
         'https://nominatim.openstreetmap.org/search'
-        '?format=jsonv2&limit=5&addressdetails=0&q=${Uri.encodeQueryComponent(query)}',
+        '?format=jsonv2&limit=5&addressdetails=0'
+        '&viewbox=$_searchViewbox&bounded=0'
+        '&q=${Uri.encodeQueryComponent(query)}',
       );
       final response = await http.get(uri, headers: _nominatimHeaders);
       final results = response.statusCode == 200
@@ -142,6 +156,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
 
   static const Map<String, String> _nominatimHeaders = {
     'User-Agent': 'NossosMomentos/1.0 (contato.lutestudios@gmail.com)',
+    'Accept-Language': 'pt-BR,pt;q=0.9',
   };
 
   /// Shortens a Nominatim display_name to its first couple of parts.
@@ -235,7 +250,36 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             ),
           ),
 
-          // Search bar + results dropdown.
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 16, bottom: 12),
+                  child: FloatingActionButton(
+                    heroTag: 'my_location',
+                    backgroundColor: palette.primary,
+                    foregroundColor: palette.onPrimary,
+                    onPressed: _useCurrentLocation,
+                    child: const Icon(Icons.my_location_rounded),
+                  ),
+                ),
+                _BottomPanel(
+                  nameController: _nameController,
+                  resolving: _resolvingName,
+                  onNameChanged: () => _nameEditedManually = true,
+                  onConfirm: _confirm,
+                ),
+              ],
+            ),
+          ),
+
+          // Search bar + results — último no Stack para ficar na frente de tudo,
+          // incluindo o painel de baixo quando a lista de resultados é longa.
           Positioned(
             top: 10,
             left: 12,
@@ -255,29 +299,6 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                     onSelect: _selectResult,
                   ),
               ],
-            ),
-          ),
-
-          // Jump to current location.
-          Positioned(
-            right: 16,
-            bottom: 190,
-            child: FloatingActionButton(
-              heroTag: 'my_location',
-              backgroundColor: palette.primary,
-              foregroundColor: palette.onPrimary,
-              onPressed: _useCurrentLocation,
-              child: const Icon(Icons.my_location_rounded),
-            ),
-          ),
-
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: _BottomPanel(
-              nameController: _nameController,
-              resolving: _resolvingName,
-              onNameChanged: () => _nameEditedManually = true,
-              onConfirm: _confirm,
             ),
           ),
         ],
@@ -371,7 +392,7 @@ class _SearchResults extends StatelessWidget {
             ),
             subtitle: Text(
               display ?? '',
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: textTheme.bodySmall,
             ),

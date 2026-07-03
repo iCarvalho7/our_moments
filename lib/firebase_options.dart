@@ -67,7 +67,7 @@ class DefaultFirebaseOptions {
     projectId: 'nossosmomentos-22',
     databaseURL: 'https://nossosmomentos-22-default-rtdb.firebaseio.com',
     storageBucket: 'nossosmomentos-22.appspot.com',
-    iosBundleId: 'br.com.lovestudios.nossosmomentos',
+    iosBundleId: 'cc.gambiapps.nossosmomentos',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -77,7 +77,7 @@ class DefaultFirebaseOptions {
     projectId: 'nossosmomentos-22',
     databaseURL: 'https://nossosmomentos-22-default-rtdb.firebaseio.com',
     storageBucket: 'nossosmomentos-22.appspot.com',
-    iosBundleId: 'br.com.lovestudios.nossosmomentos.nossosMomentos',
+    iosBundleId: 'cc.gambiapps.nossosmomentos.nossosMomentos',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

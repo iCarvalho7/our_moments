@@ -25,6 +25,70 @@ class CustomDeleteDialog extends StatelessWidget {
     );
   }
 
+  /// Shows the dialog and returns `true` when the user confirms, `false`
+  /// when they cancel or dismiss. Suitable for use in [Dismissible.confirmDismiss].
+  static Future<bool> confirm(
+    BuildContext parentContext, {
+    required String text,
+  }) async {
+    final result = await showDialog<bool>(
+      context: parentContext,
+      builder: (context) {
+        final palette = context.palette;
+        final textTheme = Theme.of(context).textTheme;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadii.card)),
+          contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: palette.danger.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.delete_outline_rounded,
+                    color: palette.danger, size: 32),
+              ),
+              kSpacerHeight16,
+              Text(text,
+                  textAlign: TextAlign.center, style: textTheme.bodyLarge),
+              kSpacerHeight24,
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: palette.surfaceAlt,
+                        foregroundColor: palette.onSurface,
+                      ),
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Não'),
+                    ),
+                  ),
+                  kSpacerWidth12,
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: palette.danger,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Sim'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    return result ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;

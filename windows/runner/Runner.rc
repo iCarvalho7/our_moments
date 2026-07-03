@@ -89,11 +89,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "br.com.lovestudios.nossosmomentos" "\0"
+            VALUE "CompanyName", "cc.gambiapps.nossosmomentos" "\0"
             VALUE "FileDescription", "nossos_momentos" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "nossos_momentos" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 br.com.lovestudios.nossosmomentos. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 cc.gambiapps.nossosmomentos. All rights reserved." "\0"
             VALUE "OriginalFilename", "nossos_momentos.exe" "\0"
             VALUE "ProductName", "nossos_momentos" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

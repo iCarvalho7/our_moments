@@ -27,6 +27,7 @@ class MomentModel extends Moment {
     this.latitude,
     this.longitude,
     this.audioUrl = '',
+    this.author = '',
   }) : super(
           dateTime: dateTime,
           type: type,
@@ -36,6 +37,7 @@ class MomentModel extends Moment {
           latitude: latitude,
           longitude: longitude,
           audioUrl: audioUrl,
+          author: author,
         );
 
   @override
@@ -69,6 +71,10 @@ class MomentModel extends Moment {
   @override
   @JsonKey(name: 'audio_url', defaultValue: '')
   final String audioUrl;
+
+  @override
+  @JsonKey(name: 'author', defaultValue: '')
+  final String author;
 
   static double? _doubleFromJson(dynamic value) => (value as num?)?.toDouble();
 
@@ -118,6 +124,7 @@ class MomentModel extends Moment {
       latitude: latitude,
       longitude: longitude,
       audioUrl: audioUrl,
+      author: author,
     );
   }
 
@@ -138,6 +145,7 @@ class MomentModel extends Moment {
       latitude: moment.latitude,
       longitude: moment.longitude,
       audioUrl: moment.audioUrl,
+      author: moment.author,
     );
   }
 }

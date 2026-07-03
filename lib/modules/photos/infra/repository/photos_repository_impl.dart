@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:injectable/injectable.dart';
 import 'package:nossos_momentos/modules/photos/domain/repository/photos_repository.dart';
@@ -20,6 +21,14 @@ class PhotosRepositoryImpl extends PhotosRepository {
     List<File> paths,
     String momentId,
   ) => dataSource.uploadPhotoFromPath(paths, momentId);
+
+  @override
+  Future<String> uploadAudioBytes(Uint8List bytes, String momentId, String fileName) =>
+      dataSource.uploadAudioFromBytes(bytes, momentId, fileName);
+
+  @override
+  Future<String> uploadPhotoBytes(Uint8List bytes, String momentId, String fileName) =>
+      dataSource.uploadPhotoFromBytes(bytes, momentId, fileName);
 
   @override
   Future clearAllPhotosFromMoment(String momentId) => dataSource.clearAllMomentPhotos(momentId);

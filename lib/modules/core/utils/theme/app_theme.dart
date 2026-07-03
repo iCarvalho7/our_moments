@@ -66,6 +66,11 @@ class AppPalette {
     required this.bad,
     required this.romantic,
     required this.good,
+    required this.sad,
+    required this.happy,
+    required this.cool,
+    required this.awful,
+    required this.disaster,
   });
 
   final Brightness brightness;
@@ -86,6 +91,11 @@ class AppPalette {
   final MomentColors bad;
   final MomentColors romantic;
   final MomentColors good;
+  final MomentColors sad;
+  final MomentColors happy;
+  final MomentColors cool;
+  final MomentColors awful;
+  final MomentColors disaster;
 
   bool get isDark => brightness == Brightness.dark;
 
@@ -110,6 +120,11 @@ class AppPalette {
       bad: bad,
       romantic: romantic,
       good: good,
+      sad: sad,
+      happy: happy,
+      cool: cool,
+      awful: awful,
+      disaster: disaster,
     );
   }
 
@@ -130,6 +145,11 @@ class AppPalette {
     bad: MomentColors(bg: Color(0xFFFFE2E2), accent: Color(0xFFE5616B), onBg: Color(0xFF7A2E33)),
     romantic: MomentColors(bg: Color(0xFFF6E2FB), accent: Color(0xFFB451D6), onBg: Color(0xFF5B2E6B)),
     good: MomentColors(bg: Color(0xFFDFF5E8), accent: Color(0xFF2E9E68), onBg: Color(0xFF1F5E40)),
+    sad: MomentColors(bg: Color(0xFFE2EEF8), accent: Color(0xFF4A90D9), onBg: Color(0xFF1A3B5C)),
+    happy: MomentColors(bg: Color(0xFFFFF8DA), accent: Color(0xFFE8B400), onBg: Color(0xFF5C4500)),
+    cool: MomentColors(bg: Color(0xFFD9F5F1), accent: Color(0xFF0EA5A0), onBg: Color(0xFF054A47)),
+    awful: MomentColors(bg: Color(0xFFFFEBD8), accent: Color(0xFFE8612C), onBg: Color(0xFF6B2500)),
+    disaster: MomentColors(bg: Color(0xFFEEE5F5), accent: Color(0xFF7B3FBE), onBg: Color(0xFF3B0D6B)),
   );
 
   static const dark = AppPalette(
@@ -150,6 +170,11 @@ class AppPalette {
     bad: MomentColors(bg: Color(0xFF3A2326), accent: Color(0xFFFF8A93), onBg: Color(0xFFFFD9DC)),
     romantic: MomentColors(bg: Color(0xFF2F2238), accent: Color(0xFFD9A0F0), onBg: Color(0xFFEAD2F7)),
     good: MomentColors(bg: Color(0xFF1E3328), accent: Color(0xFF6FD3A0), onBg: Color(0xFFCDEFDC)),
+    sad: MomentColors(bg: Color(0xFF152232), accent: Color(0xFF7BBCE8), onBg: Color(0xFFCDE4F7)),
+    happy: MomentColors(bg: Color(0xFF2C2400), accent: Color(0xFFFFD64D), onBg: Color(0xFFFFF0A0)),
+    cool: MomentColors(bg: Color(0xFF0C2C2B), accent: Color(0xFF40D9D0), onBg: Color(0xFFB0F0EC)),
+    awful: MomentColors(bg: Color(0xFF2D1200), accent: Color(0xFFFF8A52), onBg: Color(0xFFFFCFAA)),
+    disaster: MomentColors(bg: Color(0xFF1E0F30), accent: Color(0xFFAA6FE8), onBg: Color(0xFFE4C8FF)),
   );
 }
 

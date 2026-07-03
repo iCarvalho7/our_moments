@@ -1,12 +1,28 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:nossos_momentos/di/injection.dart';
+import 'package:nossos_momentos/modules/core/premium/premium_feature.dart';
+import 'package:nossos_momentos/modules/core/premium/premium_service.dart';
+import 'package:nossos_momentos/modules/core/premium/widget/premium_gate.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/primary_app_bar.dart';
+import 'package:nossos_momentos/modules/core/utils/data_url/data_url.dart';
 import 'package:nossos_momentos/modules/login/presentation/widget/login_text_field.dart';
+import 'package:nossos_momentos/modules/notifications/notification_service.dart';
+import 'package:nossos_momentos/modules/core/use_case/use_case.dart';
+import 'package:nossos_momentos/modules/photos/domain/repository/photos_repository.dart';
+import 'package:nossos_momentos/modules/premium/domain/repository/purchase_repository.dart';
+import 'package:nossos_momentos/modules/premium/domain/use_case/present_customer_center_use_case.dart';
 import 'package:nossos_momentos/modules/settings/presentation/bloc/settings_bloc.dart';
+import 'package:nossos_momentos/modules/settings/presentation/widget/delete_account_confirmation_sheet.dart';
+import 'package:nossos_momentos/modules/settings/presentation/widget/reauth_password_dialog.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/widgets/delete_timeline_confirmation_sheet.dart';
 
+import '../../../core/presenter/routes.dart';
 import '../../../core/presenter/widgets/background_gradient.dart';
 import '../../../core/utils/theme/app_theme.dart';
 
@@ -39,44 +55,72 @@ class _SettingsPageState extends State<SettingsPage> {
     super.dispose();
   }
 
+  /// Reauthentication is required before deleting the account. Prompts for the
+  /// password and, on confirmation, retries the deletion through the bloc.
+  Future<void> _promptReauth(BuildContext context) async {
+    final bloc = context.read<SettingsBloc>();
+    final password = await showReauthPasswordDialog(context);
+    if (password == null) return;
+    bloc.add(ReauthenticateAndDeleteAccountEvent(password: password));
+  }
+
   @override
   Widget build(BuildContext context) {
     final timeLineId = ModalRoute.of(context)?.settings.arguments as String;
 
     return BlocProvider<SettingsBloc>(
       create: (context) => getIt<SettingsBloc>()..add(FetchEmailEvent(timeLineId: timeLineId)),
-      child: Stack(
-        children: [
-          const BackgroundGradient(),
-          BlocBuilder<SettingsBloc, SettingsState>(
-            builder: (context, state) {
-              return SafeArea(
-                child: Scaffold(
-                  backgroundColor: Colors.transparent,
-                  appBar: PrimaryAppBar(title: 'Gerenciar acesso'),
-                  body: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Builder(
-                      builder: (_) {
-                        if (state is SettingsSuccess) {
-                          return _SuccessContent(
-                            timeline: state.timeLine!,
-                            usernameController: usernameController,
-                            state: state,
-                          );
-                        }
-                        if (state is SettingsLoading) {
-                          return const _LoadingContent();
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                  ),
+      child: BlocListener<SettingsBloc, SettingsState>(
+        listener: (context, state) {
+          if (state is SettingsTimeLineDeleted) {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              AppRoute.createTimeLine.tag,
+              (_) => false,
+            );
+          } else if (state is SettingsAccountDeleted) {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              AppRoute.login.tag,
+              (_) => false,
+            );
+          } else if (state is SettingsReauthRequired) {
+            _promptReauth(context);
+          } else if (state is SettingsAccountDeleteError) {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                const SnackBar(
+                  content: Text('Não foi possível excluir a conta. Tente novamente.'),
                 ),
               );
-            },
-          )
-        ],
+          }
+        },
+        child: Stack(
+          children: [
+            const BackgroundGradient(),
+            Scaffold(
+              backgroundColor: Colors.transparent,
+              appBar: PrimaryAppBar(title: 'Gerenciar acesso'),
+              body: Padding(
+                padding: const EdgeInsets.all(16),
+                child: BlocBuilder<SettingsBloc, SettingsState>(
+                  builder: (context, state) {
+                    if (state is SettingsSuccess) {
+                      return _SuccessContent(
+                        timeline: state.timeLine!,
+                        usernameController: usernameController,
+                        state: state,
+                      );
+                    }
+                    if (state is SettingsLoading) {
+                      return const _LoadingContent();
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -153,6 +197,500 @@ class _SuccessContent extends StatelessWidget {
               emails: emails,
               state: state,
               usernameController: usernameController,
+            ),
+          ),
+          if (emails.length > 1) ...[
+            kSpacerHeight16,
+            _SettingsSection(
+              icon: Icons.security_outlined,
+              title: 'Níveis de acesso',
+              subtitle: 'Defina quem pode editar ou apenas visualizar',
+              child: _AccessLevelSection(
+                timeline: timeline,
+                emails: emails,
+                currentEmail: state.email!,
+              ),
+            ),
+          ],
+          kSpacerHeight16,
+          _SettingsSection(
+            icon: Icons.photo_filter_outlined,
+            title: 'Capa e apelidos',
+            subtitle: 'Personalize a capa e os apelidos do casal',
+            child: _CoupleHeaderSection(timeline: timeline, emails: emails),
+          ),
+          kSpacerHeight16,
+          _SettingsSection(
+            icon: Icons.event_busy_outlined,
+            title: 'Data de término',
+            subtitle: 'Impede novos momentos com data após este dia',
+            child: _RelationshipEndDateSection(timeline: timeline),
+          ),
+          kSpacerHeight16,
+          _SettingsSection(
+            icon: Icons.notifications_active_outlined,
+            title: 'Lembrete "Neste dia"',
+            subtitle: 'Receba uma lembrança diária das suas memórias',
+            child: const _OnThisDayReminderToggle(),
+          ),
+          if (getIt<PurchaseRepository>().isStoreAvailable) ...[
+            kSpacerHeight16,
+            _SettingsSection(
+              icon: Icons.workspace_premium_outlined,
+              title: 'Gerenciar assinatura',
+              subtitle: 'Veja, restaure ou cancele seu plano premium',
+              child: const _ManageSubscriptionButton(),
+            ),
+          ],
+          kSpacerHeight16,
+          _DangerZoneSection(timeline: timeline),
+        ],
+      ),
+    );
+  }
+}
+
+/// Opens the RevenueCat-hosted Customer Center. Only shown when the store SDK
+/// is available (mobile + configured).
+class _ManageSubscriptionButton extends StatelessWidget {
+  const _ManageSubscriptionButton();
+
+  Future<void> _open(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final result =
+        await getIt<PresentCustomerCenterUseCase>().call(NoParams.instance);
+    if (result.isError) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content:
+                Text('Não foi possível abrir o gerenciamento da assinatura.'),
+          ),
+        );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () => _open(context),
+        icon: const Icon(Icons.settings_outlined, size: 20),
+        label: const Text('Abrir gerenciamento'),
+      ),
+    );
+  }
+}
+
+/// Couple-only section to set a cover photo and per-member nicknames. Gated:
+/// editing requires the couple tier — otherwise the paywall opens on interaction.
+class _CoupleHeaderSection extends StatefulWidget {
+  const _CoupleHeaderSection({required this.timeline, required this.emails});
+
+  final TimeLine timeline;
+  final List<String> emails;
+
+  @override
+  State<_CoupleHeaderSection> createState() => _CoupleHeaderSectionState();
+}
+
+class _CoupleHeaderSectionState extends State<_CoupleHeaderSection> {
+  late final Map<String, TextEditingController> _controllers = {
+    for (final email in widget.emails)
+      email: TextEditingController(text: widget.timeline.nicknames[email] ?? ''),
+  };
+
+  /// A freshly picked local cover (file path on mobile, data URL on web), if any.
+  String? _localCover;
+
+  /// The existing remote cover URL to keep when no new photo was picked.
+  late String _keepCoverUrl = widget.timeline.coverPhotoUrl;
+
+  bool get _unlocked => getIt<PremiumService>().can(PremiumFeature.coupleCover);
+
+  @override
+  void dispose() {
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<bool> _ensureUnlocked() async {
+    if (_unlocked) return true;
+    return showPremiumPlaceholder(context, PremiumFeature.coupleCover);
+  }
+
+  Future<void> _pickCover() async {
+    if (!await _ensureUnlocked()) return;
+    final media = await getIt<PhotosRepository>().getMedia();
+    if (!mounted || media.isEmpty) return;
+    setState(() => _localCover = media.first.url);
+  }
+
+  void _removeCover() {
+    setState(() {
+      _localCover = null;
+      _keepCoverUrl = '';
+    });
+  }
+
+  Future<void> _save() async {
+    if (!await _ensureUnlocked()) return;
+    if (!mounted) return;
+    FocusScope.of(context).unfocus();
+
+    final nicknames = <String, String>{};
+    _controllers.forEach((email, controller) {
+      final value = controller.text.trim();
+      if (value.isNotEmpty) nicknames[email] = value;
+    });
+
+    context.read<SettingsBloc>().add(UpdateCoupleHeaderEvent(
+          nicknames: nicknames,
+          localCoverPath: _localCover,
+          keepCoverUrl: _keepCoverUrl,
+        ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Capa e apelidos atualizados.')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+    final hasNewCover = _localCover != null;
+    final hasCover = hasNewCover || _keepCoverUrl.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: _pickCover,
+          child: Container(
+            height: 150,
+            width: double.infinity,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: palette.surfaceAlt,
+              borderRadius: BorderRadius.circular(AppRadii.card),
+              border: Border.all(color: palette.outline),
+            ),
+            child: hasCover
+                ? Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      _CoverPreview(localCover: _localCover, remoteUrl: _keepCoverUrl),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Material(
+                          color: Colors.black.withValues(alpha: 0.4),
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: _removeCover,
+                            child: const Padding(
+                              padding: EdgeInsets.all(6),
+                              child: Icon(Icons.close_rounded, color: Colors.white, size: 18),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_photo_alternate_outlined,
+                          color: palette.onSurfaceMuted, size: 30),
+                      kSpacerHeight8,
+                      Text(
+                        'Adicionar foto de capa',
+                        style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+        kSpacerHeight24,
+        Text(
+          'Apelidos do casal',
+          style: textTheme.titleSmall?.copyWith(color: palette.onSurfaceMuted),
+        ),
+        kSpacerHeight12,
+        ..._controllers.entries.map((entry) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: TextField(
+              controller: entry.value,
+              textCapitalization: TextCapitalization.words,
+              decoration: InputDecoration(
+                labelText: entry.key,
+                hintText: 'Apelido',
+                prefixIcon: const Icon(Icons.favorite_outline_rounded),
+              ),
+            ),
+          );
+        }),
+        kSpacerHeight12,
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _save,
+            icon: const Icon(Icons.check_rounded, size: 20),
+            label: const Text('Salvar alterações'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Renders either a freshly picked local cover or the persisted remote one.
+class _CoverPreview extends StatelessWidget {
+  const _CoverPreview({required this.localCover, required this.remoteUrl});
+
+  final String? localCover;
+  final String remoteUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = Container(
+      color: context.palette.surfaceAlt,
+      alignment: Alignment.center,
+      child: Icon(Icons.broken_image_outlined, color: context.palette.onSurfaceMuted),
+    );
+
+    final local = localCover;
+    if (local != null) {
+      final bytes = decodeDataUrl(local);
+      if (bytes != null) {
+        return Image.memory(bytes, fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => fallback);
+      }
+      return Image.file(File(local), fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => fallback);
+    }
+
+    return Image.network(remoteUrl, fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => fallback);
+  }
+}
+
+/// Premium toggle for the daily "Neste dia" reminder. Reads/writes the
+/// preference through [NotificationService]; when the couple is not premium,
+/// turning it on opens the paywall instead.
+class _OnThisDayReminderToggle extends StatefulWidget {
+  const _OnThisDayReminderToggle();
+
+  @override
+  State<_OnThisDayReminderToggle> createState() => _OnThisDayReminderToggleState();
+}
+
+class _OnThisDayReminderToggleState extends State<_OnThisDayReminderToggle> {
+  bool _enabled = false;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final enabled = await getIt<NotificationService>().isReminderEnabled();
+    if (!mounted) return;
+    setState(() {
+      _enabled = enabled;
+      _loading = false;
+    });
+  }
+
+  Future<void> _onChanged(bool value) async {
+    final service = getIt<NotificationService>();
+
+    // Premium gate: turning the reminder on requires premium. Free users get
+    // the paywall; on success, schedule and reflect the new state.
+    if (value && !getIt<PremiumService>().can(PremiumFeature.onThisDayPush)) {
+      final unlocked = await showPremiumPlaceholder(context, PremiumFeature.onThisDayPush);
+      if (!unlocked) return;
+    }
+
+    if (value) {
+      final granted = await service.enableReminder();
+      if (!mounted) return;
+      if (!granted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ative as notificações nas configurações do aparelho.'),
+          ),
+        );
+      }
+      setState(() => _enabled = granted);
+    } else {
+      await service.disableReminder();
+      if (!mounted) return;
+      setState(() => _enabled = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+    final isPremium = getIt<PremiumService>().can(PremiumFeature.onThisDayPush);
+
+    if (_loading) {
+      return const Align(
+        alignment: Alignment.centerLeft,
+        child: SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Lembrança diária às 9h',
+                style: textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                isPremium
+                    ? 'Toque na notificação para reviver suas memórias.'
+                    : 'Recurso premium — desbloqueie para ativar.',
+                style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+              ),
+            ],
+          ),
+        ),
+        kSpacerWidth12,
+        Switch(
+          value: _enabled,
+          onChanged: _onChanged,
+        ),
+      ],
+    );
+  }
+}
+
+class _DangerZoneSection extends StatelessWidget {
+  const _DangerZoneSection({required this.timeline});
+
+  final TimeLine timeline;
+
+  Future<void> _openDeleteSheet(BuildContext context) async {
+    final bloc = context.read<SettingsBloc>();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DeleteTimelineConfirmationSheet(
+        timelineName: timeline.name,
+        onConfirm: () => bloc.add(DeleteTimeLineEvent()),
+      ),
+    );
+  }
+
+  Future<void> _openDeleteAccountSheet(BuildContext context) async {
+    final bloc = context.read<SettingsBloc>();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DeleteAccountConfirmationSheet(
+        onConfirm: () => bloc.add(DeleteAccountEvent()),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+    final errorColor = Theme.of(context).colorScheme.error;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: errorColor.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: errorColor.withValues(alpha: 0.28)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: errorColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.warning_amber_outlined, color: errorColor, size: 22),
+              ),
+              kSpacerWidth12,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Zona de perigo', style: textTheme.titleMedium),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Ações permanentes e irreversíveis',
+                      style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          kSpacerHeight24,
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _openDeleteSheet(context),
+              icon: const Icon(Icons.delete_forever_rounded, size: 20),
+              label: const Text('Deletar linha do tempo'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: errorColor,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+          kSpacerHeight24,
+          Divider(color: errorColor.withValues(alpha: 0.2), height: 1),
+          kSpacerHeight24,
+          Text('Excluir conta', style: textTheme.titleMedium),
+          const SizedBox(height: 2),
+          Text(
+            'Apaga sua conta e os dados que pertencem só a você',
+            style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+          ),
+          kSpacerHeight12,
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _openDeleteAccountSheet(context),
+              icon: const Icon(Icons.person_off_outlined, size: 20),
+              label: const Text('Excluir minha conta'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: errorColor,
+                side: BorderSide(color: errorColor.withValues(alpha: 0.6)),
+              ),
             ),
           ),
         ],
@@ -244,7 +782,7 @@ class _AccessList extends StatelessWidget {
     return Column(
       children: [
         ...emails.map((item) {
-          final isOwner = item == state.timeLine?.owner;
+          final isOwner = state.timeLine?.owners.contains(item) ?? false;
           final isSelf = item == state.email;
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
@@ -413,12 +951,14 @@ class _Swatch extends StatelessWidget {
     required this.selected,
     required this.background,
     required this.onTap,
+    this.locked = false,
     this.child,
   });
 
   final bool selected;
   final Color background;
   final VoidCallback onTap;
+  final bool locked;
   final Widget? child;
 
   @override
@@ -439,8 +979,105 @@ class _Swatch extends StatelessWidget {
             width: selected ? 3 : 1,
           ),
         ),
-        child: child,
+        child: locked
+            ? Icon(Icons.lock_rounded, color: Colors.white.withValues(alpha: 0.9), size: 18)
+            : child,
       ),
+    );
+  }
+}
+
+/// Row that lets the user set or clear the relationship end date.
+/// Dispatches [UpdateRelationshipEndDateEvent] to [SettingsBloc].
+class _RelationshipEndDateSection extends StatelessWidget {
+  const _RelationshipEndDateSection({required this.timeline});
+
+  final TimeLine timeline;
+
+  Future<void> _pickDate(BuildContext context) async {
+    final endDate = timeline.relationshipEndDate;
+    final startDate = timeline.relationshipStartDate;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: endDate ?? DateTime.now(),
+      firstDate: startDate ?? DateTime(1990),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && context.mounted) {
+      context
+          .read<SettingsBloc>()
+          .add(UpdateRelationshipEndDateEvent(date: picked));
+    }
+  }
+
+  void _clearDate(BuildContext context) {
+    context
+        .read<SettingsBloc>()
+        .add(UpdateRelationshipEndDateEvent(date: null));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+    final endDate = timeline.relationshipEndDate;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          endDate == null
+              ? 'Nenhuma data definida'
+              : DateFormat('dd/MM/yyyy').format(endDate),
+          style: textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'O contador "Juntos há" usará esta data como fim.',
+          style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+        ),
+        kSpacerHeight12,
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Impedir momentos após essa data',
+                style: textTheme.bodyMedium,
+              ),
+            ),
+            Switch.adaptive(
+              value: endDate != null && timeline.enforceEndDate,
+              onChanged: endDate == null
+                  ? null
+                  : (value) => context.read<SettingsBloc>().add(
+                        UpdateRelationshipEndDateEvent(date: endDate, enforceEndDate: value),
+                      ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => _pickDate(context),
+            icon: const Icon(Icons.edit_calendar_outlined, size: 18),
+            label: Text(endDate == null ? 'Definir data de término' : 'Alterar data de término'),
+          ),
+        ),
+        if (endDate != null) ...[
+          kSpacerHeight8,
+          SizedBox(
+            width: double.infinity,
+            child: TextButton.icon(
+              onPressed: () => _clearDate(context),
+              icon: const Icon(Icons.close_rounded, size: 16),
+              label: const Text('Remover data de término'),
+              style: TextButton.styleFrom(foregroundColor: palette.onSurfaceMuted),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -500,6 +1137,90 @@ class _AccentPreview extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Per-member access level editor. Shown only when the timeline has >1 member.
+/// The owner can toggle each non-owner between 'editor' and 'viewer'.
+/// Non-owners see the levels but cannot change them (toggle is disabled).
+class _AccessLevelSection extends StatelessWidget {
+  const _AccessLevelSection({
+    required this.timeline,
+    required this.emails,
+    required this.currentEmail,
+  });
+
+  final TimeLine timeline;
+  final List<String> emails;
+  final String currentEmail;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final palette = context.palette;
+    final isOwner = timeline.owners.contains(currentEmail);
+    final nonOwners = emails.where((e) => !timeline.owners.contains(e)).toList();
+
+    if (nonOwners.isEmpty) {
+      return Text(
+        'Apenas você tem acesso a esta linha do tempo.',
+        style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!isOwner)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              'Somente o dono da linha do tempo pode alterar os níveis de acesso.',
+              style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+            ),
+          ),
+        ...nonOwners.map((email) {
+          final level = timeline.roles[email] ?? 'editor';
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  email,
+                  style: textTheme.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(
+                      value: 'editor',
+                      label: Text('Editor'),
+                      icon: Icon(Icons.edit_outlined, size: 16),
+                    ),
+                    ButtonSegment(
+                      value: 'viewer',
+                      label: Text('Somente leitura'),
+                      icon: Icon(Icons.visibility_outlined, size: 16),
+                    ),
+                  ],
+                  selected: {level == 'owner' ? 'editor' : level},
+                  onSelectionChanged: isOwner
+                      ? (selection) {
+                          context.read<SettingsBloc>().add(UpdateAccessLevelEvent(
+                                email: email,
+                                level: selection.first,
+                              ));
+                        }
+                      : null,
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 }

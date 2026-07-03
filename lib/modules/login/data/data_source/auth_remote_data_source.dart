@@ -10,4 +10,8 @@ abstract class AuthRemoteDataSource {
   User? getCurrentUser();
 
   Future<void> logout();
+
+  Future<void> reauthenticateWithPassword(String password);
+
+  Future<void> deleteAccount();
 }

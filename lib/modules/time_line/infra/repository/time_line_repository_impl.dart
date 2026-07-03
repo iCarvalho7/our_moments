@@ -100,21 +100,33 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
   }
 
   @override
-  Future<TimeLine> updateRelationshipStartDate(TimeLine timeline, DateTime date) async {
-    final model = TimeLineModel(
+  Future<TimeLine> updateRelationshipStartDate(TimeLine timeline, DateTime date) =>
+      _persist(timeline.copyWith(relationshipStartDate: date));
+
+  @override
+  Future<TimeLine> updateRelationshipEndDate(TimeLine timeline, DateTime? date,
+      {bool enforceEndDate = true}) {
+    // `date` is intentionally nullable (null clears the end date), so it is set
+    // explicitly rather than through copyWith's null-coalescing.
+    return _persist(TimeLine(
       createdDate: timeline.createdDate,
       emails: timeline.emails,
       id: timeline.id,
-      owner: timeline.owner,
       momentIds: timeline.momentIds,
-      relationshipStartDate: date,
+      owners: timeline.owners,
+      relationshipStartDate: timeline.relationshipStartDate,
+      relationshipEndDate: date,
       name: timeline.name,
       accentColor: timeline.accentColor,
-    );
-
-    await timeLineDataSource.updateTimeline(timeline.id, model.toJson());
-
-    return model;
+      isPremium: timeline.isPremium,
+      premiumUntil: timeline.premiumUntil,
+      coverPhotoUrl: timeline.coverPhotoUrl,
+      nicknames: timeline.nicknames,
+      enforceEndDate: enforceEndDate,
+      roles: timeline.roles,
+      momentEditPolicy: timeline.momentEditPolicy,
+      pendingDeletion: timeline.pendingDeletion,
+    ));
   }
 
   @override
@@ -122,20 +134,87 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
     TimeLine timeline, {
     required String name,
     int? accentColor,
-  }) async {
-    final model = TimeLineModel(
-      createdDate: timeline.createdDate,
-      emails: timeline.emails,
-      id: timeline.id,
-      owner: timeline.owner,
-      momentIds: timeline.momentIds,
-      relationshipStartDate: timeline.relationshipStartDate,
-      name: name,
+  }) {
+    // `accentColor` is intentionally nullable (null clears the accent), so it is
+    // set explicitly rather than through copyWith's null-coalescing.
+    final updated = timeline.copyWith(name: name);
+    return _persist(TimeLine(
+      createdDate: updated.createdDate,
+      emails: updated.emails,
+      id: updated.id,
+      momentIds: updated.momentIds,
+      owners: updated.owners,
+      relationshipStartDate: updated.relationshipStartDate,
+      relationshipEndDate: updated.relationshipEndDate,
+      name: updated.name,
       accentColor: accentColor,
-    );
+      isPremium: updated.isPremium,
+      premiumUntil: updated.premiumUntil,
+      coverPhotoUrl: updated.coverPhotoUrl,
+      nicknames: updated.nicknames,
+      enforceEndDate: updated.enforceEndDate,
+      roles: updated.roles,
+      momentEditPolicy: updated.momentEditPolicy,
+      pendingDeletion: updated.pendingDeletion,
+    ));
+  }
 
-    await timeLineDataSource.updateTimeline(timeline.id, model.toJson());
+  @override
+  Future<TimeLine> updateTimeLinePremium(
+    TimeLine timeline, {
+    required bool isPremium,
+    DateTime? premiumUntil,
+  }) {
+    // `premiumUntil` is intentionally nullable (null means lifetime), so it is
+    // set explicitly rather than through copyWith's null-coalescing — otherwise
+    // a previous expiry date would stick when switching to a lifetime plan.
+    final updated = timeline.copyWith(isPremium: isPremium);
+    return _persist(TimeLine(
+      createdDate: updated.createdDate,
+      emails: updated.emails,
+      id: updated.id,
+      momentIds: updated.momentIds,
+      owners: updated.owners,
+      relationshipStartDate: updated.relationshipStartDate,
+      relationshipEndDate: updated.relationshipEndDate,
+      name: updated.name,
+      accentColor: updated.accentColor,
+      isPremium: updated.isPremium,
+      premiumUntil: premiumUntil,
+      coverPhotoUrl: updated.coverPhotoUrl,
+      nicknames: updated.nicknames,
+      enforceEndDate: updated.enforceEndDate,
+      roles: updated.roles,
+      momentEditPolicy: updated.momentEditPolicy,
+      pendingDeletion: updated.pendingDeletion,
+    ));
+  }
 
+  @override
+  Future<TimeLine> updateCoupleHeader(
+    TimeLine timeline, {
+    required String coverPhotoUrl,
+    required Map<String, String> nicknames,
+  }) =>
+      _persist(timeline.copyWith(coverPhotoUrl: coverPhotoUrl, nicknames: nicknames));
+
+  @override
+  Future<TimeLine> updateRoles(
+    TimeLine timeline,
+    Map<String, String> roles,
+  ) =>
+      _persist(timeline.copyWith(roles: roles));
+
+  @override
+  Future<void> deleteTimeLine(String timelineId) {
+    return timeLineDataSource.deleteTimeLine(timelineId);
+  }
+
+  /// Round-trips the whole [TimeLine] through [TimeLineModel] and writes it,
+  /// so every field is preserved on partial updates. Returns the written model.
+  Future<TimeLine> _persist(TimeLine timeline) async {
+    final model = TimeLineModel.fromEntity(timeline);
+    await timeLineDataSource.updateTimeline(model.id, model.toJson());
     return model;
   }
 }

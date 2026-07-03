@@ -11,7 +11,11 @@ import 'audio_section.dart';
 /// is a compact tappable entry that opens the matching picker and dispatches the
 /// same events the old full-height sections used.
 class MomentMetaRows extends StatelessWidget {
-  const MomentMetaRows({super.key});
+  const MomentMetaRows({super.key, this.lastDate});
+
+  /// When set, the date picker will not allow selecting a date after this value.
+  /// Used to enforce the timeline's end date constraint.
+  final DateTime? lastDate;
 
   @override
   Widget build(BuildContext context) {
@@ -65,11 +69,17 @@ class MomentMetaRows extends StatelessWidget {
     final current = bloc.state.moment.dateTime;
     final hasDate = current != AddOrEditMomentBloc.defaultDateTime;
 
+    final effectiveLast = lastDate ?? DateTime.now();
+    final now = DateTime.now();
+    final safeInitial = hasDate
+        ? (current.isAfter(effectiveLast) ? effectiveLast : current)
+        : (now.isAfter(effectiveLast) ? effectiveLast : now);
+
     final date = await showDatePicker(
       context: context,
-      initialDate: hasDate ? current : DateTime.now(),
+      initialDate: safeInitial,
       firstDate: DateTime(2018, 1, 1),
-      lastDate: DateTime(2030, 1, 1),
+      lastDate: effectiveLast,
     );
     if (date == null || !context.mounted) return;
 

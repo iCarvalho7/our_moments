@@ -24,3 +24,13 @@ class AddOrEditMomentStateCreate extends AddOrEditMomentState {
 class AddOrEditMomentStateLoading extends AddOrEditMomentState {
   const AddOrEditMomentStateLoading({required super.moment, required super.photosToDelete});
 }
+
+/// Emitted when saving fails (e.g. an upload error). Carries the moment back so
+/// the form is editable again instead of staying stuck on the loading state.
+class AddOrEditMomentStateError extends AddOrEditMomentState {
+  const AddOrEditMomentStateError({required super.moment, required super.photosToDelete});
+}
+
+class AddOrEditMomentStateDeleted extends AddOrEditMomentState {
+  const AddOrEditMomentStateDeleted({required super.moment, required super.photosToDelete});
+}

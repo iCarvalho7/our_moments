@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:nossos_momentos/di/injection.dart';
 
+import '../../../core/premium/premium_feature.dart';
+import '../../../core/premium/premium_service.dart';
 import '../../../core/utils/theme/app_theme.dart';
 import '../../domain/entities/moment.dart';
 
@@ -13,6 +16,8 @@ class ShareableMomentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = moment.type.colors(context);
     final hero = moment.downloadUrlList.isNotEmpty ? moment.downloadUrlList.first : null;
+    // Free tier stamps the brand watermark; premium shares clean.
+    final showWatermark = !getIt<PremiumService>().can(PremiumFeature.watermarkFree);
 
     final meta = [
       moment.dateTimeFormatted,
@@ -97,22 +102,24 @@ class ShareableMomentCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
                   ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      const Icon(Icons.favorite_rounded, size: 14, color: Colors.white),
-                      const SizedBox(width: 6),
-                      Text(
-                        Strings.appName,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.3,
+                  if (showWatermark) ...[
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        const Icon(Icons.favorite_rounded, size: 14, color: Colors.white),
+                        const SizedBox(width: 6),
+                        Text(
+                          Strings.appName,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.3,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

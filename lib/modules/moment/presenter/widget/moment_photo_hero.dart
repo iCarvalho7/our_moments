@@ -1,12 +1,14 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nossos_momentos/di/injection.dart';
+import 'package:nossos_momentos/modules/core/premium/premium_feature.dart';
+import 'package:nossos_momentos/modules/core/premium/premium_service.dart';
+import 'package:nossos_momentos/modules/core/premium/widget/premium_gate.dart';
+import 'package:nossos_momentos/modules/core/presenter/routes.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/custom_delete_dialog.dart';
-import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
 import 'package:nossos_momentos/modules/photos/presentation/bloc/photos_bloc.dart';
 import 'package:nossos_momentos/modules/stories/domain/entity/story.dart';
+import 'package:nossos_momentos/modules/stories/presenter/widget/story_image.dart';
 
 import '../../../core/utils/theme/app_theme.dart';
 import '../../domain/entities/moment.dart';
@@ -122,6 +124,15 @@ class _CarouselState extends State<_Carousel> {
     super.dispose();
   }
 
+  void _addPhotos(BuildContext context) {
+    // Free tier caps photos per moment; over the limit, show the premium CTA.
+    if (widget.photos.length >= getIt<PremiumService>().maxPhotosPerMoment) {
+      showPremiumPlaceholder(context, PremiumFeature.unlimitedPhotos);
+      return;
+    }
+    context.read<PhotosBloc>().add(PhotosEventOpenGallery());
+  }
+
   void _confirmDelete(String photo) {
     CustomDeleteDialog.show(
       context,
@@ -146,44 +157,64 @@ class _CarouselState extends State<_Carousel> {
           itemCount: photos.length,
           onPageChanged: (i) => setState(() => _page = i),
           itemBuilder: (context, index) => GestureDetector(
+            onTap: () => _openStory(index),
             onLongPress: () => _confirmDelete(photos[index]),
             child: _Media(url: photos[index]),
           ),
         ),
 
-        // Bottom scrim so controls/dots stay legible over bright photos.
+        // Bottom scrim so controls/thumbnails stay legible over bright photos.
         const _BottomScrim(),
 
-        // Page dots.
+        // Photo count badge (top, under the app bar) — makes it obvious there
+        // is more than one photo.
         if (photos.length > 1)
           Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(photos.length, (i) {
-                final active = i == safePage;
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: active ? 18 : 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: active ? 0.95 : 0.5),
-                    borderRadius: BorderRadius.circular(3),
+            top: MediaQuery.of(context).padding.top + 8,
+            right: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(AppRadii.pill),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.photo_library_rounded, color: Colors.white, size: 13),
+                  kSpacerWidth8,
+                  Text(
+                    '${safePage + 1}/${photos.length}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
                   ),
-                );
-              }),
+                ],
+              ),
             ),
           ),
 
-        // Add / remove controls.
+        // Thumbnail strip (jump to any photo) + add/remove controls.
         Positioned(
-          right: 16,
-          bottom: 36,
+          left: 12,
+          right: 12,
+          bottom: 30,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              if (photos.length > 1)
+                Expanded(
+                  child: _ThumbStrip(
+                    photos: photos,
+                    current: safePage,
+                    onTap: _goToPage,
+                  ),
+                )
+              else
+                const Spacer(),
+              kSpacerWidth8,
               _HeroButton(
                 icon: Icons.delete_outline_rounded,
                 onTap: () => _confirmDelete(photos[safePage]),
@@ -191,12 +222,76 @@ class _CarouselState extends State<_Carousel> {
               kSpacerWidth8,
               _HeroButton(
                 icon: Icons.add_photo_alternate_rounded,
-                onTap: () => context.read<PhotosBloc>().add(PhotosEventOpenGallery()),
+                onTap: () => _addPhotos(context),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  void _goToPage(int i) {
+    _controller.animateToPage(
+      i,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOut,
+    );
+  }
+
+  /// Opens the full-screen Instagram-style story viewer at [index].
+  void _openStory(int index) {
+    Navigator.pushNamed(
+      context,
+      AppRoute.story.tag,
+      arguments: {
+        'list': widget.photos,
+        'index': index,
+      },
+    );
+  }
+}
+
+/// Horizontal strip of photo thumbnails; the active one is highlighted and
+/// tapping any jumps the carousel to it.
+class _ThumbStrip extends StatelessWidget {
+  const _ThumbStrip({required this.photos, required this.current, required this.onTap});
+
+  final List<String> photos;
+  final int current;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 50,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: photos.length,
+        separatorBuilder: (_, __) => kSpacerWidth8,
+        itemBuilder: (context, index) {
+          final selected = index == current;
+          return GestureDetector(
+            onTap: () => onTap(index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: selected ? Colors.white : Colors.white.withValues(alpha: 0.35),
+                  width: selected ? 2.5 : 1,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: _Media(url: photos[index]),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -209,26 +304,17 @@ class _Media extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final story = Story(url: url);
-    switch (story.type) {
-      case StoryType.image:
-        return story.isNetwork
-            ? Image.network(
-                url,
-                fit: BoxFit.cover,
-                loadingBuilder: (_, child, event) =>
-                    event == null ? child : LoadingEffect(child: Container(color: Colors.grey)),
-              )
-            : Image.file(File(url), fit: BoxFit.cover);
-      case StoryType.video:
-        return Container(
-          color: Colors.black87,
-          child: const Center(
-            child: Icon(Icons.play_circle_outline_rounded, color: Colors.white, size: 56),
-          ),
-        );
-      case StoryType.undefined:
-        return Container(color: context.palette.surfaceAlt);
+    if (story.type == StoryType.video) {
+      return Container(
+        color: Colors.black87,
+        child: const Center(
+          child: Icon(Icons.play_circle_outline_rounded, color: Colors.white, size: 56),
+        ),
+      );
     }
+    // image or undefined (e.g. no extension / legacy Firebase path) — attempt
+    // to render as image with a neutral fallback on error.
+    return StoryImage(url: url, fit: BoxFit.cover);
   }
 }
 

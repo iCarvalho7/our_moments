@@ -33,4 +33,8 @@ class MomentRepositoryImpl extends MomentRepository {
 
   @override
   Future deleteMoment(String momentId) => _dataSource.deleteMoment(momentId);
+
+  @override
+  Future<void> deleteMomentsByTimeline(String timelineId) =>
+      _dataSource.deleteMomentsByTimeline(timelineId);
 }

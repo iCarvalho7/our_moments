@@ -89,3 +89,7 @@ class AddOrEditMomentEventRemoveAudio extends AddOrEditMomentEvent {
 class AddOrEditMomentEventCreateOrUpdateMoment extends AddOrEditMomentEvent {
   const AddOrEditMomentEventCreateOrUpdateMoment();
 }
+
+class AddOrEditMomentEventDeleteMoment extends AddOrEditMomentEvent {
+  const AddOrEditMomentEventDeleteMoment();
+}

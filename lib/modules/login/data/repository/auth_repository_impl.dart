@@ -34,4 +34,14 @@ class AuthRepositoryImpl extends AuthRepository {
   Future<void> logout() {
     return dataSource.logout();
   }
+
+  @override
+  Future<void> reauthenticateWithPassword(String password) {
+    return dataSource.reauthenticateWithPassword(password);
+  }
+
+  @override
+  Future<void> deleteAccount() {
+    return dataSource.deleteAccount();
+  }
 }

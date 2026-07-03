@@ -24,6 +24,7 @@ MomentModel _$MomentModelFromJson(Map<String, dynamic> json) => MomentModel(
   latitude: MomentModel._doubleFromJson(json['latitude']),
   longitude: MomentModel._doubleFromJson(json['longitude']),
   audioUrl: json['audio_url'] as String? ?? '',
+  author: json['author'] as String? ?? '',
 );
 
 Map<String, dynamic> _$MomentModelToJson(MomentModel instance) =>
@@ -43,4 +44,5 @@ Map<String, dynamic> _$MomentModelToJson(MomentModel instance) =>
       'latitude': instance.latitude,
       'longitude': instance.longitude,
       'audio_url': instance.audioUrl,
+      'author': instance.author,
     };

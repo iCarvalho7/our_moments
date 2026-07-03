@@ -24,6 +24,10 @@ class Moment {
   final double? longitude;
   final String audioUrl;
 
+  /// Email of the user who created the moment. Empty for legacy moments saved
+  /// before authorship was tracked ("Desconhecido" in the UI).
+  final String author;
+
   const Moment(
       {required this.id,
       required this.dateTime,
@@ -40,7 +44,8 @@ class Moment {
       this.locationName = '',
       this.latitude,
       this.longitude,
-      this.audioUrl = ''});
+      this.audioUrl = '',
+      this.author = ''});
 
   bool get hasLocation => latitude != null && longitude != null;
 
@@ -63,6 +68,7 @@ class Moment {
     double? latitude,
     double? longitude,
     String? audioUrl,
+    String? author,
   }) {
     return Moment(
       id: id ?? this.id,
@@ -81,6 +87,7 @@ class Moment {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       audioUrl: audioUrl ?? this.audioUrl,
+      author: author ?? this.author,
     );
   }
 

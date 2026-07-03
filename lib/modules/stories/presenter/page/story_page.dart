@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/stories/domain/entity/story.dart';
+import 'package:nossos_momentos/modules/stories/presenter/widget/story_image.dart';
 import 'package:video_player/video_player.dart';
 
 import '../bloc/story_bloc.dart';
@@ -50,26 +51,26 @@ class _StoryPageState extends State<_StoryPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: BlocConsumer<StoryBloc, StoryState>(
-          listener: _handleState,
-          buildWhen: (_, state) => state is! StoryStatePause,
-          builder: (context, state) {
-            if (state is StoryStateSetUpControllers) {
-              return Container(
-                alignment: Alignment.center,
-                color: Colors.black,
-                child: const CircularProgressIndicator(color: Colors.white),
-              );
-            }
-            if (state is StoryStateLoaded) {
-              return _buildPage(state, context);
-            } else {
-              return const SizedBox.shrink();
-            }
-          },
-        ),
+    // No outer SafeArea: the media is full-bleed (edge-to-edge, under the status
+    // bar/notch) like an Instagram story. Only the controls respect the safe
+    // area, inside _buildPage.
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: BlocConsumer<StoryBloc, StoryState>(
+        listener: _handleState,
+        buildWhen: (_, state) => state is! StoryStatePause,
+        builder: (context, state) {
+          if (state is StoryStateSetUpControllers) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
+          if (state is StoryStateLoaded) {
+            return _buildPage(state, context);
+          } else {
+            return const SizedBox.shrink();
+          }
+        },
       ),
     );
   }
@@ -93,49 +94,46 @@ class _StoryPageState extends State<_StoryPage> with TickerProviderStateMixin {
         }
       },
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          SizedBox(
-            height: double.infinity,
-            width: double.infinity,
-            child: _MediaSection(
-              story: state.story,
-              controller: controller,
-              videoController: _videoPlayerController,
-            ),
+          _MediaSection(
+            story: state.story,
+            controller: controller,
+            videoController: _videoPlayerController,
           ),
           Positioned(
-            top: 10.0,
+            top: 0,
             left: 5.0,
             right: 5.0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Row(
-                  children: state.stories
-                      .asMap()
-                      .map((i, e) {
-                        return MapEntry(
-                          i,
-                          _AnimatedBar(
-                            animController: controller,
-                            position: i,
-                            currentIndex: state.stories.indexOf(state.story),
-                          ),
-                        );
-                      })
-                      .values
-                      .toList(),
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.clear,
-                    color: Colors.white,
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Row(
+                    children: state.stories
+                        .asMap()
+                        .map((i, e) {
+                          return MapEntry(
+                            i,
+                            _AnimatedBar(
+                              animController: controller,
+                              position: i,
+                              currentIndex: state.stories.indexOf(state.story),
+                            ),
+                          );
+                        })
+                        .values
+                        .toList(),
                   ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
+                  IconButton(
+                    icon: const Icon(Icons.clear, color: Colors.white),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -145,30 +143,36 @@ class _StoryPageState extends State<_StoryPage> with TickerProviderStateMixin {
 
   void _handleState(BuildContext context, StoryState state) async {
     if (state is StoryStateSetUpControllers) {
+      await _videoPlayerController?.dispose();
+      _videoPlayerController = null;
+
       if (state.story.type == StoryType.video) {
-        _videoPlayerController = state.story.isNetwork
+        _videoPlayerController =
+            state.story.isNetwork || state.story.url.startsWith('data:')
             ? VideoPlayerController.networkUrl(Uri.parse(state.story.url))
             : VideoPlayerController.file(File(state.story.url));
         await _videoPlayerController!.initialize();
-        await _videoPlayerController!.play();
+        if (!mounted) return;
       }
 
-      controller = AnimationController(
+      controller?.dispose();
+      final newCtrl = AnimationController(
         vsync: this,
-        duration: _videoPlayerController?.value.duration ?? const Duration(seconds: 4),
-      )..addStatusListener(
-          (status) {
-            if (status == AnimationStatus.completed && controller?.toStringDetails() != 'DISPOSED') {
-              context.read<StoryBloc>().add(const StoryEventNextStory());
-            }
-          },
-        );
+        duration:
+            _videoPlayerController?.value.duration ??
+            const Duration(seconds: 4),
+      );
+      controller = newCtrl;
+      newCtrl.addStatusListener((status) {
+        if (status == AnimationStatus.completed && newCtrl == controller) {
+          context.read<StoryBloc>().add(const StoryEventNextStory());
+        }
+      });
 
       if (state.story.type == StoryType.video) {
-        if (!_videoPlayerController!.value.isPlaying) {
-          await _videoPlayerController!.play();
-        }
-        controller!.forward();
+        await _videoPlayerController!.play();
+        if (!mounted) return;
+        newCtrl.forward();
       }
 
       _start(context, state);
@@ -181,20 +185,22 @@ class _StoryPageState extends State<_StoryPage> with TickerProviderStateMixin {
   }
 
   void _start(BuildContext context, StoryStateSetUpControllers state) {
-    context
-        .read<StoryBloc>()
-        .add(StoryEventPlay(currentStory: state.story, stories: state.stories));
+    context.read<StoryBloc>().add(
+      StoryEventPlay(currentStory: state.story, stories: state.stories),
+    );
   }
 
   void _setUpArgs() {
     final args = ModalRoute.of(context)!.settings.arguments as Map;
     final list = args['list'] as List<String>;
     final currentIndex = args['index'] as int;
-    context.read<StoryBloc>().add(StoryEventInit(currentIndex: currentIndex, stories: list));
+    context.read<StoryBloc>().add(
+      StoryEventInit(currentIndex: currentIndex, stories: list),
+    );
   }
 }
 
-class _MediaSection extends StatelessWidget {
+class _MediaSection extends StatefulWidget {
   final Story story;
   final AnimationController? controller;
   final VideoPlayerController? videoController;
@@ -206,36 +212,118 @@ class _MediaSection extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    switch (story.type) {
-      case StoryType.video:
-        return VideoPlayer(videoController!);
-      case StoryType.image:
-        return FittedBox(
-          fit: BoxFit.cover,
-          child: !story.isNetwork
-              ? Image.file(File(story.url))
-              : Image.network(
-                  story.url,
-                  loadingBuilder: (context, widget, event) {
-                    if (event == null) return widget;
-                    return Container(
-                      color: Colors.black,
-                      padding: const EdgeInsets.all(250),
-                      child: const CircularProgressIndicator(
-                        strokeWidth: 2.0,
-                        color: Colors.white,
-                      ),
-                    );
-                  },
-                )
-            ..image.resolve(const ImageConfiguration()).addListener(
-                  ImageStreamListener((__, _) => controller?.forward()),
-                ),
-        );
-      case StoryType.undefined:
-        return const Placeholder();
+  State<_MediaSection> createState() => _MediaSectionState();
+}
+
+class _MediaSectionState extends State<_MediaSection> {
+  ImageStreamListener? _imageListener;
+  ImageStream? _imageStream;
+  bool _animationStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _attachImageListener();
+  }
+
+  @override
+  void didUpdateWidget(_MediaSection old) {
+    super.didUpdateWidget(old);
+    if (old.story.url != widget.story.url || old.controller != widget.controller) {
+      _detachImageListener();
+      _animationStarted = false;
+      _attachImageListener();
     }
+  }
+
+  @override
+  void dispose() {
+    _detachImageListener();
+    super.dispose();
+  }
+
+  void _attachImageListener() {
+    // Both image and undefined types need the listener; undefined covers legacy
+    // Firebase paths that have no recognizable file extension.
+    if (widget.story.type == StoryType.video) return;
+    final provider = storyImageProvider(widget.story.url);
+    if (provider == null) return;
+    _imageListener = ImageStreamListener(
+      (_, __) {
+        if (!_animationStarted) {
+          _animationStarted = true;
+          widget.controller?.forward();
+        }
+      },
+      onError: (_, __) {
+        // Image failed to load — advance the story timer anyway.
+        if (!_animationStarted) {
+          _animationStarted = true;
+          widget.controller?.forward();
+        }
+      },
+    );
+    _imageStream = provider.resolve(const ImageConfiguration());
+    _imageStream!.addListener(_imageListener!);
+  }
+
+  void _detachImageListener() {
+    if (_imageListener != null) {
+      _imageStream?.removeListener(_imageListener!);
+      _imageListener = null;
+      _imageStream = null;
+    }
+  }
+
+  Widget _buildImageWidget(ImageProvider provider) {
+    return ColoredBox(
+      color: Colors.black,
+      child: Image(
+        image: provider,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        loadingBuilder: (context, child, event) {
+          if (event == null) return child;
+          return const Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2.0,
+              color: Colors.white,
+            ),
+          );
+        },
+        errorBuilder: (_, __, ___) => const _ImageErrorBox(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    switch (widget.story.type) {
+      case StoryType.video:
+        return VideoPlayer(widget.videoController!);
+      case StoryType.image:
+      case StoryType.undefined:
+        // undefined = no recognizable extension (legacy Firebase path, etc.) —
+        // attempt to render as image, matching the thumbnail carousel's fallback.
+        final provider = storyImageProvider(widget.story.url);
+        if (provider == null) return const _ImageErrorBox();
+        return _buildImageWidget(provider);
+    }
+  }
+}
+
+class _ImageErrorBox extends StatelessWidget {
+  const _ImageErrorBox();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ColoredBox(
+      color: Colors.black,
+      child: Center(
+        child: Icon(Icons.broken_image_outlined, color: Colors.white38, size: 48),
+      ),
+    );
   }
 }
 
@@ -261,7 +349,9 @@ class _AnimatedBar extends StatelessWidget {
               children: [
                 _buildContainer(
                   double.infinity,
-                  position < currentIndex ? Colors.white : Colors.white.withValues(alpha: 0.5),
+                  position < currentIndex
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.5),
                 ),
                 position == currentIndex
                     ? AnimatedBuilder(
@@ -288,10 +378,7 @@ class _AnimatedBar extends StatelessWidget {
       width: width,
       decoration: BoxDecoration(
         color: color,
-        border: Border.all(
-          color: Colors.black26,
-          width: 0.8,
-        ),
+        border: Border.all(color: Colors.black26, width: 0.8),
         borderRadius: BorderRadius.circular(3.0),
       ),
     );

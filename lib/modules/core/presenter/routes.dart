@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nossos_momentos/modules/login/presentation/page/login_page.dart';
 import 'package:nossos_momentos/modules/settings/presentation/page/settings_page.dart';
 import 'package:nossos_momentos/modules/signup/presentation/page/sign_up_page.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/page/all_timelines_map_page.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/page/select_time_line_page.dart';
 
 import '../../moment/presenter/page/add_moment_page.dart';
@@ -36,6 +37,10 @@ enum AppRoute {
   settings(
     '//settings',
     SettingsPage(),
+  ),
+  allTimelinesMap(
+    '//all_timelines_map',
+    AllTimelinesMapPage(),
   );
 
   final String tag;

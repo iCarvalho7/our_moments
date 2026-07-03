@@ -79,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             kSpacerHeight8,
                             Text(
-                              'Guarde o que importa, a dois.',
+                              'Guarde o que importa, somente entre vocês.',
                               textAlign: TextAlign.center,
                               style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
                             ),

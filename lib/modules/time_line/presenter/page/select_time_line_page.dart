@@ -1,73 +1,177 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/core/presenter/routes.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/app_card.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/background_gradient.dart';
+import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/primary_app_bar.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/select_time_line_bloc.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/utils/relationship_duration.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class SelectTimeLinePage extends StatelessWidget {
+class SelectTimeLinePage extends StatefulWidget {
   const SelectTimeLinePage({super.key});
+
+  @override
+  State<SelectTimeLinePage> createState() => _SelectTimeLinePageState();
+}
+
+class _SelectTimeLinePageState extends State<SelectTimeLinePage> {
+  List<TimeLine> _orderedTimelines = [];
+  static const _kOrderKey = 'timeline_order';
+
+  /// Reads the saved ID order from prefs, sorts [timelines] accordingly, and
+  /// appends any new timelines (not yet in the saved list) at the end.
+  Future<void> _loadAndApplyOrder(List<TimeLine> timelines) async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedIds = prefs.getStringList(_kOrderKey);
+    final byId = {for (final t in timelines) t.id: t};
+
+    List<TimeLine> ordered;
+    if (savedIds == null || savedIds.isEmpty) {
+      ordered = List.of(timelines);
+    } else {
+      ordered = [for (final id in savedIds) if (byId.containsKey(id)) byId[id]!];
+      final orderedIds = ordered.map((t) => t.id).toSet();
+      ordered.addAll(timelines.where((t) => !orderedIds.contains(t.id)));
+    }
+    if (mounted) setState(() => _orderedTimelines = ordered);
+  }
+
+  Future<void> _saveOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setStringList(_kOrderKey, _orderedTimelines.map((t) => t.id).toList());
+  }
+
+  void _onReorder(int oldIndex, int newIndex) {
+    setState(() {
+      // onReorderItem already accounts for the removed item; no index adjustment needed.
+      final item = _orderedTimelines.removeAt(oldIndex);
+      _orderedTimelines.insert(newIndex, item);
+    });
+    _saveOrder();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => getIt<SelectTimeLineBloc>()..add(SelectTimeLineEventFetchAll()),
-      child: Stack(
-        children: [
-          const BackgroundGradient(),
-          Scaffold(
-            backgroundColor: Colors.transparent,
-            appBar: PrimaryAppBar(
-              title: 'Linhas do tempo',
-              back: IconButton(
-                tooltip: 'Sair',
-                onPressed: () {
-                  context.read<SelectTimeLineBloc>().add(SelectTimeLineEventLogout());
-                },
-                icon: const Icon(Icons.logout_rounded),
-              ),
-            ),
-            body: SafeArea(
-              child: BlocConsumer<SelectTimeLineBloc, SelectTimeLineState>(
-                listener: listenerChanges,
-                builder: (context, state) {
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      context.read<SelectTimeLineBloc>().add(SelectTimeLineEventFetchAll());
+      // Builder so the app bar's context is a descendant of the BlocProvider
+      // (otherwise the "Sair" button can't read SelectTimeLineBloc).
+      child: Builder(
+        builder: (context) {
+          return Stack(
+            children: [
+              const BackgroundGradient(),
+              Scaffold(
+                backgroundColor: Colors.transparent,
+                appBar: PrimaryAppBar(
+                  title: 'Linhas do tempo',
+                  back: IconButton(
+                    tooltip: 'Sair',
+                    onPressed: () {
+                      context.read<SelectTimeLineBloc>().add(SelectTimeLineEventLogout());
                     },
-                    child: _buildBody(context, state),
-                  );
-                },
+                    icon: const Icon(Icons.logout_rounded),
+                  ),
+                  icons: [
+                    IconButton(
+                      tooltip: 'Ver todos os momentos',
+                      icon: const Icon(Icons.map_outlined),
+                      onPressed: () => Navigator.of(context)
+                          .pushNamed(AppRoute.allTimelinesMap.tag),
+                    ),
+                  ],
+                ),
+                body: SafeArea(
+                  child: BlocConsumer<SelectTimeLineBloc, SelectTimeLineState>(
+                    listener: _listener,
+                    builder: (context, state) {
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          context.read<SelectTimeLineBloc>().add(SelectTimeLineEventFetchAll());
+                        },
+                        child: _buildBody(context, state),
+                      );
+                    },
+                  ),
+                ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
 
   Widget _buildBody(BuildContext context, SelectTimeLineState state) {
     if (state is SelectTimeLineLoading) {
-      return const Center(child: CircularProgressIndicator());
+      final palette = context.palette;
+      return ListView.builder(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        itemCount: 3,
+        itemBuilder: (_, __) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: LoadingEffect(
+            child: Container(
+              height: 180,
+              decoration: BoxDecoration(
+                color: palette.surface,
+                borderRadius: BorderRadius.circular(AppRadii.card),
+              ),
+            ),
+          ),
+        ),
+      );
     }
 
     if (state is SelectTimeLineSuccess && state.timeLines.isNotEmpty) {
-      return ListView(
+      return CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-        children: [
-          _Intro(count: state.timeLines.length),
-          kSpacerHeight16,
-          ...state.timeLines.map((item) => _SelectTimeLineItem(item: item)),
-          kSpacerHeight8,
-          const _CreateTimeLineCard(),
-          kSpacerHeight24,
-          const _HelpNote(),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            sliver: SliverToBoxAdapter(
+              child: _Intro(timelines: _orderedTimelines),
+            ),
+          ),
+          SliverPadding(
+            // Left reduced to 8 — the 24px track column makes total card offset 32px.
+            padding: const EdgeInsets.only(left: 8, right: 16),
+            sliver: SliverReorderableList(
+              itemCount: _orderedTimelines.length,
+              onReorderItem: _onReorder,
+              itemBuilder: (context, index) {
+                final item = _orderedTimelines[index];
+                return ReorderableDelayedDragStartListener(
+                  key: ValueKey(item.id),
+                  index: index,
+                  child: _TimelineTrackWrapper(
+                    item: item,
+                    isLast: index == _orderedTimelines.length - 1,
+                  ),
+                );
+              },
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const _CreateTimeLineCard(),
+                  kSpacerHeight24,
+                  const _HelpNote(),
+                ],
+              ),
+            ),
+          ),
         ],
       );
     }
@@ -93,12 +197,14 @@ class SelectTimeLinePage extends StatelessWidget {
     );
   }
 
-  void listenerChanges(BuildContext context, SelectTimeLineState state) {
+  void _listener(BuildContext context, SelectTimeLineState state) {
+    if (state is SelectTimeLineSuccess && state.timeLines.isNotEmpty) {
+      _loadAndApplyOrder(state.timeLines);
+    }
     if (state is SelectTimeLogoutSuccess) {
       Navigator.of(context)
           .pushNamedAndRemoveUntil(AppRoute.login.tag, (Route<dynamic> route) => false);
     }
-
     if (state is SelectTimeLineError) {
       final msm = kDebugMode ? state.error : 'Erro ao criar sua linha do tempo';
       ScaffoldMessenger.of(context).showSnackBar(
@@ -110,24 +216,90 @@ class SelectTimeLinePage extends StatelessWidget {
 
 /// Greeting line above the list.
 class _Intro extends StatelessWidget {
-  const _Intro({required this.count});
+  const _Intro({required this.timelines});
 
-  final int count;
+  final List<TimeLine> timelines;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final palette = context.palette;
+    final count = timelines.length;
+    final totalMoments = timelines.fold(0, (s, t) => s + t.momentIds.length);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Suas memórias', style: textTheme.headlineMedium),
         kSpacerHeight8,
-        Text(
-          count == 1 ? '1 linha do tempo' : '$count linhas do tempo',
-          style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
+        Row(
+          children: [
+            Text(
+              count == 1 ? '1 linha do tempo' : '$count linhas do tempo',
+              style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
+            ),
+            kSpacerWidth12,
+            Container(width: 1, height: 12, color: palette.onSurfaceMuted.withValues(alpha: 0.4)),
+            kSpacerWidth12,
+            Text(
+              '$totalMoments ${totalMoments == 1 ? 'momento' : 'momentos'}',
+              style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
+            ),
+          ],
         ),
       ],
+    );
+  }
+}
+
+/// Wraps a timeline card with a left-side visual track: a colored dot that
+/// marks this entry on the timeline and a vertical connecting line to the next.
+class _TimelineTrackWrapper extends StatelessWidget {
+  const _TimelineTrackWrapper({required this.item, required this.isLast});
+
+  final TimeLine item;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final accent = item.accentColor != null ? Color(item.accentColor!) : palette.primary;
+
+    // IntrinsicHeight forces the Row to measure the card's real height first,
+    // avoiding unconstrained-height issues when rendered inside a sliver.
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 24,
+            child: Column(
+              children: [
+                const SizedBox(height: 26),
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: accent,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: palette.surface, width: 2),
+                  ),
+                ),
+                if (!isLast)
+                  Expanded(
+                    child: Center(
+                      child: Container(
+                        width: 2,
+                        color: palette.onSurfaceMuted.withValues(alpha: 0.2),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Expanded(child: _SelectTimeLineItem(item: item)),
+        ],
+      ),
     );
   }
 }
@@ -137,68 +309,338 @@ class _SelectTimeLineItem extends StatelessWidget {
 
   final TimeLine item;
 
+  String _membersLabel() {
+    if (item.nicknames.isNotEmpty) {
+      final names = item.emails
+          .where((e) => item.nicknames.containsKey(e))
+          .map((e) => item.nicknames[e]!)
+          .take(2)
+          .toList();
+      if (names.length >= 2) return '${names[0]} & ${names[1]}';
+      if (names.isNotEmpty) return names.first;
+    }
+    final parts = item.emails.take(2).map((e) {
+      final local = e.split('@').first;
+      return local.isEmpty ? e : '${local[0].toUpperCase()}${local.substring(1)}';
+    }).toList();
+    if (parts.length >= 2) return '${parts[0]} & ${parts[1]}';
+    return parts.isNotEmpty ? parts.first : '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final palette = context.palette;
     final accent = item.accentColor != null ? Color(item.accentColor!) : palette.primary;
     final name = item.name.isNotEmpty ? item.name : 'Nossa linha do tempo';
+    final members = _membersLabel();
+    final hasCover = item.coverPhotoUrl.isNotEmpty;
+
+    void onTap() {
+      final bloc = context.read<SelectTimeLineBloc>();
+      Navigator.pushNamed(context, AppRoute.timeLine.tag, arguments: item.id)
+          .then((e) => bloc.add(SelectTimeLineEventFetchAll()));
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: AppCard(
-        onTap: () {
-          final bloc = context.read<SelectTimeLineBloc>();
-          Navigator.pushNamed(context, AppRoute.timeLine.tag, arguments: item.id)
-              .then((e) => bloc.add(SelectTimeLineEventFetchAll()));
-        },
+        onTap: onTap,
+        // Zero padding when cover is present; content area handles its own padding below.
+        padding: hasCover ? EdgeInsets.zero : const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                _AccentTile(color: accent),
-                kSpacerWidth16,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            if (hasCover)
+              // Cover photo clipped to the card's top rounded corners.
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(AppRadii.card),
+                  topRight: Radius.circular(AppRadii.card),
+                ),
+                child: _CoverPhotoHeader(
+                  url: item.coverPhotoUrl,
+                  accent: accent,
+                  membersLabel: members,
+                ),
+              ),
+
+            Padding(
+              padding: hasCover
+                  ? const EdgeInsets.fromLTRB(20, 16, 20, 20)
+                  : EdgeInsets.zero,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header row — shows AccentTile + title + members when no cover,
+                  // just title when cover already displays the members label.
+                  if (!hasCover)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _AccentTile(color: accent),
+                        kSpacerWidth16,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.titleLarge,
+                              ),
+                              if (members.isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  members,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textTheme.bodySmall
+                                      ?.copyWith(color: palette.onSurfaceMuted),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleLarge,
+                    ),
+
+                  // Date / duration section
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    child: Divider(height: 1),
+                  ),
+                  _DateDurationSection(item: item, accent: accent),
+
+                  // Footer: avatars + CTA
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    child: Divider(height: 1),
+                  ),
+                  Row(
                     children: [
+                      _AvatarStack(emails: item.emails, color: accent),
+                      const Spacer(),
                       Text(
-                        name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.titleLarge,
+                        'Ver os momentos',
+                        style: textTheme.titleSmall?.copyWith(color: accent),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${item.momentsAmount} · ${item.dateMonth}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
-                      ),
+                      Icon(Icons.chevron_right_rounded, color: accent),
                     ],
                   ),
-                ),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 14),
-              child: Divider(height: 1),
-            ),
-            Row(
-              children: [
-                _AvatarStack(emails: item.emails, color: accent),
-                const Spacer(),
-                Text(
-                  'Ver os momentos',
-                  style: textTheme.titleSmall?.copyWith(color: accent),
-                ),
-                Icon(Icons.chevron_right_rounded, color: accent),
-              ],
+                ],
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Full-bleed cover photo with a gradient and the couple's nickname overlaid.
+class _CoverPhotoHeader extends StatelessWidget {
+  const _CoverPhotoHeader({
+    required this.url,
+    required this.accent,
+    required this.membersLabel,
+  });
+
+  final String url;
+  final Color accent;
+  final String membersLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return SizedBox(
+      height: 140,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.network(
+            url,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [accent.withValues(alpha: 0.4), accent.withValues(alpha: 0.15)],
+                ),
+              ),
+              child: Center(
+                child: Icon(Icons.favorite_rounded, color: accent, size: 36),
+              ),
+            ),
+          ),
+          // Gradient so the nickname text is always readable.
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.60),
+                ],
+                stops: const [0.4, 1.0],
+              ),
+            ),
+          ),
+          if (membersLabel.isNotEmpty)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 14,
+              child: Row(
+                children: [
+                  Icon(Icons.favorite_rounded, color: accent, size: 16),
+                  kSpacerWidth8,
+                  Expanded(
+                    child: Text(
+                      membersLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        shadows: const [Shadow(blurRadius: 4)],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Exibe o período do relacionamento, duração amigável e contagem de momentos.
+class _DateDurationSection extends StatelessWidget {
+  const _DateDurationSection({required this.item, required this.accent});
+
+  final TimeLine item;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final palette = context.palette;
+    final start = item.relationshipStartDate;
+    final end = item.relationshipEndDate;
+    final isEnded = end != null;
+    final fmt = DateFormat("d 'de' MMM yyyy", 'pt_BR');
+
+    // No dates configured yet — show moment count + creation date
+    if (start == null) {
+      return Row(
+        children: [
+          Icon(Icons.photo_library_outlined, size: 14, color: palette.onSurfaceMuted),
+          kSpacerWidth8,
+          Text(
+            item.momentsAmount,
+            style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+          ),
+          kSpacerWidth12,
+          Container(width: 1, height: 12, color: palette.onSurfaceMuted.withValues(alpha: 0.3)),
+          kSpacerWidth12,
+          Icon(Icons.calendar_today_outlined, size: 13, color: palette.onSurfaceMuted),
+          kSpacerWidth8,
+          Expanded(
+            child: Text(
+              'criada em ${fmt.format(item.createdDate.toDate())}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final reference = isEnded ? end : DateTime.now();
+    final duration = RelationshipDuration.friendly(start, now: reference);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Row 1: date range (left) + moment count (right)
+        Row(
+          children: [
+            Icon(
+              isEnded ? Icons.lock_outline_rounded : Icons.favorite_rounded,
+              size: 14,
+              color: isEnded ? palette.onSurfaceMuted : accent,
+            ),
+            kSpacerWidth8,
+            Expanded(
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      fmt.format(start),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: palette.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Icon(Icons.arrow_forward_rounded, size: 12, color: palette.onSurfaceMuted),
+                  ),
+                  Flexible(
+                    child: Text(
+                      isEnded ? fmt.format(end) : 'hoje',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: isEnded ? palette.onSurfaceMuted : accent,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Icon(Icons.photo_library_outlined, size: 14, color: palette.onSurfaceMuted),
+            const SizedBox(width: 5),
+            Text(
+              item.momentsAmount,
+              style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Row 2: duration badge sozinho — sem concorrência de espaço
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: isEnded ? palette.surfaceAlt : accent.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            isEnded ? '$duration de história' : '$duration juntos',
+            style: textTheme.bodySmall?.copyWith(
+              color: isEnded ? palette.onSurfaceMuted : accent,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

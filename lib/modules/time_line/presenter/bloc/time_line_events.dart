@@ -5,9 +5,15 @@ abstract class TimeLineEvent {
 }
 
 class TimeLineEventInit extends TimeLineEvent {
-  const TimeLineEventInit({required this.timeLineId});
+  const TimeLineEventInit({
+    required this.timeLineId,
+    this.momentEditPolicy = 'individual',
+  });
 
   final String? timeLineId;
+
+  /// Used only when [timeLineId] is null (creating a new timeline).
+  final String momentEditPolicy;
 }
 
 class TimeLineEventChangeDate extends TimeLineEvent {
@@ -36,6 +42,12 @@ class TimeLineEventSetRelationshipDate extends TimeLineEvent {
   final DateTime date;
 
   const TimeLineEventSetRelationshipDate({required this.date});
+}
+
+class TimeLineEventSetRelationshipEndDate extends TimeLineEvent {
+  final DateTime? date;
+
+  const TimeLineEventSetRelationshipEndDate({this.date});
 }
 
 class TimeLineEventToggleFavorite extends TimeLineEvent {

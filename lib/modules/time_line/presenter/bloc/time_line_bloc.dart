@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:nossos_momentos/modules/core/premium/premium_service.dart';
 import 'package:nossos_momentos/modules/core/use_case/use_case.dart';
 import 'package:nossos_momentos/modules/moment/domain/use_case/get_moments_use_case.dart';
+import 'package:nossos_momentos/modules/user/domain/use_case/get_user_premium_use_case.dart';
 
 import '../../../core/entity/result.dart';
 import '../../../moment/domain/entities/moment.dart';
@@ -13,6 +15,7 @@ import '../../../photos/domain/use_case/delete_all_photos_from_moment_use_case.d
 import '../../domain/entity/time_line.dart';
 import '../../domain/use_case/create_time_line_use_case.dart';
 import '../../domain/use_case/get_time_line_from_id_use_case.dart';
+import '../../domain/use_case/update_relationship_end_date_use_case.dart';
 import '../../domain/use_case/update_relationship_start_date_use_case.dart';
 
 part 'time_line_events.dart';
@@ -26,7 +29,10 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final CreateTimeLineUseCase _createTimeLineUseCase;
   final GetTimeLineFromIdUseCase _getTimeLineFromIdUseCase;
   final UpdateRelationshipStartDateUseCase _updateRelationshipStartDateUseCase;
+  final UpdateRelationshipEndDateUseCase _updateRelationshipEndDateUseCase;
   final UpdateMomentUseCase _updateMomentUseCase;
+  final PremiumService _premiumService;
+  final GetUserPremiumUseCase _getUserPremiumUseCase;
   late TimeLine timeLine;
 
   /// Every day (normalized, no time) that has at least one moment, across all
@@ -45,11 +51,15 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     this._createTimeLineUseCase,
     this._getTimeLineFromIdUseCase,
     this._updateRelationshipStartDateUseCase,
+    this._updateRelationshipEndDateUseCase,
     this._updateMomentUseCase,
+    this._premiumService,
+    this._getUserPremiumUseCase,
   ) : super(TimeLineStateInitial()) {
     on<TimeLineEventInit>(_init);
     on<TimeLineEventChangeDate>(_handleChangeDate);
     on<TimeLineEventSetRelationshipDate>(_handleSetRelationshipDate);
+    on<TimeLineEventSetRelationshipEndDate>(_handleSetRelationshipEndDate);
     on<TimeLineEventToggleFavorite>(_handleToggleFavorite);
     on<TimeLineEventChangeEyeToggle>(_handleChangeToggle);
     on<TimeLineEventDeleteMoment>(_deleteMoment);
@@ -66,9 +76,19 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
 
     if (result.isSuccess && result.data != null) {
       timeLine = result.data!;
+      _premiumService.bind(timeLine);
+      await _bindUserPremium();
     }
 
     add(TimeLineEventChangeDate());
+  }
+
+  /// Loads the individual (per-user) premium entitlement and binds it on the
+  /// [PremiumService]. Falls back to null (no individual premium) on failure,
+  /// leaving the couple/timeline entitlement untouched.
+  Future<void> _bindUserPremium() async {
+    final result = await _getUserPremiumUseCase.call(NoParams.instance);
+    _premiumService.bindUser(result.isSuccess ? result.data : null);
   }
 
   FutureOr<void> _init(
@@ -84,12 +104,16 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     Result<TimeLine> result;
 
     if (event.timeLineId == null) {
-      result = await _createTimeLineUseCase.call(NoParams.instance);
+      result = await _createTimeLineUseCase.call(
+        CreateTimeLineParams(momentEditPolicy: event.momentEditPolicy),
+      );
     } else {
       result = await _getTimeLineFromIdUseCase.call(event.timeLineId!);
     }
 
     timeLine = result.data!;
+    _premiumService.bind(timeLine);
+    await _bindUserPremium();
 
     add(TimeLineEventChangeDate());
   }
@@ -115,7 +139,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
       endDate: endDate,
     ));
 
-    if (result.isSuccess && result.data!.isEmpty == false) {
+    if (result.isSuccess && result.data!.isNotEmpty) {
       emit(
         TimeLineStateLoaded(
           momentsList: result.data!,
@@ -124,17 +148,31 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
           isMonthEnabled: state.isMonthEnabled,
         ),
       );
+      await _refreshMomentDates();
     } else {
-      emit(
-        TimeLineStateEmpty(
-          startDate: startDate,
-          endDate: endDate,
-          isMonthEnabled: state.isMonthEnabled,
-        ),
-      );
+      // Intervalo selecionado está vazio — busca todos os momentos para não
+      // deixar o usuário sem nada para ver (ex: momentos só existem em anos
+      // anteriores ao mês padrão exibido).
+      await _refreshMomentDates();
+      if (allMoments.isNotEmpty) {
+        emit(
+          TimeLineStateLoaded(
+            momentsList: allMoments,
+            startDate: kAllTimeStart,
+            endDate: kAllTimeEnd,
+            isMonthEnabled: state.isMonthEnabled,
+          ),
+        );
+      } else {
+        emit(
+          TimeLineStateEmpty(
+            startDate: startDate,
+            endDate: endDate,
+            isMonthEnabled: state.isMonthEnabled,
+          ),
+        );
+      }
     }
-
-    await _refreshMomentDates();
   }
 
   /// Loads the dates of every moment in the timeline (any month) so the
@@ -142,8 +180,8 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   Future<void> _refreshMomentDates() async {
     final result = await _getMomentsUseCase.call(GetMomentsParam(
       timelineId: timeLine.id,
-      startDate: DateTime(2000),
-      endDate: DateTime(2100),
+      startDate: kAllTimeStart,
+      endDate: kAllTimeEnd,
     ));
 
     if (result.isSuccess && result.data != null) {
@@ -178,6 +216,20 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     }
   }
 
+  FutureOr<void> _handleSetRelationshipEndDate(
+    TimeLineEventSetRelationshipEndDate event,
+    Emitter<TimeLineState> emit,
+  ) async {
+    final result = await _updateRelationshipEndDateUseCase.call(
+      UpdateRelationshipEndDateParams(timeline: timeLine, date: event.date),
+    );
+
+    if (result.isSuccess && result.data != null) {
+      timeLine = result.data!;
+      add(TimeLineEventChangeDate());
+    }
+  }
+
   FutureOr<void> _handleChangeToggle(
     TimeLineEventChangeEyeToggle event,
     Emitter<TimeLineState> emit,
@@ -196,6 +248,10 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
 
     add(TimeLineEventChangeDate());
   }
+
+  /// Sentinel usado quando não há filtro de data ativo (exibe todos os momentos).
+  static final kAllTimeStart = DateTime(1);
+  static final kAllTimeEnd = DateTime(9999);
 
   static const enabledYears = [
     '2018',

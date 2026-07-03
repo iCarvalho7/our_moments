@@ -10,6 +10,10 @@ set(BINARY_NAME "nossos_momentos")
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
 
+# Allow subprojects (e.g. Firebase C++ SDK) that still declare
+# cmake_minimum_required with a version below 3.5 to configure without error.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTICONFIG)

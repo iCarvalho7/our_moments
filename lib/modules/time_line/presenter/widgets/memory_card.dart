@@ -7,10 +7,25 @@ import '../../../moment/domain/entities/moment.dart';
 /// gradient scrim and the title/date overlaid. Falls back to a colored
 /// gradient (by moment type) when there is no photo or it fails to load.
 class MemoryCard extends StatelessWidget {
-  const MemoryCard({super.key, required this.moment, this.onFavoriteToggle});
+  const MemoryCard({
+    super.key,
+    required this.moment,
+    this.onFavoriteToggle,
+    this.nicknames = const {},
+    this.currentUserEmail = '',
+  });
 
   final Moment moment;
   final VoidCallback? onFavoriteToggle;
+  final Map<String, String> nicknames;
+  final String currentUserEmail;
+
+  String _resolveAuthorName() {
+    if (moment.author.isEmpty) return '';
+    if (moment.author == currentUserEmail) return 'Você';
+    return nicknames[moment.author] ??
+        moment.author.split('@').first.replaceAll('.', ' ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,6 +125,24 @@ class MemoryCard extends StatelessWidget {
                         Flexible(
                           child: Text(
                             moment.locationName.isNotEmpty ? moment.locationName : 'Local marcado',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.bodySmall?.copyWith(color: Colors.white70),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (_resolveAuthorName() case final String authorName
+                      when authorName.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.person_outline_rounded, size: 14, color: Colors.white70),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            authorName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: textTheme.bodySmall?.copyWith(color: Colors.white70),

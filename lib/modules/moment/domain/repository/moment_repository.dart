@@ -7,4 +7,5 @@ abstract class MomentRepository {
   Future editMoment(Moment moment);
   FutureOr<Moment> fetchMomentById(String id);
   Future deleteMoment(String momentId);
+  Future<void> deleteMomentsByTimeline(String timelineId);
 }

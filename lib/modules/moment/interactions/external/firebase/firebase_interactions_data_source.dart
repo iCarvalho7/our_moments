@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:injectable/injectable.dart';
 
+import '../../../../core/utils/logging/request_logger.dart';
 import '../../infra/data_source/interactions_data_source.dart';
 import '../../infra/models/comment_model.dart';
 import '../../infra/models/reaction_model.dart';
@@ -38,21 +39,27 @@ class FirebaseInteractionsDataSource extends InteractionsDataSource {
     required String momentId,
     required String author,
     required String emoji,
-  }) {
-    return _reactionsRef(momentId).add({
-      'author': author,
-      'emoji': emoji,
-      'createdAt': Timestamp.now(),
-    });
-  }
+  }) =>
+      RequestLogger.track(
+        'Interactions.addReaction',
+        params: {'momentId': momentId, 'author': author, 'emoji': emoji},
+        request: () => _reactionsRef(momentId).add({
+          'author': author,
+          'emoji': emoji,
+          'createdAt': Timestamp.now(),
+        }),
+      );
 
   @override
   Future<void> removeReaction({
     required String momentId,
     required String reactionId,
-  }) {
-    return _reactionsRef(momentId).doc(reactionId).delete();
-  }
+  }) =>
+      RequestLogger.track(
+        'Interactions.removeReaction',
+        params: {'momentId': momentId, 'reactionId': reactionId},
+        request: () => _reactionsRef(momentId).doc(reactionId).delete(),
+      );
 
   @override
   Stream<List<CommentModel>> watchComments(String momentId) {
@@ -69,19 +76,25 @@ class FirebaseInteractionsDataSource extends InteractionsDataSource {
     required String momentId,
     required String author,
     required String text,
-  }) {
-    return _commentsRef(momentId).add({
-      'author': author,
-      'text': text,
-      'createdAt': Timestamp.now(),
-    });
-  }
+  }) =>
+      RequestLogger.track(
+        'Interactions.addComment',
+        params: {'momentId': momentId, 'author': author, 'text': text},
+        request: () => _commentsRef(momentId).add({
+          'author': author,
+          'text': text,
+          'createdAt': Timestamp.now(),
+        }),
+      );
 
   @override
   Future<void> removeComment({
     required String momentId,
     required String commentId,
-  }) {
-    return _commentsRef(momentId).doc(commentId).delete();
-  }
+  }) =>
+      RequestLogger.track(
+        'Interactions.removeComment',
+        params: {'momentId': momentId, 'commentId': commentId},
+        request: () => _commentsRef(momentId).doc(commentId).delete(),
+      );
 }

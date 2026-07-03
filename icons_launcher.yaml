@@ -1,7 +1,23 @@
+# App launcher icons — generated with the `icons_launcher` package (already in pubspec).
+#
+# Source art: nossos_momentos_fundo_transparente.png (squircle with transparent
+# corners). It was flattened into a full-bleed square at assets/images/app_logo.png
+# so each OS can apply its own mask cleanly.
+#
+# To regenerate (e.g. after replacing the art):
+#   fvm dart run icons_launcher:create
+#
 icons_launcher:
-  image_path: 'assets/images/app_logo.png'
+  image_path: 'assets/images/app_logo.png'        # full-bleed square, used by iOS + Android legacy/round
   platforms:
     android:
       enable: true
+      # Adaptive icon (Android 8+): the full art is the BACKGROUND layer so it
+      # bleeds edge-to-edge and gets masked into the launcher shape (circle,
+      # squircle, ...). The foreground is intentionally transparent because the
+      # hearts are already baked into the art and sit safely centered.
+      adaptive_background_image: 'assets/images/app_logo_adaptive_bg.png'
+      adaptive_foreground_image: 'assets/images/app_logo_foreground.png'
+      adaptive_round_image: 'assets/images/app_logo.png'
     ios:
       enable: true

@@ -1,11 +1,7 @@
-import 'dart:typed_data';
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../core/presenter/widgets/primary_button.dart';
+import '../../../core/utils/share/capture_and_share.dart';
 import '../../../core/utils/theme/app_theme.dart';
 import '../../domain/entities/moment.dart';
 import '../widget/shareable_moment_card.dart';
@@ -28,16 +24,7 @@ class _ShareMomentPageState extends State<ShareMomentPage> {
     setState(() => _sharing = true);
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final boundary = _cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      final image = await boundary.toImage(pixelRatio: 3.0);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) return;
-      final Uint8List bytes = byteData.buffer.asUint8List();
-
-      await Share.shareXFiles(
-        [XFile.fromData(bytes, mimeType: 'image/png', name: 'momento.png')],
-        text: widget.moment.title,
-      );
+      await captureAndShare(_cardKey, text: widget.moment.title);
     } catch (_) {
       messenger.showSnackBar(const SnackBar(content: Text('Não foi possível gerar a imagem.')));
     } finally {

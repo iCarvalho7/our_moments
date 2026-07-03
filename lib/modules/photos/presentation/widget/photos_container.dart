@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nossos_momentos/di/injection.dart';
-import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
+import 'package:nossos_momentos/modules/core/premium/premium_feature.dart';
+import 'package:nossos_momentos/modules/core/premium/premium_service.dart';
+import 'package:nossos_momentos/modules/core/premium/widget/premium_gate.dart';
 import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
+import 'package:nossos_momentos/modules/stories/presenter/widget/story_image.dart';
 import 'package:video_player/video_player.dart';
 import '../../../core/presenter/widgets/custom_delete_dialog.dart';
 import '../../../moment/presenter/bloc/add_or_edit_moment_bloc.dart';
@@ -88,7 +91,9 @@ class _StorySectionState extends State<_StorySection> {
     super.initState();
     final story = Story(url: widget.storyUrl);
     if (story.type == StoryType.video) {
-      _controller = widget.storyUrl.isHttpUrl
+      // Data URLs (web) and remote URLs both go through the network controller;
+      // only a real file path uses the file controller (mobile).
+      _controller = widget.storyUrl.isHttpUrl || widget.storyUrl.startsWith('data:')
           ? VideoPlayerController.networkUrl(Uri.parse(widget.storyUrl))
           : VideoPlayerController.file(File(widget.storyUrl));
       _controller.initialize();
@@ -132,22 +137,7 @@ class _StorySectionState extends State<_StorySection> {
       case StoryType.video:
         return VideoPlayer(_controller);
       case StoryType.image:
-        return !story.isNetwork
-            ? Image.file(File(story.url), fit: BoxFit.fitWidth)
-            : Image.network(
-                story.url,
-                fit: BoxFit.fitWidth,
-                loadingBuilder: (_, widget, event) {
-                  if (event == null) return widget;
-                  return ClipOval(
-                    child: LoadingEffect(
-                      child: Container(
-                        color: Colors.grey,
-                      ),
-                    ),
-                  );
-                },
-              );
+        return StoryImage(url: story.url, fit: BoxFit.fitWidth);
       case StoryType.undefined:
         return const Placeholder();
     }
@@ -160,8 +150,7 @@ class _AddPhotoIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () =>
-          BlocProvider.of<PhotosBloc>(context).add(PhotosEventOpenGallery()),
+      onTap: () => _onTap(context),
       child: const _ColoredContainer(
         child: GradientMask(
           colors: AppColors.instagramGradient,
@@ -173,6 +162,16 @@ class _AddPhotoIcon extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _onTap(BuildContext context) {
+    // Free tier caps photos per moment; over the limit, show the premium CTA.
+    final count = context.read<AddOrEditMomentBloc>().state.moment.downloadUrlList.length;
+    if (count >= getIt<PremiumService>().maxPhotosPerMoment) {
+      showPremiumPlaceholder(context, PremiumFeature.unlimitedPhotos);
+      return;
+    }
+    BlocProvider.of<PhotosBloc>(context).add(PhotosEventOpenGallery());
   }
 }
 

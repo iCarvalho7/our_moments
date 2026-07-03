@@ -3,6 +3,10 @@ import '../models/moment_model.dart';
 abstract class MomentsDataSource {
   Future deleteMoment(String momentId);
 
+  /// Deletes every moment document that belongs to [timelineId] (matched by the
+  /// `time_line_id` field). Used when a timeline is removed entirely.
+  Future<void> deleteMomentsByTimeline(String timelineId);
+
   Future updateMoment(String momentId, Map<String, dynamic> momentModel);
 
   Future registerMoment({required MomentModel moment});

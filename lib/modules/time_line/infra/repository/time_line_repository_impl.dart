@@ -86,12 +86,17 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
   }
 
   @override
-  Future<TimeLine> deleteTimeLineEmails(TimeLine timeline, String email) async {
-    timeline.emails.removeWhere((e) => e == email);
-    return timeLineDataSource.updateTimeline(
-      timeline.id,
-      TimeLineModel.fromEntity(timeline).toJson(),
-    );
+  Future<TimeLine> removeTimeLineMember(TimeLine timeline, String email) {
+    final emails = timeline.emails.where((e) => e != email).toList();
+    final roles = Map<String, String>.from(timeline.roles)..remove(email);
+    final nicknames = Map<String, String>.from(timeline.nicknames)..remove(email);
+    final owners = timeline.owners.where((e) => e != email).toList();
+    return _persist(timeline.copyWith(
+      emails: emails,
+      roles: roles,
+      nicknames: nicknames,
+      owners: owners,
+    ));
   }
 
   @override
@@ -202,8 +207,15 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
   Future<TimeLine> updateRoles(
     TimeLine timeline,
     Map<String, String> roles,
-  ) =>
-      _persist(timeline.copyWith(roles: roles));
+  ) {
+    // Keep the `owners` list in sync with the roles map, since the Firestore
+    // security rules gate timeline deletion on `owners`.
+    final owners = roles.entries
+        .where((e) => e.value == 'owner')
+        .map((e) => e.key)
+        .toList();
+    return _persist(timeline.copyWith(roles: roles, owners: owners));
+  }
 
   @override
   Future<void> deleteTimeLine(String timelineId) {

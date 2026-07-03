@@ -20,6 +20,7 @@ import 'package:nossos_momentos/modules/settings/presentation/bloc/settings_bloc
 import 'package:nossos_momentos/modules/settings/presentation/widget/delete_account_confirmation_sheet.dart';
 import 'package:nossos_momentos/modules/settings/presentation/widget/reauth_password_dialog.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
+import 'package:nossos_momentos/modules/time_line/domain/entity/timeline_permissions.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/widgets/delete_timeline_confirmation_sheet.dart';
 
 import '../../../core/presenter/routes.dart';
@@ -1142,8 +1143,9 @@ class _AccentPreview extends StatelessWidget {
 }
 
 /// Per-member access level editor. Shown only when the timeline has >1 member.
-/// The owner can toggle each non-owner between 'editor' and 'viewer'.
-/// Non-owners see the levels but cannot change them (toggle is disabled).
+/// Every member is listed with their role (Dono / Editor / Somente leitura).
+/// Owners can promote a member to owner or toggle editor/viewer; non-owners see
+/// the roles read-only.
 class _AccessLevelSection extends StatelessWidget {
   const _AccessLevelSection({
     required this.timeline,
@@ -1159,68 +1161,112 @@ class _AccessLevelSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final palette = context.palette;
-    final isOwner = timeline.owners.contains(currentEmail);
-    final nonOwners = emails.where((e) => !timeline.owners.contains(e)).toList();
-
-    if (nonOwners.isEmpty) {
-      return Text(
-        'Apenas você tem acesso a esta linha do tempo.',
-        style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
-      );
-    }
+    final canManage = TimelinePermissions.canManageMembers(timeline, currentEmail);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!isOwner)
+        if (!canManage)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
-              'Somente o dono da linha do tempo pode alterar os níveis de acesso.',
+              'Somente um dono da linha do tempo pode alterar os níveis de acesso.',
               style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
             ),
           ),
-        ...nonOwners.map((email) {
-          final level = timeline.roles[email] ?? 'editor';
+        ...emails.map((email) {
+          final role = TimelinePermissions.roleOf(timeline, email);
+          final isSelf = email == currentEmail;
           return Padding(
             padding: const EdgeInsets.only(bottom: 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  email,
-                  style: textTheme.bodyMedium,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(
-                      value: 'editor',
-                      label: Text('Editor'),
-                      icon: Icon(Icons.edit_outlined, size: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        isSelf ? '$email (você)' : email,
+                        style: textTheme.bodyMedium,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    ButtonSegment(
-                      value: 'viewer',
-                      label: Text('Somente leitura'),
-                      icon: Icon(Icons.visibility_outlined, size: 16),
-                    ),
+                    kSpacerWidth8,
+                    _RoleBadge(role: role),
                   ],
-                  selected: {level == 'owner' ? 'editor' : level},
-                  onSelectionChanged: isOwner
-                      ? (selection) {
-                          context.read<SettingsBloc>().add(UpdateAccessLevelEvent(
-                                email: email,
-                                level: selection.first,
-                              ));
-                        }
-                      : null,
                 ),
+                if (canManage && role != TimelineRole.owner) ...[
+                  const SizedBox(height: 8),
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(
+                        value: 'editor',
+                        label: Text('Editor'),
+                        icon: Icon(Icons.edit_outlined, size: 16),
+                      ),
+                      ButtonSegment(
+                        value: 'viewer',
+                        label: Text('Somente leitura'),
+                        icon: Icon(Icons.visibility_outlined, size: 16),
+                      ),
+                    ],
+                    selected: {role == TimelineRole.viewer ? 'viewer' : 'editor'},
+                    onSelectionChanged: (selection) {
+                      context.read<SettingsBloc>().add(UpdateAccessLevelEvent(
+                            email: email,
+                            level: selection.first,
+                          ));
+                    },
+                  ),
+                  const SizedBox(height: 6),
+                  TextButton.icon(
+                    onPressed: () {
+                      context.read<SettingsBloc>().add(UpdateAccessLevelEvent(
+                            email: email,
+                            level: 'owner',
+                          ));
+                    },
+                    icon: const Icon(Icons.workspace_premium_outlined, size: 18),
+                    label: const Text('Promover a dono'),
+                    style: TextButton.styleFrom(foregroundColor: palette.primary),
+                  ),
+                ],
               ],
             ),
           );
         }),
       ],
+    );
+  }
+}
+
+/// Small pill showing a member's [TimelineRole].
+class _RoleBadge extends StatelessWidget {
+  const _RoleBadge({required this.role});
+
+  final TimelineRole role;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final (String label, Color bg, Color fg) = switch (role) {
+      TimelineRole.owner => ('Dono', palette.primarySoft, palette.primary),
+      TimelineRole.editor => ('Editor', palette.surfaceAlt, palette.onSurfaceMuted),
+      TimelineRole.viewer => ('Somente leitura', palette.surfaceAlt, palette.onSurfaceMuted),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AppRadii.pill),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: fg,
+              fontWeight: FontWeight.w600,
+            ),
+      ),
     );
   }
 }

@@ -25,7 +25,9 @@ abstract class TimeLineRepository {
 
   Future<TimeLine> updateTimeLineEmails(TimeLine timeline, String email);
 
-  Future<TimeLine> deleteTimeLineEmails(TimeLine timeline, String email);
+  /// Removes [email] from the timeline entirely: drops it from `emails`,
+  /// `roles` and `nicknames`.
+  Future<TimeLine> removeTimeLineMember(TimeLine timeline, String email);
 
   Future<TimeLine> getTimeLineById(String id);
 

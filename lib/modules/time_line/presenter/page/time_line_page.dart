@@ -38,10 +38,25 @@ class TimeLinePage extends StatefulWidget {
 class _TimeLinePageState extends State<TimeLinePage> {
   @override
   Widget build(BuildContext context) {
-    final timeLine = ModalRoute.of(context)?.settings.arguments as String?;
+    // Arguments may be a plain timeline id (opening an existing timeline), a
+    // ({String? timeLineId, String momentEditPolicy}) record (creating a new
+    // one with a chosen edit policy), or null (open/create the default).
+    final args = ModalRoute.of(context)?.settings.arguments;
+    String? timeLineId;
+    var momentEditPolicy = 'individual';
+    if (args is String) {
+      timeLineId = args;
+    } else if (args is ({String? timeLineId, String momentEditPolicy})) {
+      timeLineId = args.timeLineId;
+      momentEditPolicy = args.momentEditPolicy;
+    }
 
     return BlocProvider<TimeLineBloc>(
-      create: (_) => getIt<TimeLineBloc>()..add(TimeLineEventInit(timeLineId: timeLine)),
+      create: (_) => getIt<TimeLineBloc>()
+        ..add(TimeLineEventInit(
+          timeLineId: timeLineId,
+          momentEditPolicy: momentEditPolicy,
+        )),
       child: BlocListener<TimeLineBloc, TimeLineState>(
         listener: (context, state) {
           if (state is TimeLineStateLoaded && _savedScrollOffset > 0) {
@@ -663,8 +678,9 @@ class _TimeLinePageState extends State<TimeLinePage> {
                   confirmDismiss: (_) async {
                     final currentEmail =
                         FirebaseAuth.instance.currentUser?.email ?? '';
-                    if (!TimelinePermissions.canEdit(
+                    if (!TimelinePermissions.canDeleteMoment(
                         parentContext.read<TimeLineBloc>().timeLine,
+                        item,
                         currentEmail)) {
                       ScaffoldMessenger.of(parentContext)
                         ..hideCurrentSnackBar()

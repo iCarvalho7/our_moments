@@ -44,7 +44,7 @@ class DeleteAccountUseCase extends AsyncUseCase<void, NoParams> {
           await _momentRepository.deleteMomentsByTimeline(timeline.id);
           await _timeLineRepository.deleteTimeLine(timeline.id);
         } else {
-          await _timeLineRepository.deleteTimeLineEmails(timeline, email);
+          await _timeLineRepository.removeTimeLineMember(timeline, email);
         }
       }
     }

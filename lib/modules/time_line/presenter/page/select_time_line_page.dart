@@ -757,17 +757,30 @@ class _Avatar extends StatelessWidget {
 class _CreateTimeLineCard extends StatelessWidget {
   const _CreateTimeLineCard();
 
+  Future<void> _onCreate(BuildContext context) async {
+    final bloc = context.read<SelectTimeLineBloc>();
+    final navigator = Navigator.of(context);
+    final policy = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _MomentEditPolicySheet(),
+    );
+    if (policy == null) return;
+    await navigator.pushNamed(
+      AppRoute.timeLine.tag,
+      arguments: (timeLineId: null, momentEditPolicy: policy),
+    );
+    bloc.add(SelectTimeLineEventFetchAll());
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final palette = context.palette;
 
     return GestureDetector(
-      onTap: () {
-        final bloc = context.read<SelectTimeLineBloc>();
-        Navigator.pushNamed(context, AppRoute.timeLine.tag)
-            .then((_) => bloc.add(SelectTimeLineEventFetchAll()));
-      },
+      onTap: () => _onCreate(context),
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
@@ -805,6 +818,137 @@ class _CreateTimeLineCard extends StatelessWidget {
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet that lets the user pick how members may edit each other's
+/// moments when creating a new timeline. Pops the chosen policy string
+/// ('individual' | 'collaborative') or null when dismissed.
+class _MomentEditPolicySheet extends StatefulWidget {
+  const _MomentEditPolicySheet();
+
+  @override
+  State<_MomentEditPolicySheet> createState() => _MomentEditPolicySheetState();
+}
+
+class _MomentEditPolicySheetState extends State<_MomentEditPolicySheet> {
+  String _policy = 'individual';
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final palette = context.palette;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        20,
+        20,
+        20 + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadii.card)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Nova linha do tempo', style: textTheme.titleLarge),
+          kSpacerHeight8,
+          Text(
+            'Como vocês vão editar os momentos um do outro?',
+            style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
+          ),
+          kSpacerHeight16,
+          _PolicyOption(
+            title: 'Individual',
+            subtitle: 'Cada pessoa só edita os momentos que criou.',
+            icon: Icons.person_outline,
+            value: 'individual',
+            groupValue: _policy,
+            onTap: () => setState(() => _policy = 'individual'),
+          ),
+          kSpacerHeight12,
+          _PolicyOption(
+            title: 'Colaborativa',
+            subtitle: 'Qualquer editor pode editar os momentos de todos.',
+            icon: Icons.groups_outlined,
+            value: 'collaborative',
+            groupValue: _policy,
+            onTap: () => setState(() => _policy = 'collaborative'),
+          ),
+          kSpacerHeight24,
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => Navigator.of(context).pop(_policy),
+              child: const Text('Criar linha do tempo'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PolicyOption extends StatelessWidget {
+  const _PolicyOption({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.value,
+    required this.groupValue,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final String value;
+  final String groupValue;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final palette = context.palette;
+    final selected = value == groupValue;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadii.input),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: selected ? palette.primarySoft : palette.surfaceAlt,
+          borderRadius: BorderRadius.circular(AppRadii.input),
+          border: Border.all(
+            color: selected ? palette.primary : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: selected ? palette.primary : palette.onSurfaceMuted),
+            kSpacerWidth12,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: textTheme.titleSmall),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+                  ),
+                ],
+              ),
+            ),
+            if (selected) Icon(Icons.check_circle, color: palette.primary),
           ],
         ),
       ),

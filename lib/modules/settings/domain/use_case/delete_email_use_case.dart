@@ -11,7 +11,7 @@ class DeleteEmailUseCase extends AsyncUseCase<TimeLine, EmailParam> {
 
   @override
   Future<TimeLine> execute(EmailParam params) async{
-    return repository.deleteTimeLineEmails(params.timeline, params.email);
+    return repository.removeTimeLineMember(params.timeline, params.email);
   }
 }
 

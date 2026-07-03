@@ -598,7 +598,10 @@ _i174.GetIt $initGetIt(
     ),
   );
   gh.factory<_i1037.DeleteTimeLineUseCase>(
-    () => _i1037.DeleteTimeLineUseCase(gh<_i184.TimeLineRepository>()),
+    () => _i1037.DeleteTimeLineUseCase(
+      gh<_i184.TimeLineRepository>(),
+      gh<_i980.MomentRepository>(),
+    ),
   );
   gh.factory<_i315.InteractionsBloc>(
     () => _i315.InteractionsBloc(

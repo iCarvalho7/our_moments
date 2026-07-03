@@ -18,6 +18,7 @@ import 'package:nossos_momentos/modules/premium/domain/repository/purchase_repos
 import 'package:nossos_momentos/modules/premium/domain/use_case/present_customer_center_use_case.dart';
 import 'package:nossos_momentos/modules/settings/presentation/bloc/settings_bloc.dart';
 import 'package:nossos_momentos/modules/settings/presentation/widget/delete_account_confirmation_sheet.dart';
+import 'package:nossos_momentos/modules/settings/presentation/widget/leave_timeline_sheet.dart';
 import 'package:nossos_momentos/modules/settings/presentation/widget/reauth_password_dialog.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/timeline_permissions.dart';
@@ -616,6 +617,21 @@ class _DangerZoneSection extends StatelessWidget {
     );
   }
 
+  Future<void> _openLeaveSheet(BuildContext context) async {
+    final bloc = context.read<SettingsBloc>();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => LeaveTimelineSheet(
+        timelineName: timeline.name,
+        onConfirm: (deleteAuthoredMoments) => bloc.add(
+          LeaveTimelineEvent(deleteAuthoredMoments: deleteAuthoredMoments),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
@@ -672,6 +688,21 @@ class _DangerZoneSection extends StatelessWidget {
               ),
             ),
           ),
+          if (timeline.emails.length > 1) ...[
+            kSpacerHeight12,
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _openLeaveSheet(context),
+                icon: const Icon(Icons.logout_rounded, size: 20),
+                label: const Text('Sair da timeline'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: errorColor,
+                  side: BorderSide(color: errorColor.withValues(alpha: 0.6)),
+                ),
+              ),
+            ),
+          ],
           kSpacerHeight24,
           Divider(color: errorColor.withValues(alpha: 0.2), height: 1),
           kSpacerHeight24,

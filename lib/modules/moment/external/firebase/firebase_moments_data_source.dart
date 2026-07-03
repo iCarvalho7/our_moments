@@ -76,6 +76,42 @@ class FirebaseMomentsDataSource extends MomentsDataSource {
       );
 
   @override
+  Future<List<MomentModel>> getMomentsByAuthorInTimeline(
+    String timelineId,
+    String authorEmail,
+  ) =>
+      RequestLogger.track(
+        'Moment.getMomentsByAuthorInTimeline',
+        params: {'timelineId': timelineId, 'author': authorEmail},
+        request: () async {
+          final result = await momentsDBRef
+              .where('time_line_id', isEqualTo: timelineId)
+              .get(const GetOptions(source: Source.server));
+
+          return result.docs
+              .map((e) => e.data())
+              .where((e) => e.author == authorEmail)
+              .toList();
+        },
+      );
+
+  @override
+  Future<void> deleteMomentMedia(List<String> mediaUrls) => RequestLogger.track(
+        'Moment.deleteMomentMedia',
+        params: {'count': '${mediaUrls.length}'},
+        request: () async {
+          for (final url in mediaUrls) {
+            if (url.isEmpty) continue;
+            try {
+              await FirebaseStorage.instance.refFromURL(url).delete();
+            } catch (_) {
+              // Best-effort: ignore missing/failed objects.
+            }
+          }
+        },
+      );
+
+  @override
   Future<List<MomentModel>> fetchAllMomentsByMonthAndYear(
     String year,
     String month,

@@ -112,10 +112,14 @@ import '../modules/premium/presenter/bloc/premium_bloc.dart' as _i99;
 import '../modules/settings/domain/use_case/add_email_use_case.dart' as _i619;
 import '../modules/settings/domain/use_case/delete_account_use_case.dart'
     as _i461;
+import '../modules/settings/domain/use_case/delete_authored_moments_in_timeline_use_case.dart'
+    as _i88;
 import '../modules/settings/domain/use_case/delete_email_use_case.dart'
     as _i275;
 import '../modules/settings/domain/use_case/get_current_user_use_case.dart'
     as _i1069;
+import '../modules/settings/domain/use_case/leave_timeline_use_case.dart'
+    as _i169;
 import '../modules/settings/domain/use_case/reauthenticate_use_case.dart'
     as _i734;
 import '../modules/settings/presentation/bloc/settings_bloc.dart' as _i970;
@@ -496,14 +500,6 @@ _i174.GetIt $initGetIt(
   gh.factory<_i1007.SpecialDatesRepository>(
     () => _i929.SpecialDatesRepositoryImpl(gh<_i591.SpecialDatesDataSource>()),
   );
-  gh.factory<_i461.DeleteAccountUseCase>(
-    () => _i461.DeleteAccountUseCase(
-      gh<_i884.AuthRepository>(),
-      gh<_i184.TimeLineRepository>(),
-      gh<_i980.MomentRepository>(),
-      gh<_i878.UserPremiumRepository>(),
-    ),
-  );
   gh.factory<_i773.SignUpBloc>(
     () => _i773.SignUpBloc(gh<_i480.SignUpUseCase>()),
   );
@@ -574,6 +570,11 @@ _i174.GetIt $initGetIt(
       gh<_i774.SyncUserEntitlementUseCase>(),
       gh<_i1036.GetEntitlementStatusUseCase>(),
       gh<_i423.PremiumService>(),
+    ),
+  );
+  gh.factory<_i88.DeleteAuthoredMomentsInTimelineUseCase>(
+    () => _i88.DeleteAuthoredMomentsInTimelineUseCase(
+      gh<_i980.MomentRepository>(),
     ),
   );
   gh.factory<_i961.AddTimeCapsuleUseCase>(
@@ -655,6 +656,12 @@ _i174.GetIt $initGetIt(
       gh<_i166.EntitlementSyncService>(),
     ),
   );
+  gh.factory<_i169.LeaveTimelineUseCase>(
+    () => _i169.LeaveTimelineUseCase(
+      gh<_i184.TimeLineRepository>(),
+      gh<_i88.DeleteAuthoredMomentsInTimelineUseCase>(),
+    ),
+  );
   gh.factory<_i716.TimeLineBloc>(
     () => _i716.TimeLineBloc(
       gh<_i589.GetMomentsUseCase>(),
@@ -679,6 +686,15 @@ _i174.GetIt $initGetIt(
       gh<_i884.AuthRepository>(),
     ),
   );
+  gh.factory<_i461.DeleteAccountUseCase>(
+    () => _i461.DeleteAccountUseCase(
+      gh<_i884.AuthRepository>(),
+      gh<_i184.TimeLineRepository>(),
+      gh<_i980.MomentRepository>(),
+      gh<_i878.UserPremiumRepository>(),
+      gh<_i169.LeaveTimelineUseCase>(),
+    ),
+  );
   gh.factory<_i970.SettingsBloc>(
     () => _i970.SettingsBloc(
       gh<_i619.AddEmailUseCase>(),
@@ -692,6 +708,7 @@ _i174.GetIt $initGetIt(
       gh<_i1037.DeleteTimeLineUseCase>(),
       gh<_i461.DeleteAccountUseCase>(),
       gh<_i734.ReauthenticateUseCase>(),
+      gh<_i169.LeaveTimelineUseCase>(),
     ),
   );
   return getIt;

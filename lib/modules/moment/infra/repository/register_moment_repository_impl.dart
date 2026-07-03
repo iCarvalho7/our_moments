@@ -37,4 +37,18 @@ class MomentRepositoryImpl extends MomentRepository {
   @override
   Future<void> deleteMomentsByTimeline(String timelineId) =>
       _dataSource.deleteMomentsByTimeline(timelineId);
+
+  @override
+  Future<List<Moment>> getMomentsByAuthorInTimeline(
+    String timelineId,
+    String authorEmail,
+  ) async {
+    final result =
+        await _dataSource.getMomentsByAuthorInTimeline(timelineId, authorEmail);
+    return result.map((e) => e.toEntity()).toList();
+  }
+
+  @override
+  Future<void> deleteMomentMedia(List<String> mediaUrls) =>
+      _dataSource.deleteMomentMedia(mediaUrls);
 }

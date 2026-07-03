@@ -8,6 +8,7 @@ import 'package:nossos_momentos/modules/core/use_case/use_case.dart';
 import 'package:nossos_momentos/modules/settings/domain/use_case/add_email_use_case.dart';
 import 'package:nossos_momentos/modules/settings/domain/use_case/delete_account_use_case.dart';
 import 'package:nossos_momentos/modules/settings/domain/use_case/delete_email_use_case.dart';
+import 'package:nossos_momentos/modules/settings/domain/use_case/leave_timeline_use_case.dart';
 import 'package:nossos_momentos/modules/settings/domain/use_case/reauthenticate_use_case.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
 import 'package:nossos_momentos/modules/time_line/domain/use_case/get_time_line_from_id_use_case.dart';
@@ -38,6 +39,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     this._deleteTimeLineUseCase,
     this._deleteAccountUseCase,
     this._reauthenticateUseCase,
+    this._leaveTimelineUseCase,
   ) : super(SettingsLoading(timeLine: null, email: null)) {
     on<FetchEmailEvent>(_init);
     on<AddEmailEvent>(_addEmail);
@@ -47,6 +49,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<UpdateRelationshipEndDateEvent>(_updateRelationshipEndDate);
     on<UpdateAccessLevelEvent>(_updateAccessLevel);
     on<DeleteTimeLineEvent>(_deleteTimeLine);
+    on<LeaveTimelineEvent>(_leaveTimeline);
     on<DeleteAccountEvent>(_deleteAccount);
     on<ReauthenticateAndDeleteAccountEvent>(_reauthenticateAndDeleteAccount);
   }
@@ -62,6 +65,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final DeleteTimeLineUseCase _deleteTimeLineUseCase;
   final DeleteAccountUseCase _deleteAccountUseCase;
   final ReauthenticateUseCase _reauthenticateUseCase;
+  final LeaveTimelineUseCase _leaveTimelineUseCase;
 
   FutureOr<void> _init(
     FetchEmailEvent event,
@@ -177,6 +181,24 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       emit(SettingsError(timeLine: state.timeLine, email: state.email));
       return;
     }
+    emit(SettingsTimeLineDeleted(timeLine: state.timeLine, email: state.email));
+  }
+
+  FutureOr<void> _leaveTimeline(
+    LeaveTimelineEvent event,
+    Emitter<SettingsState> emit,
+  ) async {
+    emit(SettingsLoading(timeLine: state.timeLine, email: state.email));
+    final res = await _leaveTimelineUseCase.call(LeaveTimelineParams(
+      timeLine: state.timeLine!,
+      userEmail: state.email!,
+      deleteAuthoredMoments: event.deleteAuthoredMoments,
+    ));
+    if (res.isError) {
+      emit(SettingsError(timeLine: state.timeLine, email: state.email));
+      return;
+    }
+    // Reuses the "timeline gone from this user's view" state to route away.
     emit(SettingsTimeLineDeleted(timeLine: state.timeLine, email: state.email));
   }
 

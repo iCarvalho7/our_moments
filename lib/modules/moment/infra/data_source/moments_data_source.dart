@@ -9,6 +9,18 @@ abstract class MomentsDataSource {
 
   Future updateMoment(String momentId, Map<String, dynamic> momentModel);
 
+  /// Every moment authored by [authorEmail] inside [timelineId]. Used for the
+  /// LGPD "delete my moments" flow when leaving a timeline.
+  Future<List<MomentModel>> getMomentsByAuthorInTimeline(
+    String timelineId,
+    String authorEmail,
+  );
+
+  /// Best-effort removal of media (photos/audio) from Storage given their
+  /// download URLs. Errors are swallowed so a missing/failed object never
+  /// blocks the surrounding deletion.
+  Future<void> deleteMomentMedia(List<String> mediaUrls);
+
   Future registerMoment({required MomentModel moment});
 
   Future<MomentModel> fetchMoment({required String momentId});

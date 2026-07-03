@@ -61,6 +61,15 @@ class UpdateAccessLevelEvent extends SettingsEvent {
 
 class DeleteTimeLineEvent extends SettingsEvent {}
 
+/// Removes the current user from the shared timeline. When
+/// [deleteAuthoredMoments] is true, the moments they authored are deleted too
+/// (LGPD).
+class LeaveTimelineEvent extends SettingsEvent {
+  final bool deleteAuthoredMoments;
+
+  LeaveTimelineEvent({this.deleteAuthoredMoments = false});
+}
+
 /// Deletes the current user's account and their data.
 class DeleteAccountEvent extends SettingsEvent {}
 

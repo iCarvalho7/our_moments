@@ -114,8 +114,23 @@ class TimeLineModel extends TimeLine {
 
   Map<String, dynamic> toJson() => _$TimeLineModelToJson(this);
 
-  factory TimeLineModel.fromJson(Map<String, dynamic> json) =>
-      _$TimeLineModelFromJson(json);
+  factory TimeLineModel.fromJson(Map<String, dynamic> json) {
+    // Migrate old schema: owner (String) → owners (List<String>)
+    // and access_levels (Map) → roles (Map). Old docs written before Fase 1
+    // still have these fields; new docs use owners/roles directly.
+    if (json['owners'] == null && json['owner'] != null) {
+      final owner = json['owner'] as String;
+      json['owners'] = [owner];
+      final accessLevels = Map<String, String>.from(
+        (json['access_levels'] as Map<String, dynamic>?)?.map(
+              (k, v) => MapEntry(k, v as String),
+            ) ??
+            {},
+      );
+      json['roles'] = {owner: 'owner', ...accessLevels};
+    }
+    return _$TimeLineModelFromJson(json);
+  }
 
   static Timestamp _fromJsonTimeStamp(dynamic timestamp) {
     if(timestamp.runtimeType == Timestamp) {

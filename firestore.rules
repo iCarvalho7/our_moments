@@ -39,17 +39,26 @@ service cloud.firestore {
     }
 
     match /moments/{momentId} {
+      // On reads/updates/deletes the doc exists, so resource.data is valid.
+      // On create the doc does not exist yet; use request.resource.data instead.
+      function timelineId() {
+        return resource == null
+          ? request.resource.data.time_line_id
+          : resource.data.time_line_id;
+      }
       function timelineData() {
-        return get(/databases/$(database)/documents/time_line/$(resource.data.time_line_id)).data;
+        return get(/databases/$(database)/documents/time_line/$(timelineId())).data;
       }
       function isMemberOfTimeline() {
         return userEmail() in timelineData().emails;
       }
       function canEditInTimeline() {
-        return timelineData().roles[userEmail()] in ['owner', 'editor'];
+        // roles[email] absent means the app defaults to 'editor' — mirror that here.
+        let role = timelineData().roles.get(userEmail(), 'editor');
+        return role in ['owner', 'editor'];
       }
       allow read: if isMemberOfTimeline();
-      allow create: if isSignedIn() && canEditInTimeline();
+      allow create: if isSignedIn() && isMemberOfTimeline() && canEditInTimeline();
       allow update, delete: if isMemberOfTimeline() && canEditInTimeline();
 
       // Recursive: covers moments/<id>/reactions/** and moments/<id>/comments/**.

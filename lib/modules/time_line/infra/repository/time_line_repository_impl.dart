@@ -76,13 +76,16 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
   }
 
   @override
-  Future<TimeLine> updateTimeLineEmails(TimeLine timeline, String email) async {
-    timeline.emails.add(email);
-
-    return timeLineDataSource.updateTimeline(
-      timeline.id,
-      TimeLineModel.fromEntity(timeline).toJson(),
-    );
+  Future<TimeLine> updateTimeLineEmails(TimeLine timeline, String email) {
+    // Do not mutate the entity's list in place; build fresh collections and
+    // also register the new member in `roles` (defaulting to 'editor') so they
+    // show up in the access-management UI.
+    final newRoles = Map<String, String>.from(timeline.roles)
+      ..putIfAbsent(email, () => 'editor');
+    return _persist(timeline.copyWith(
+      emails: [...timeline.emails, email],
+      roles: newRoles,
+    ));
   }
 
   @override
@@ -223,26 +226,25 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
     Map<String, bool>? pendingDeletion,
   ) {
     // `pendingDeletion` is intentionally nullable (null clears the consensus),
-    // so it is set explicitly rather than through copyWith's null-coalescing.
-    return _persist(TimeLine(
-      createdDate: timeline.createdDate,
-      emails: timeline.emails,
-      id: timeline.id,
-      momentIds: timeline.momentIds,
-      owners: timeline.owners,
-      relationshipStartDate: timeline.relationshipStartDate,
-      relationshipEndDate: timeline.relationshipEndDate,
-      name: timeline.name,
-      accentColor: timeline.accentColor,
-      isPremium: timeline.isPremium,
-      premiumUntil: timeline.premiumUntil,
-      coverPhotoUrl: timeline.coverPhotoUrl,
-      nicknames: timeline.nicknames,
-      enforceEndDate: timeline.enforceEndDate,
-      roles: timeline.roles,
-      momentEditPolicy: timeline.momentEditPolicy,
+    // so a null value uses copyWith's explicit `clearPendingDeletion` flag
+    // rather than its null-coalescing (which would keep the old value).
+    return _persist(timeline.copyWith(
       pendingDeletion: pendingDeletion,
+      clearPendingDeletion: pendingDeletion == null,
     ));
+  }
+
+  @override
+  Future<bool> approvePendingDeletion(
+    TimeLine timeline,
+    String ownerEmail,
+    List<String> allOwners,
+  ) {
+    return timeLineDataSource.approvePendingDeletion(
+      timeline.id,
+      ownerEmail,
+      allOwners,
+    );
   }
 
   @override

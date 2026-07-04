@@ -77,8 +77,9 @@ class TimeLine {
   /// Returns a copy with the given fields overridden. New TimeLine fields MUST
   /// be threaded here so partial updates never silently drop them.
   ///
-  /// Note: [pendingDeletion] is nullable and cleared explicitly by the repo
-  /// (not through this null-coalescing copy).
+  /// Note: [pendingDeletion] is nullable, so passing `null` can't distinguish
+  /// "clear it" from "leave unchanged". To clear it, pass
+  /// [clearPendingDeletion] `true` (which wins over [pendingDeletion]).
   TimeLine copyWith({
     Timestamp? createdDate,
     List<String>? emails,
@@ -97,6 +98,7 @@ class TimeLine {
     Map<String, String>? roles,
     String? momentEditPolicy,
     Map<String, bool>? pendingDeletion,
+    bool clearPendingDeletion = false,
   }) {
     return TimeLine(
       createdDate: createdDate ?? this.createdDate,
@@ -115,7 +117,8 @@ class TimeLine {
       enforceEndDate: enforceEndDate ?? this.enforceEndDate,
       roles: roles ?? this.roles,
       momentEditPolicy: momentEditPolicy ?? this.momentEditPolicy,
-      pendingDeletion: pendingDeletion ?? this.pendingDeletion,
+      pendingDeletion:
+          clearPendingDeletion ? null : (pendingDeletion ?? this.pendingDeletion),
     );
   }
 
@@ -141,8 +144,9 @@ class TimeLine {
   }
 
   List<String> emailsUserFirst(String email) {
-    emails.remove(email);
-    emails.insert(0, email);
-    return emails;
+    final copy = List<String>.from(emails);
+    copy.remove(email);
+    copy.insert(0, email);
+    return copy;
   }
 }

@@ -32,8 +32,15 @@ service cloud.firestore {
       function isOwner() {
         return userEmail() in resource.data.owners;
       }
+      // Membership/ownership fields may only be changed by owners; a plain
+      // member must not touch these (otherwise any editor could self-promote to
+      // owner via update({'roles': ..., 'owners': ...})).
+      function touchesSensitiveFields() {
+        return request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['roles', 'owners', 'emails']);
+      }
       allow read: if isMember();
-      allow update: if isMember();
+      allow update: if isMember() && (isOwner() || !touchesSensitiveFields());
       allow delete: if isOwner();
       allow create: if isSignedIn();
     }
@@ -62,8 +69,21 @@ service cloud.firestore {
       allow update, delete: if isMemberOfTimeline() && canEditInTimeline();
 
       // Recursive: covers moments/<id>/reactions/** and moments/<id>/comments/**.
+      // A signed-in check is not enough here — the subcollection must inherit
+      // the parent moment's timeline membership, otherwise any authenticated
+      // user could read/write another couple's reactions and comments.
       match /{subcollection}/{docId} {
-        allow read, write: if isSignedIn();
+        function parentMomentData() {
+          return get(/databases/$(database)/documents/moments/$(momentId)).data;
+        }
+        function parentTimelineData() {
+          return get(/databases/$(database)/documents/time_line/$(parentMomentData().time_line_id)).data;
+        }
+        function isMemberOfParentTimeline() {
+          return userEmail() in parentTimelineData().emails;
+        }
+        allow read: if isMemberOfParentTimeline();
+        allow write: if isMemberOfParentTimeline();
       }
     }
 

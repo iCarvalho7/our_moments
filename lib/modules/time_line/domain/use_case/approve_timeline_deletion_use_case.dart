@@ -31,18 +31,22 @@ class ApproveTimelineDeletionUseCase
 
   @override
   Future<TimeLine?> execute(ApproveTimelineDeletionParams params) async {
-    final pending = Map<String, bool>.from(params.timeline.pendingDeletion ?? {});
-    pending[params.userEmail] = true;
-
     final owners = _ownersOf(params.timeline);
-    final everyoneApproved =
-        owners.isNotEmpty && owners.every((o) => pending[o] == true);
+
+    // Record this owner's approval atomically so two owners approving at the
+    // same time cannot overwrite each other's approval.
+    final everyoneApproved = await _repository.approvePendingDeletion(
+      params.timeline,
+      params.userEmail,
+      owners,
+    );
 
     if (everyoneApproved) {
       await _deleteTimeLineUseCase.execute(params.timeline.id);
       return null;
     }
-    return _repository.updatePendingDeletion(params.timeline, pending);
+    // Return the fresh timeline so the UI reflects the persisted approvals.
+    return _repository.getTimeLineById(params.timeline.id);
   }
 
   List<String> _ownersOf(TimeLine tl) {

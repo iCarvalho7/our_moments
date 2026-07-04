@@ -72,5 +72,15 @@ abstract class TimeLineRepository {
     Map<String, bool>? pendingDeletion,
   );
 
+  /// Atomically records [ownerEmail]'s approval in the multi-owner deletion
+  /// consensus map using a Firestore transaction, so simultaneous approvals do
+  /// not overwrite each other. Returns true when every owner in [allOwners] has
+  /// now approved (i.e. the timeline can be deleted).
+  Future<bool> approvePendingDeletion(
+    TimeLine timeline,
+    String ownerEmail,
+    List<String> allOwners,
+  );
+
   Future<void> deleteTimeLine(String timelineId);
 }

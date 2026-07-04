@@ -11,6 +11,7 @@ import 'package:nossos_momentos/modules/settings/domain/use_case/delete_email_us
 import 'package:nossos_momentos/modules/settings/domain/use_case/leave_timeline_use_case.dart';
 import 'package:nossos_momentos/modules/settings/domain/use_case/reauthenticate_use_case.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
+import 'package:nossos_momentos/modules/time_line/domain/entity/timeline_permissions.dart';
 import 'package:nossos_momentos/modules/time_line/domain/use_case/get_time_line_from_id_use_case.dart';
 import 'package:nossos_momentos/modules/time_line/domain/use_case/delete_time_line_use_case.dart';
 import 'package:nossos_momentos/modules/time_line/domain/use_case/request_timeline_deletion_use_case.dart';
@@ -200,6 +201,11 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     RequestTimelineDeletionEvent event,
     Emitter<SettingsState> emit,
   ) async {
+    // Only owners may start a timeline deletion.
+    if (!TimelinePermissions.canDeleteTimeline(state.timeLine!, state.email!)) {
+      emit(SettingsError(timeLine: state.timeLine, email: state.email));
+      return;
+    }
     emit(SettingsLoading(timeLine: state.timeLine, email: state.email));
     final res = await _requestTimelineDeletionUseCase.call(
       RequestTimelineDeletionParams(

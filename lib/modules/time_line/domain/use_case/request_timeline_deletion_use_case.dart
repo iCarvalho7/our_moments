@@ -32,6 +32,12 @@ class RequestTimelineDeletionUseCase
 
   @override
   Future<TimeLine?> execute(RequestTimelineDeletionParams params) async {
+    // A deletion is already awaiting consensus: don't overwrite the existing
+    // approvals with a fresh `{requester: true}` map. Keep the current state.
+    if (TimelinePermissions.isDeletionPending(params.timeline)) {
+      return params.timeline;
+    }
+
     final owners = _ownersOf(params.timeline);
     if (owners.length > 1) {
       return _repository.updatePendingDeletion(

@@ -258,7 +258,7 @@ class _SuccessContent extends StatelessWidget {
             ),
           ],
           kSpacerHeight16,
-          _DangerZoneSection(timeline: timeline),
+          _DangerZoneSection(timeline: timeline, currentEmail: state.email!),
         ],
       ),
     );
@@ -601,9 +601,10 @@ class _OnThisDayReminderToggleState extends State<_OnThisDayReminderToggle> {
 }
 
 class _DangerZoneSection extends StatelessWidget {
-  const _DangerZoneSection({required this.timeline});
+  const _DangerZoneSection({required this.timeline, required this.currentEmail});
 
   final TimeLine timeline;
+  final String currentEmail;
 
   Future<void> _openDeleteSheet(BuildContext context) async {
     final bloc = context.read<SettingsBloc>();
@@ -689,20 +690,23 @@ class _DangerZoneSection extends StatelessWidget {
             ],
           ),
           kSpacerHeight24,
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _openDeleteSheet(context),
-              icon: const Icon(Icons.delete_forever_rounded, size: 20),
-              label: const Text('Deletar linha do tempo'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: errorColor,
-                foregroundColor: Colors.white,
+          // Deleting the whole timeline is an owner-only action.
+          if (TimelinePermissions.canDeleteTimeline(timeline, currentEmail))
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _openDeleteSheet(context),
+                icon: const Icon(Icons.delete_forever_rounded, size: 20),
+                label: const Text('Deletar linha do tempo'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: errorColor,
+                  foregroundColor: Colors.white,
+                ),
               ),
             ),
-          ),
           if (timeline.emails.length > 1) ...[
-            kSpacerHeight12,
+            if (TimelinePermissions.canDeleteTimeline(timeline, currentEmail))
+              kSpacerHeight12,
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(

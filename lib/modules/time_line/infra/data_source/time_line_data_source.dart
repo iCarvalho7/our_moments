@@ -10,6 +10,14 @@ abstract class TimeLineDataSource {
   String getNewKey();
   Future<TimeLineModel> updateTimeline(String timelineId, Map<String, dynamic> timeline);
   Future<void> deleteTimeLine(String timelineId);
+
+  /// Atomically adds [ownerEmail] to the `pending_deletion` map inside a
+  /// transaction. Returns true when all [allOwners] have approved.
+  Future<bool> approvePendingDeletion(
+    String timelineId,
+    String ownerEmail,
+    List<String> allOwners,
+  );
 }
 
 @Injectable(as: TimeLineDataSource)
@@ -68,5 +76,29 @@ class FirebaseTimelineRemoteDataSourceImpl extends TimeLineDataSource {
         'TimeLine.deleteTimeLine',
         params: {'timelineId': timelineId},
         request: () => timelineRef.doc(timelineId).delete(),
+      );
+
+  @override
+  Future<bool> approvePendingDeletion(
+    String timelineId,
+    String ownerEmail,
+    List<String> allOwners,
+  ) =>
+      RequestLogger.track(
+        'TimeLine.approvePendingDeletion',
+        params: {'timelineId': timelineId, 'ownerEmail': ownerEmail},
+        request: () async {
+          final ref = timelineRef.doc(timelineId);
+          var allApproved = false;
+          await timelineRef.firestore.runTransaction((transaction) async {
+            final snap = await transaction.get(ref);
+            final pending = Map<String, bool>.from(snap.data()?.pendingDeletion ?? {});
+            pending[ownerEmail] = true;
+            transaction.update(ref, {'pending_deletion': pending});
+            allApproved =
+                allOwners.isNotEmpty && allOwners.every((e) => pending[e] == true);
+          });
+          return allApproved;
+        },
       );
 }

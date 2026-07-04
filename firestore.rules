@@ -2,11 +2,14 @@ rules_version = '2';
 
 // Security rules for Nossos Momentos.
 //
+// Membership and role are enforced on the timeline doc:
+//   - `emails`  : list of every member's email;
+//   - `owners`  : list of owner emails (gate for deleting the timeline);
+//   - `roles`   : map email -> 'owner' | 'editor' | 'viewer' (gate for editing
+//                 moments).
+//
 // IMPORTANT: deploying this file REPLACES the rules currently in the Firebase
-// console. If your console rules are stricter than this baseline, prefer to just
-// ADD the nested `match /{document=**}` block (below) to your existing
-// `match /moments/{momentId}` block — subcollections (reactions/comments) do NOT
-// inherit the parent document's rules and would otherwise be denied by default.
+// console.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -14,19 +17,49 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Moments and every sub-collection under a moment (reactions, comments, ...).
+    function userEmail() {
+      return request.auth.token.email;
+    }
+
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /time_line/{timelineId} {
+      function isMember() {
+        return userEmail() in resource.data.emails;
+      }
+      function isOwner() {
+        return userEmail() in resource.data.owners;
+      }
+      allow read: if isMember();
+      allow update: if isMember();
+      allow delete: if isOwner();
+      allow create: if isSignedIn();
+    }
+
     match /moments/{momentId} {
-      allow read, write: if isSignedIn();
+      function timelineData() {
+        return get(/databases/$(database)/documents/time_line/$(resource.data.time_line_id)).data;
+      }
+      function isMemberOfTimeline() {
+        return userEmail() in timelineData().emails;
+      }
+      function canEditInTimeline() {
+        return timelineData().roles[userEmail()] in ['owner', 'editor'];
+      }
+      allow read: if isMemberOfTimeline();
+      allow create: if isSignedIn() && canEditInTimeline();
+      allow update, delete: if isMemberOfTimeline() && canEditInTimeline();
 
       // Recursive: covers moments/<id>/reactions/** and moments/<id>/comments/**.
-      match /{document=**} {
+      match /{subcollection}/{docId} {
         allow read, write: if isSignedIn();
       }
     }
 
-    // Timelines.
-    match /time_line/{timelineId} {
-      allow read, write: if isSignedIn();
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

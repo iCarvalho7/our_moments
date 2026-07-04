@@ -13,6 +13,9 @@ import 'package:nossos_momentos/modules/settings/domain/use_case/reauthenticate_
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
 import 'package:nossos_momentos/modules/time_line/domain/use_case/get_time_line_from_id_use_case.dart';
 import 'package:nossos_momentos/modules/time_line/domain/use_case/delete_time_line_use_case.dart';
+import 'package:nossos_momentos/modules/time_line/domain/use_case/request_timeline_deletion_use_case.dart';
+import 'package:nossos_momentos/modules/time_line/domain/use_case/approve_timeline_deletion_use_case.dart';
+import 'package:nossos_momentos/modules/time_line/domain/use_case/reject_timeline_deletion_use_case.dart';
 import 'package:nossos_momentos/modules/time_line/domain/use_case/update_access_levels_use_case.dart'
     show UpdateRolesUseCase, UpdateRolesParams;
 import 'package:nossos_momentos/modules/time_line/domain/use_case/update_couple_header_use_case.dart';
@@ -40,6 +43,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     this._deleteAccountUseCase,
     this._reauthenticateUseCase,
     this._leaveTimelineUseCase,
+    this._requestTimelineDeletionUseCase,
+    this._approveTimelineDeletionUseCase,
+    this._rejectTimelineDeletionUseCase,
   ) : super(SettingsLoading(timeLine: null, email: null)) {
     on<FetchEmailEvent>(_init);
     on<AddEmailEvent>(_addEmail);
@@ -49,6 +55,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<UpdateRelationshipEndDateEvent>(_updateRelationshipEndDate);
     on<UpdateAccessLevelEvent>(_updateAccessLevel);
     on<DeleteTimeLineEvent>(_deleteTimeLine);
+    on<RequestTimelineDeletionEvent>(_requestTimelineDeletion);
+    on<ApproveTimelineDeletionEvent>(_approveTimelineDeletion);
+    on<RejectTimelineDeletionEvent>(_rejectTimelineDeletion);
     on<LeaveTimelineEvent>(_leaveTimeline);
     on<DeleteAccountEvent>(_deleteAccount);
     on<ReauthenticateAndDeleteAccountEvent>(_reauthenticateAndDeleteAccount);
@@ -66,6 +75,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final DeleteAccountUseCase _deleteAccountUseCase;
   final ReauthenticateUseCase _reauthenticateUseCase;
   final LeaveTimelineUseCase _leaveTimelineUseCase;
+  final RequestTimelineDeletionUseCase _requestTimelineDeletionUseCase;
+  final ApproveTimelineDeletionUseCase _approveTimelineDeletionUseCase;
+  final RejectTimelineDeletionUseCase _rejectTimelineDeletionUseCase;
 
   FutureOr<void> _init(
     FetchEmailEvent event,
@@ -182,6 +194,65 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       return;
     }
     emit(SettingsTimeLineDeleted(timeLine: state.timeLine, email: state.email));
+  }
+
+  FutureOr<void> _requestTimelineDeletion(
+    RequestTimelineDeletionEvent event,
+    Emitter<SettingsState> emit,
+  ) async {
+    emit(SettingsLoading(timeLine: state.timeLine, email: state.email));
+    final res = await _requestTimelineDeletionUseCase.call(
+      RequestTimelineDeletionParams(
+        timeline: state.timeLine!,
+        userEmail: state.email!,
+      ),
+    );
+    if (res.isError) {
+      emit(SettingsError(timeLine: state.timeLine, email: state.email));
+      return;
+    }
+    // Null means the timeline was actually deleted; otherwise consensus is
+    // pending and we show the updated timeline.
+    if (res.data == null) {
+      emit(SettingsTimeLineDeleted(timeLine: state.timeLine, email: state.email));
+    } else {
+      emit(SettingsSuccess(timeLine: res.data, email: state.email));
+    }
+  }
+
+  FutureOr<void> _approveTimelineDeletion(
+    ApproveTimelineDeletionEvent event,
+    Emitter<SettingsState> emit,
+  ) async {
+    emit(SettingsLoading(timeLine: state.timeLine, email: state.email));
+    final res = await _approveTimelineDeletionUseCase.call(
+      ApproveTimelineDeletionParams(
+        timeline: state.timeLine!,
+        userEmail: state.email!,
+      ),
+    );
+    if (res.isError) {
+      emit(SettingsError(timeLine: state.timeLine, email: state.email));
+      return;
+    }
+    if (res.data == null) {
+      emit(SettingsTimeLineDeleted(timeLine: state.timeLine, email: state.email));
+    } else {
+      emit(SettingsSuccess(timeLine: res.data, email: state.email));
+    }
+  }
+
+  FutureOr<void> _rejectTimelineDeletion(
+    RejectTimelineDeletionEvent event,
+    Emitter<SettingsState> emit,
+  ) async {
+    emit(SettingsLoading(timeLine: state.timeLine, email: state.email));
+    final res = await _rejectTimelineDeletionUseCase.call(state.timeLine!);
+    if (res.isSuccess && res.data != null) {
+      emit(SettingsSuccess(timeLine: res.data, email: state.email));
+    } else {
+      emit(SettingsError(timeLine: state.timeLine, email: state.email));
+    }
   }
 
   FutureOr<void> _leaveTimeline(

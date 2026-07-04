@@ -214,6 +214,19 @@ class _SuccessContent extends StatelessWidget {
               ),
             ),
           ],
+          if (TimelinePermissions.isDeletionPending(timeline) &&
+              TimelinePermissions.isOwner(timeline, state.email!)) ...[
+            kSpacerHeight16,
+            _SettingsSection(
+              icon: Icons.hourglass_top_outlined,
+              title: 'Deleção pendente',
+              subtitle: 'A exclusão precisa da aprovação de todos os donos',
+              child: _PendingDeletionSection(
+                timeline: timeline,
+                currentEmail: state.email!,
+              ),
+            ),
+          ],
           kSpacerHeight16,
           _SettingsSection(
             icon: Icons.photo_filter_outlined,
@@ -600,7 +613,7 @@ class _DangerZoneSection extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => DeleteTimelineConfirmationSheet(
         timelineName: timeline.name,
-        onConfirm: () => bloc.add(DeleteTimeLineEvent()),
+        onConfirm: () => bloc.add(RequestTimelineDeletionEvent()),
       ),
     );
   }
@@ -1266,6 +1279,92 @@ class _AccessLevelSection extends StatelessWidget {
             ),
           );
         }),
+      ],
+    );
+  }
+}
+
+/// Shows who has approved a pending multi-owner deletion and lets the current
+/// owner approve or cancel it.
+class _PendingDeletionSection extends StatelessWidget {
+  const _PendingDeletionSection({
+    required this.timeline,
+    required this.currentEmail,
+  });
+
+  final TimeLine timeline;
+  final String currentEmail;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final palette = context.palette;
+    final errorColor = Theme.of(context).colorScheme.error;
+    final pending = timeline.pendingDeletion ?? const {};
+    final owners = TimelinePermissions.ownerEmails(timeline);
+    final alreadyApproved = pending[currentEmail] == true;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...owners.map((owner) {
+          final approved = pending[owner] == true;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                Icon(
+                  approved
+                      ? Icons.check_circle
+                      : Icons.hourglass_empty_rounded,
+                  size: 18,
+                  color: approved ? palette.primary : palette.onSurfaceMuted,
+                ),
+                kSpacerWidth12,
+                Expanded(
+                  child: Text(
+                    owner == currentEmail ? '$owner (você)' : owner,
+                    style: textTheme.bodyMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Text(
+                  approved ? 'Aprovou' : 'Pendente',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: approved ? palette.primary : palette.onSurfaceMuted,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+        kSpacerHeight12,
+        if (!alreadyApproved)
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => context
+                  .read<SettingsBloc>()
+                  .add(ApproveTimelineDeletionEvent()),
+              icon: const Icon(Icons.check_rounded, size: 20),
+              label: const Text('Aprovar deleção'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: errorColor,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+        if (!alreadyApproved) kSpacerHeight8,
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => context
+                .read<SettingsBloc>()
+                .add(RejectTimelineDeletionEvent()),
+            icon: const Icon(Icons.close_rounded, size: 20),
+            label: const Text('Cancelar deleção'),
+          ),
+        ),
       ],
     );
   }

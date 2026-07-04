@@ -61,6 +61,16 @@ class UpdateAccessLevelEvent extends SettingsEvent {
 
 class DeleteTimeLineEvent extends SettingsEvent {}
 
+/// Requests deletion of the current timeline. Deletes immediately with a single
+/// owner, or starts a multi-owner consensus otherwise.
+class RequestTimelineDeletionEvent extends SettingsEvent {}
+
+/// The current owner approves a pending multi-owner deletion.
+class ApproveTimelineDeletionEvent extends SettingsEvent {}
+
+/// Cancels a pending multi-owner deletion.
+class RejectTimelineDeletionEvent extends SettingsEvent {}
+
 /// Removes the current user from the shared timeline. When
 /// [deleteAuthoredMoments] is true, the moments they authored are deleted too
 /// (LGPD).

@@ -147,6 +147,8 @@ import '../modules/time_line/bucket_list/presenter/bloc/bucket_list_bloc.dart'
 import '../modules/time_line/couple_book/couple_book_service.dart' as _i200;
 import '../modules/time_line/domain/repository/time_line_repository.dart'
     as _i184;
+import '../modules/time_line/domain/use_case/approve_timeline_deletion_use_case.dart'
+    as _i817;
 import '../modules/time_line/domain/use_case/create_time_line_use_case.dart'
     as _i283;
 import '../modules/time_line/domain/use_case/delete_time_line_use_case.dart'
@@ -158,6 +160,10 @@ import '../modules/time_line/domain/use_case/get_time_line_from_id_use_case.dart
     as _i13;
 import '../modules/time_line/domain/use_case/get_year_use_case.dart' as _i970;
 import '../modules/time_line/domain/use_case/logout_use_case.dart' as _i44;
+import '../modules/time_line/domain/use_case/reject_timeline_deletion_use_case.dart'
+    as _i573;
+import '../modules/time_line/domain/use_case/request_timeline_deletion_use_case.dart'
+    as _i521;
 import '../modules/time_line/domain/use_case/update_access_levels_use_case.dart'
     as _i711;
 import '../modules/time_line/domain/use_case/update_couple_header_use_case.dart'
@@ -604,6 +610,9 @@ _i174.GetIt $initGetIt(
       gh<_i980.MomentRepository>(),
     ),
   );
+  gh.factory<_i573.RejectTimelineDeletionUseCase>(
+    () => _i573.RejectTimelineDeletionUseCase(gh<_i184.TimeLineRepository>()),
+  );
   gh.factory<_i315.InteractionsBloc>(
     () => _i315.InteractionsBloc(
       gh<_i787.WatchReactionsUseCase>(),
@@ -626,6 +635,18 @@ _i174.GetIt $initGetIt(
     () => _i11.SelectTimeLineBloc(
       gh<_i783.GetTimeLineFromEmailUseCase>(),
       gh<_i44.LogoutUseCase>(),
+    ),
+  );
+  gh.factory<_i817.ApproveTimelineDeletionUseCase>(
+    () => _i817.ApproveTimelineDeletionUseCase(
+      gh<_i184.TimeLineRepository>(),
+      gh<_i1037.DeleteTimeLineUseCase>(),
+    ),
+  );
+  gh.factory<_i521.RequestTimelineDeletionUseCase>(
+    () => _i521.RequestTimelineDeletionUseCase(
+      gh<_i184.TimeLineRepository>(),
+      gh<_i1037.DeleteTimeLineUseCase>(),
     ),
   );
   gh.factory<_i663.RegisterMomentsUseCase>(
@@ -709,6 +730,9 @@ _i174.GetIt $initGetIt(
       gh<_i461.DeleteAccountUseCase>(),
       gh<_i734.ReauthenticateUseCase>(),
       gh<_i169.LeaveTimelineUseCase>(),
+      gh<_i521.RequestTimelineDeletionUseCase>(),
+      gh<_i817.ApproveTimelineDeletionUseCase>(),
+      gh<_i573.RejectTimelineDeletionUseCase>(),
     ),
   );
   return getIt;

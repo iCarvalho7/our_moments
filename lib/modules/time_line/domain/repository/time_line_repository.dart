@@ -65,5 +65,12 @@ abstract class TimeLineRepository {
     Map<String, String> roles,
   );
 
+  /// Sets or clears (when [pendingDeletion] is null) the multi-owner deletion
+  /// consensus map (owner email → approved).
+  Future<TimeLine> updatePendingDeletion(
+    TimeLine timeline,
+    Map<String, bool>? pendingDeletion,
+  );
+
   Future<void> deleteTimeLine(String timelineId);
 }

@@ -218,6 +218,34 @@ class TimeLineRepositoryImpl extends TimeLineRepository {
   }
 
   @override
+  Future<TimeLine> updatePendingDeletion(
+    TimeLine timeline,
+    Map<String, bool>? pendingDeletion,
+  ) {
+    // `pendingDeletion` is intentionally nullable (null clears the consensus),
+    // so it is set explicitly rather than through copyWith's null-coalescing.
+    return _persist(TimeLine(
+      createdDate: timeline.createdDate,
+      emails: timeline.emails,
+      id: timeline.id,
+      momentIds: timeline.momentIds,
+      owners: timeline.owners,
+      relationshipStartDate: timeline.relationshipStartDate,
+      relationshipEndDate: timeline.relationshipEndDate,
+      name: timeline.name,
+      accentColor: timeline.accentColor,
+      isPremium: timeline.isPremium,
+      premiumUntil: timeline.premiumUntil,
+      coverPhotoUrl: timeline.coverPhotoUrl,
+      nicknames: timeline.nicknames,
+      enforceEndDate: timeline.enforceEndDate,
+      roles: timeline.roles,
+      momentEditPolicy: timeline.momentEditPolicy,
+      pendingDeletion: pendingDeletion,
+    ));
+  }
+
+  @override
   Future<void> deleteTimeLine(String timelineId) {
     return timeLineDataSource.deleteTimeLine(timelineId);
   }

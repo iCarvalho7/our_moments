@@ -1,9 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
-/// Standard remote image with shimmer-while-loading and a broken-image icon on
-/// error. Pass [errorWidget] to override the default error fallback.
+/// Standard remote image with shimmer-while-loading, disk-level caching, and
+/// a broken-image icon on error. Pass [errorWidget] to override the default.
 class AppNetworkImage extends StatelessWidget {
   const AppNetworkImage({
     super.key,
@@ -23,22 +24,19 @@ class AppNetworkImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Image.network(
-      url,
+    return CachedNetworkImage(
+      imageUrl: url,
       fit: fit,
       width: width,
       height: height,
-      loadingBuilder: (_, child, progress) {
-        if (progress == null) return child;
-        return LoadingEffect(
-          child: Container(
-            width: width,
-            height: height,
-            color: palette.surfaceAlt,
-          ),
-        );
-      },
-      errorBuilder: (_, __, ___) =>
+      placeholder: (_, __) => LoadingEffect(
+        child: Container(
+          width: width,
+          height: height,
+          color: palette.surfaceAlt,
+        ),
+      ),
+      errorWidget: (_, __, ___) =>
           errorWidget ??
           Container(
             width: width,

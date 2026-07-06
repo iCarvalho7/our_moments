@@ -19,6 +19,18 @@ import 'package:injectable/injectable.dart' as _i526;
 
 import '../modules/core/feature_toggles/feature_toggle_manager.dart' as _i568;
 import '../modules/core/premium/premium_service.dart' as _i423;
+import '../modules/location/domain/repository/geocoding_repository.dart'
+    as _i253;
+import '../modules/location/domain/use_case/reverse_geocode_use_case.dart'
+    as _i769;
+import '../modules/location/domain/use_case/search_places_use_case.dart'
+    as _i439;
+import '../modules/location/external/google/google_places_data_source.dart'
+    as _i1045;
+import '../modules/location/infra/data_source/geocoding_data_source.dart'
+    as _i1004;
+import '../modules/location/infra/repository/geocoding_repository_impl.dart'
+    as _i731;
 import '../modules/login/data/data_source/auth_remote_data_source.dart'
     as _i283;
 import '../modules/login/data/external/firebase_auth_remote_data_source.dart'
@@ -78,6 +90,8 @@ import '../modules/photos/domain/repository/photos_repository.dart' as _i179;
 import '../modules/photos/domain/use_case/delete_all_photos_from_moment_use_case.dart'
     as _i522;
 import '../modules/photos/domain/use_case/delete_photo_use_case.dart' as _i271;
+import '../modules/photos/domain/use_case/fetch_media_bytes_use_case.dart'
+    as _i972;
 import '../modules/photos/domain/use_case/get_media_use_case.dart' as _i465;
 import '../modules/photos/domain/use_case/upload_photo_use_case.dart' as _i262;
 import '../modules/photos/external/file_picker_data_source.dart' as _i370;
@@ -181,6 +195,7 @@ import '../modules/time_line/infra/repository/time_line_repository_impl.dart'
     as _i294;
 import '../modules/time_line/presenter/bloc/all_timelines_map_bloc.dart'
     as _i981;
+import '../modules/time_line/presenter/bloc/new_feed_cubit.dart' as _i58;
 import '../modules/time_line/presenter/bloc/select_time_line_bloc.dart' as _i11;
 import '../modules/time_line/presenter/bloc/time_line_bloc.dart' as _i716;
 import '../modules/time_line/special_dates/domain/repository/special_dates_repository.dart'
@@ -240,10 +255,8 @@ _i174.GetIt $initGetIt(
   gh.factory<_i59.FirebaseAuth>(() => firebaseModule.firebaseAuth);
   gh.factory<_i627.FirebaseRemoteConfig>(() => firebaseModule.remoteConfig);
   gh.factory<_i211.StoryBloc>(() => _i211.StoryBloc());
-  gh.factory<_i200.CoupleBookService>(() => const _i200.CoupleBookService());
   gh.factory<_i341.GetMonthUseCase>(() => _i341.GetMonthUseCase());
   gh.factory<_i970.GetYearUseCase>(() => _i970.GetYearUseCase());
-  gh.lazySingleton<_i423.PremiumService>(() => _i423.PremiumService());
   gh.lazySingleton<_i568.FeatureToggleManager>(
     () => _i568.FeatureToggleManager(gh<_i627.FirebaseRemoteConfig>()),
   );
@@ -259,6 +272,7 @@ _i174.GetIt $initGetIt(
     () => firebaseModule.timeLineRawCollectionRef,
     instanceName: 'timeLineRawCollectionParam',
   );
+  gh.factory<_i1004.GeocodingDataSource>(() => _i1045.GooglePlacesDataSource());
   gh.factory<_i457.Reference>(
     () => firebaseModule.momentsPhotoRef,
     instanceName: 'photosStorage',
@@ -357,8 +371,14 @@ _i174.GetIt $initGetIt(
       gh<_i370.FilePickerDataSource>(),
     ),
   );
+  gh.lazySingleton<_i423.PremiumService>(
+    () => _i423.PremiumService(gh<_i248.PurchaseRepository>()),
+  );
   gh.factory<_i262.UploadPhotoUseCase>(
     () => _i262.UploadPhotoUseCase(gh<_i179.PhotosRepository>()),
+  );
+  gh.factory<_i253.GeocodingRepository>(
+    () => _i731.GeocodingRepositoryImpl(gh<_i1004.GeocodingDataSource>()),
   );
   gh.factory<_i1061.TimeLineDataSource>(
     () => _i1061.FirebaseTimelineRemoteDataSourceImpl(
@@ -391,6 +411,9 @@ _i174.GetIt $initGetIt(
   );
   gh.factory<_i884.AuthRepository>(
     () => _i401.AuthRepositoryImpl(gh<_i283.AuthRemoteDataSource>()),
+  );
+  gh.factory<_i972.FetchMediaBytesUseCase>(
+    () => _i972.FetchMediaBytesUseCase(gh<_i179.PhotosRepository>()),
   );
   gh.factory<_i465.GetMediaUseCase>(
     () => _i465.GetMediaUseCase(gh<_i179.PhotosRepository>()),
@@ -458,6 +481,12 @@ _i174.GetIt $initGetIt(
       gh<_i884.AuthRepository>(),
     ),
   );
+  gh.factory<_i769.ReverseGeocodeUseCase>(
+    () => _i769.ReverseGeocodeUseCase(gh<_i253.GeocodingRepository>()),
+  );
+  gh.factory<_i439.SearchPlacesUseCase>(
+    () => _i439.SearchPlacesUseCase(gh<_i253.GeocodingRepository>()),
+  );
   gh.factory<_i184.TimeLineRepository>(
     () => _i294.TimeLineRepositoryImpl(
       momentsDataSource: gh<_i771.MomentsDataSource>(),
@@ -514,6 +543,9 @@ _i174.GetIt $initGetIt(
       gh<_i688.TimeCapsuleRepository>(),
       gh<_i821.NotificationService>(),
     ),
+  );
+  gh.factory<_i200.CoupleBookService>(
+    () => _i200.CoupleBookService(gh<_i972.FetchMediaBytesUseCase>()),
   );
   gh.factory<_i339.UpdateCoupleHeaderUseCase>(
     () => _i339.UpdateCoupleHeaderUseCase(
@@ -637,6 +669,21 @@ _i174.GetIt $initGetIt(
       gh<_i44.LogoutUseCase>(),
     ),
   );
+  gh.factory<_i716.TimeLineBloc>(
+    () => _i716.TimeLineBloc(
+      gh<_i589.GetMomentsUseCase>(),
+      gh<_i183.DeleteMomentsUseCase>(),
+      gh<_i522.ClearAllPhotosFromMomentUseCase>(),
+      gh<_i283.CreateTimeLineUseCase>(),
+      gh<_i13.GetTimeLineFromIdUseCase>(),
+      gh<_i759.UpdateRelationshipStartDateUseCase>(),
+      gh<_i1065.UpdateRelationshipEndDateUseCase>(),
+      gh<_i272.UpdateMomentUseCase>(),
+      gh<_i423.PremiumService>(),
+      gh<_i338.GetUserPremiumUseCase>(),
+      gh<_i884.AuthRepository>(),
+    ),
+  );
   gh.factory<_i817.ApproveTimelineDeletionUseCase>(
     () => _i817.ApproveTimelineDeletionUseCase(
       gh<_i184.TimeLineRepository>(),
@@ -655,6 +702,13 @@ _i174.GetIt $initGetIt(
       gh<_i184.TimeLineRepository>(),
     ),
   );
+  gh.factory<_i58.NewFeedCubit>(
+    () => _i58.NewFeedCubit(
+      gh<_i783.GetTimeLineFromEmailUseCase>(),
+      gh<_i589.GetMomentsUseCase>(),
+      gh<_i884.AuthRepository>(),
+    ),
+  );
   gh.factory<_i337.RemoveSpecialDateUseCase>(
     () => _i337.RemoveSpecialDateUseCase(
       gh<_i1007.SpecialDatesRepository>(),
@@ -666,6 +720,17 @@ _i174.GetIt $initGetIt(
       gh<_i789.WatchSpecialDatesUseCase>(),
       gh<_i1005.AddSpecialDateUseCase>(),
       gh<_i337.RemoveSpecialDateUseCase>(),
+    ),
+  );
+  gh.factory<_i321.AddOrEditMomentBloc>(
+    () => _i321.AddOrEditMomentBloc(
+      gh<_i272.UpdateMomentUseCase>(),
+      gh<_i663.RegisterMomentsUseCase>(),
+      gh<_i262.UploadPhotoUseCase>(),
+      gh<_i271.DeletePhotoUseCase>(),
+      gh<_i183.DeleteMomentsUseCase>(),
+      gh<_i884.AuthRepository>(),
+      gh<_i972.FetchMediaBytesUseCase>(),
     ),
   );
   gh.factory<_i99.PremiumBloc>(
@@ -681,30 +746,6 @@ _i174.GetIt $initGetIt(
     () => _i169.LeaveTimelineUseCase(
       gh<_i184.TimeLineRepository>(),
       gh<_i88.DeleteAuthoredMomentsInTimelineUseCase>(),
-    ),
-  );
-  gh.factory<_i716.TimeLineBloc>(
-    () => _i716.TimeLineBloc(
-      gh<_i589.GetMomentsUseCase>(),
-      gh<_i183.DeleteMomentsUseCase>(),
-      gh<_i522.ClearAllPhotosFromMomentUseCase>(),
-      gh<_i283.CreateTimeLineUseCase>(),
-      gh<_i13.GetTimeLineFromIdUseCase>(),
-      gh<_i759.UpdateRelationshipStartDateUseCase>(),
-      gh<_i1065.UpdateRelationshipEndDateUseCase>(),
-      gh<_i272.UpdateMomentUseCase>(),
-      gh<_i423.PremiumService>(),
-      gh<_i338.GetUserPremiumUseCase>(),
-    ),
-  );
-  gh.factory<_i321.AddOrEditMomentBloc>(
-    () => _i321.AddOrEditMomentBloc(
-      gh<_i272.UpdateMomentUseCase>(),
-      gh<_i663.RegisterMomentsUseCase>(),
-      gh<_i262.UploadPhotoUseCase>(),
-      gh<_i271.DeletePhotoUseCase>(),
-      gh<_i183.DeleteMomentsUseCase>(),
-      gh<_i884.AuthRepository>(),
     ),
   );
   gh.factory<_i461.DeleteAccountUseCase>(

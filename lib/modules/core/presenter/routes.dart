@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:nossos_momentos/modules/login/presentation/page/login_page.dart';
+import 'package:nossos_momentos/modules/settings/presentation/page/account_settings_page.dart';
 import 'package:nossos_momentos/modules/settings/presentation/page/settings_page.dart';
 import 'package:nossos_momentos/modules/signup/presentation/page/sign_up_page.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/page/all_timelines_map_page.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/page/new_select_time_line_page.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/page/select_time_line_page.dart';
 
 import '../../moment/presenter/page/add_moment_page.dart';
@@ -21,6 +23,10 @@ enum AppRoute {
   createTimeLine(
     '//create_time_line',
     SelectTimeLinePage(),
+  ),
+  newSelectTimeLine(
+    '//new_select_time_line',
+    NewSelectTimeLinePage(),
   ),
   timeLine(
     '//time_line',
@@ -41,6 +47,10 @@ enum AppRoute {
   allTimelinesMap(
     '//all_timelines_map',
     AllTimelinesMapPage(),
+  ),
+  accountSettings(
+    '//account_settings',
+    AccountSettingsPage(),
   );
 
   final String tag;

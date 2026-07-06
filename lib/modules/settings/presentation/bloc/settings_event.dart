@@ -3,9 +3,11 @@ part of 'settings_bloc.dart';
 abstract class SettingsEvent {}
 
 class FetchEmailEvent extends SettingsEvent {
-  final String timeLineId;
+  /// Pass a non-null [timeLineId] to load the full timeline settings.
+  /// Pass null to load account-only settings (email + delete account).
+  final String? timeLineId;
 
-  FetchEmailEvent({required this.timeLineId});
+  FetchEmailEvent({this.timeLineId});
 }
 
 class DeleteEmailEvent extends SettingsEvent {

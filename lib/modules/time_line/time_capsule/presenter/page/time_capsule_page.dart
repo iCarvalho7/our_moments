@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:nossos_momentos/di/injection.dart';
+import 'package:nossos_momentos/modules/core/presenter/widgets/app_network_image.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/background_gradient.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/primary_app_bar.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/primary_button.dart';
@@ -216,12 +217,11 @@ class _RevealedContent extends StatelessWidget {
           kSpacerHeight12,
           ClipRRect(
             borderRadius: BorderRadius.circular(AppRadii.input),
-            child: Image.network(
-              capsule.mediaUrl,
+            child: AppNetworkImage(
+              url: capsule.mediaUrl,
               height: 180,
               width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorWidget: Container(
                 height: 180,
                 color: palette.primarySoft,
                 alignment: Alignment.center,

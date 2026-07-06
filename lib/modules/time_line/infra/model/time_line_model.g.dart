@@ -12,7 +12,7 @@ TimeLineModel _$TimeLineModelFromJson(
   createdDate: TimeLineModel._fromJsonTimeStamp(json['created_date']),
   emails: (json['emails'] as List<dynamic>).map((e) => e as String).toList(),
   id: json['id'] as String,
-  owners: (json['owners'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
+  owners: (json['owners'] as List<dynamic>).map((e) => e as String).toList(),
   momentIds: (json['moment_ids'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),

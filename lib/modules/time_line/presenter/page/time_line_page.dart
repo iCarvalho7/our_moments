@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -467,7 +466,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
 
   void _goToAddMoment(BuildContext context) {
     final timeLineBloc = context.read<TimeLineBloc>();
-    final currentEmail = FirebaseAuth.instance.currentUser?.email ?? '';
+    final currentEmail = timeLineBloc.currentUserEmail;
     if (!TimelinePermissions.canEdit(timeLineBloc.timeLine, currentEmail)) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -676,8 +675,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
                   key: ValueKey(item.id),
                   direction: DismissDirection.endToStart,
                   confirmDismiss: (_) async {
-                    final currentEmail =
-                        FirebaseAuth.instance.currentUser?.email ?? '';
+                    final currentEmail = bloc.currentUserEmail;
                     if (!TimelinePermissions.canDeleteMoment(
                         parentContext.read<TimeLineBloc>().timeLine,
                         item,
@@ -705,8 +703,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
                     child: MemoryCard(
                       moment: item,
                       nicknames: bloc.timeLine.nicknames,
-                      currentUserEmail:
-                          FirebaseAuth.instance.currentUser?.email ?? '',
+                      currentUserEmail: bloc.currentUserEmail,
                       onFavoriteToggle: () =>
                           bloc.add(TimeLineEventToggleFavorite(moment: item)),
                     ),

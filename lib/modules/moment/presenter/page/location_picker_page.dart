@@ -1,11 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:nossos_momentos/di/injection.dart';
+import 'package:nossos_momentos/modules/location/domain/entity/place_suggestion.dart';
+import 'package:nossos_momentos/modules/location/domain/use_case/reverse_geocode_use_case.dart';
+import 'package:nossos_momentos/modules/location/domain/use_case/search_places_use_case.dart';
 
 import '../../../core/utils/theme/app_theme.dart';
 
@@ -35,6 +37,8 @@ class LocationPickerPage extends StatefulWidget {
 class _LocationPickerPageState extends State<LocationPickerPage> {
   static const LatLng _fallbackCenter = LatLng(-23.55052, -46.633308); // São Paulo
 
+  final _searchPlacesUseCase = getIt<SearchPlacesUseCase>();
+  final _reverseGeocodeUseCase = getIt<ReverseGeocodeUseCase>();
   final MapController _mapController = MapController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
@@ -45,7 +49,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
   bool _searching = false;
   Timer? _debounce;
   Timer? _searchDebounce;
-  List<Map<String, dynamic>> _searchResults = const [];
+  List<PlaceSuggestion> _searchResults = const [];
 
   @override
   void initState() {
@@ -55,6 +59,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
         : _fallbackCenter;
     _nameController.text = widget.initialName ?? '';
     _nameEditedManually = (widget.initialName ?? '').isNotEmpty;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _requestLocationPermission());
   }
 
   @override
@@ -67,6 +72,21 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
     super.dispose();
   }
 
+  Future<void> _requestLocationPermission() async {
+    if (!await Geolocator.isLocationServiceEnabled()) return;
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (!mounted) return;
+    // If no initial position was given and permission is available, jump there.
+    if (widget.initialLatitude == null &&
+        permission != LocationPermission.denied &&
+        permission != LocationPermission.deniedForever) {
+      _useCurrentLocation();
+    }
+  }
+
   void _scheduleReverseGeocode() {
     if (_nameEditedManually) return;
     _debounce?.cancel();
@@ -76,18 +96,13 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
   Future<void> _reverseGeocode() async {
     setState(() => _resolvingName = true);
     try {
-      final uri = Uri.parse(
-        'https://nominatim.openstreetmap.org/reverse'
-        '?format=jsonv2&lat=${_center.latitude}&lon=${_center.longitude}',
+      final result = await _reverseGeocodeUseCase.call(
+        ReverseGeocodeParams(latitude: _center.latitude, longitude: _center.longitude),
       );
-      final response = await http.get(uri, headers: _nominatimHeaders);
-      if (response.statusCode == 200 && !_nameEditedManually) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final name = _shortName(data['display_name'] as String?);
+      if (mounted && !_nameEditedManually) {
+        final name = result.data ?? '';
         if (name.isNotEmpty) _nameController.text = name;
       }
-    } catch (_) {
-      // Offline / rate-limited — keep the current name.
     } finally {
       if (mounted) setState(() => _resolvingName = false);
     }
@@ -103,49 +118,26 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
     _searchDebounce = Timer(const Duration(milliseconds: 600), () => _runSearch(query));
   }
 
-  /// Viewbox de ±12° ao redor de [_center] (≈ 1 300 km em cada direção).
-  /// bounded=0 → prioriza resultados dentro da caixa mas não exclui os de fora,
-  /// então locais famosos (ex: Disney World) ainda aparecem mesmo buscando do Brasil.
-  String get _searchViewbox {
-    const d = 12.0;
-    final w = (_center.longitude - d).clamp(-180.0, 180.0);
-    final e = (_center.longitude + d).clamp(-180.0, 180.0);
-    final n = (_center.latitude + d).clamp(-90.0, 90.0);
-    final s = (_center.latitude - d).clamp(-90.0, 90.0);
-    return '$w,$n,$e,$s';
-  }
-
   Future<void> _runSearch(String query) async {
     if (query.trim().length < 3) return;
     setState(() => _searching = true);
     try {
-      final uri = Uri.parse(
-        'https://nominatim.openstreetmap.org/search'
-        '?format=jsonv2&limit=5&addressdetails=0'
-        '&viewbox=$_searchViewbox&bounded=0'
-        '&q=${Uri.encodeQueryComponent(query)}',
-      );
-      final response = await http.get(uri, headers: _nominatimHeaders);
-      final results = response.statusCode == 200
-          ? (jsonDecode(response.body) as List<dynamic>).cast<Map<String, dynamic>>()
-          : <Map<String, dynamic>>[];
-      if (mounted) setState(() => _searchResults = results);
-    } catch (_) {
-      if (mounted) setState(() => _searchResults = const []);
+      final result = await _searchPlacesUseCase.call(SearchPlacesParams(
+        query: query,
+        biasLatitude: _center.latitude,
+        biasLongitude: _center.longitude,
+      ));
+      if (mounted) setState(() => _searchResults = result.data ?? const []);
     } finally {
       if (mounted) setState(() => _searching = false);
     }
   }
 
-  void _selectResult(Map<String, dynamic> item) {
-    final latLng = LatLng(
-      double.parse(item['lat'] as String),
-      double.parse(item['lon'] as String),
-    );
-    final name = _shortName(item['display_name'] as String?);
+  void _selectResult(PlaceSuggestion suggestion) {
+    final latLng = LatLng(suggestion.latitude, suggestion.longitude);
     _nameEditedManually = false;
-    _nameController.text = name;
-    _searchController.text = name;
+    _nameController.text = suggestion.name;
+    _searchController.text = suggestion.name;
     FocusScope.of(context).unfocus();
     setState(() {
       _center = latLng;
@@ -154,16 +146,6 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
     _mapController.move(latLng, 15);
   }
 
-  static const Map<String, String> _nominatimHeaders = {
-    'User-Agent': 'NossosMomentos/1.0 (contato.lutestudios@gmail.com)',
-    'Accept-Language': 'pt-BR,pt;q=0.9',
-  };
-
-  /// Shortens a Nominatim display_name to its first couple of parts.
-  String _shortName(String? displayName) {
-    if (displayName == null || displayName.trim().isEmpty) return '';
-    return displayName.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).take(2).join(', ');
-  }
 
   Future<void> _useCurrentLocation() async {
     final messenger = ScaffoldMessenger.of(context);
@@ -206,8 +188,8 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final tileUrl = palette.isDark
-        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
-        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
+        ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
     return Scaffold(
       appBar: AppBar(
@@ -231,6 +213,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
               TileLayer(
                 urlTemplate: tileUrl,
                 subdomains: const ['a', 'b', 'c', 'd'],
+                retinaMode: RetinaMode.isHighDensity(context),
                 userAgentPackageName: 'com.nossosmomentos.app',
               ),
               SimpleAttributionWidget(
@@ -240,7 +223,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             ],
           ),
 
-          // Center pin (its tip points at the map center).
+          // Center pin — tip points at map center.
           IgnorePointer(
             child: Center(
               child: Padding(
@@ -278,8 +261,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             ),
           ),
 
-          // Search bar + results — último no Stack para ficar na frente de tudo,
-          // incluindo o painel de baixo quando a lista de resultados é longa.
+          // Search bar + results — on top of everything including the bottom panel.
           Positioned(
             top: 10,
             left: 12,
@@ -295,7 +277,6 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                 if (_searchResults.isNotEmpty)
                   _SearchResults(
                     results: _searchResults,
-                    shorten: _shortName,
                     onSelect: _selectResult,
                   ),
               ],
@@ -355,11 +336,62 @@ class _SearchBar extends StatelessWidget {
 }
 
 class _SearchResults extends StatelessWidget {
-  const _SearchResults({required this.results, required this.shorten, required this.onSelect});
+  const _SearchResults({required this.results, required this.onSelect});
 
-  final List<Map<String, dynamic>> results;
-  final String Function(String?) shorten;
-  final void Function(Map<String, dynamic>) onSelect;
+  final List<PlaceSuggestion> results;
+  final void Function(PlaceSuggestion) onSelect;
+
+  static IconData _iconFor(String type) {
+    switch (type) {
+      case 'restaurant':
+      case 'cafe':
+      case 'bar':
+      case 'fast_food':
+      case 'food_court':
+        return Icons.restaurant_outlined;
+      case 'hotel':
+      case 'lodging':
+      case 'motel':
+        return Icons.hotel_outlined;
+      case 'bus_station':
+      case 'transit_station':
+      case 'ferry_terminal':
+        return Icons.directions_bus_outlined;
+      case 'airport':
+        return Icons.flight_outlined;
+      case 'hospital':
+      case 'doctor':
+      case 'pharmacy':
+        return Icons.local_hospital_outlined;
+      case 'school':
+      case 'university':
+        return Icons.school_outlined;
+      case 'museum':
+      case 'tourist_attraction':
+      case 'amusement_park':
+        return Icons.museum_outlined;
+      case 'park':
+      case 'campground':
+      case 'beach':
+        return Icons.park_outlined;
+      case 'shopping_mall':
+      case 'supermarket':
+      case 'store':
+        return Icons.shopping_bag_outlined;
+      case 'locality':
+      case 'administrative_area_level_1':
+      case 'administrative_area_level_2':
+        return Icons.location_city_outlined;
+    }
+    return Icons.place_outlined;
+  }
+
+  /// Extracts "City - State, Country" from a Google formatted address.
+  static String _cityHint(String address) {
+    final parts = address.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    if (parts.length <= 1) return address;
+    return parts.sublist(parts.length < 3 ? 0 : parts.length - 2).join(', ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -367,7 +399,7 @@ class _SearchResults extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return Container(
       margin: const EdgeInsets.only(top: 6),
-      constraints: const BoxConstraints(maxHeight: 260),
+      constraints: const BoxConstraints(maxHeight: 280),
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(AppRadii.input),
@@ -375,28 +407,52 @@ class _SearchResults extends StatelessWidget {
       ),
       child: ListView.separated(
         shrinkWrap: true,
-        padding: EdgeInsets.zero,
+        padding: const EdgeInsets.symmetric(vertical: 4),
         itemCount: results.length,
-        separatorBuilder: (_, __) => Divider(height: 1, color: palette.outline),
+        separatorBuilder: (_, __) => Divider(height: 1, indent: 56, color: palette.outline),
         itemBuilder: (context, index) {
-          final item = results[index];
-          final display = item['display_name'] as String?;
-          return ListTile(
-            dense: true,
-            leading: Icon(Icons.place_outlined, color: palette.primary, size: 20),
-            title: Text(
-              shorten(display),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.titleSmall,
+          final s = results[index];
+          final hint = _cityHint(s.address);
+          return InkWell(
+            onTap: () => onSelect(s),
+            borderRadius: index == 0
+                ? const BorderRadius.vertical(top: Radius.circular(AppRadii.input))
+                : index == results.length - 1
+                    ? const BorderRadius.vertical(bottom: Radius.circular(AppRadii.input))
+                    : BorderRadius.zero,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: palette.primarySoft,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(_iconFor(s.primaryType), color: palette.primary, size: 18),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(s.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.titleSmall),
+                        const SizedBox(height: 2),
+                        Text(
+                          hint,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            subtitle: Text(
-              display ?? '',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodySmall,
-            ),
-            onTap: () => onSelect(item),
           );
         },
       ),

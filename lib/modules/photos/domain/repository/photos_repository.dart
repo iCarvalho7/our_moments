@@ -18,4 +18,7 @@ abstract class PhotosRepository {
   Future deletePhotosFromMoment(List<String> paths, String momentId);
 
   Future<List<Story>> getMedia();
+
+  /// Downloads raw bytes from any HTTP/blob URL. Returns null on failure.
+  Future<({Uint8List bytes, String? contentType})?> fetchBytes(String url);
 }

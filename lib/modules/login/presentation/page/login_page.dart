@@ -167,7 +167,7 @@ class _LoginPageState extends State<LoginPage> {
     if (state is LoginSuccess) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.maybePop(context);
-        Navigator.of(context).pushReplacementNamed(AppRoute.createTimeLine.tag);
+        Navigator.of(context).pushReplacementNamed(AppRoute.newSelectTimeLine.tag);
       });
     }
   }

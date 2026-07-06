@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import 'package:nossos_momentos/modules/premium/domain/repository/purchase_repository.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
 import 'package:nossos_momentos/modules/user/domain/entity/user_premium.dart';
 
@@ -15,6 +16,10 @@ import 'premium_feature.dart';
 /// changing a free limit means touching a single file.
 @lazySingleton
 class PremiumService {
+  PremiumService(this._purchaseRepository);
+
+  final PurchaseRepository _purchaseRepository;
+
   TimeLine? _timeLine;
   UserPremium? _user;
 
@@ -58,4 +63,7 @@ class PremiumService {
 
   /// Free tier exposes this many accent colors in Settings.
   int get freeThemeCount => 3;
+
+  /// Whether the store SDK can be used on this build (mobile + configured).
+  bool get isStoreAvailable => _purchaseRepository.isStoreAvailable;
 }

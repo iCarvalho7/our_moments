@@ -1,19 +1,15 @@
-// ignore_for_file: unused_import
-
 import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
-import 'package:intl/intl.dart';
 import 'package:nossos_momentos/modules/core/utils/data_url/data_url.dart';
 import 'package:nossos_momentos/modules/core/utils/string_ext/string_ext.dart';
-import 'package:nossos_momentos/modules/stories/domain/entity/story.dart';
 import 'package:nossos_momentos/modules/login/domain/repository/auth_repository.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
 import '../../../photos/domain/use_case/delete_photo_use_case.dart';
+import '../../../photos/domain/use_case/fetch_media_bytes_use_case.dart';
 import '../../domain/entities/moment.dart';
 import '../../domain/entities/moment_type.dart';
 import '../../domain/use_case/delete_moments_use_case.dart';
@@ -33,6 +29,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
   final DeletePhotoUseCase deletePhotoUseCase;
   final DeleteMomentsUseCase deleteMomentsUseCase;
   final AuthRepository authRepository;
+  final FetchMediaBytesUseCase fetchMediaBytesUseCase;
 
   Moment? _originalMoment;
 
@@ -58,6 +55,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     this.deletePhotoUseCase,
     this.deleteMomentsUseCase,
     this.authRepository,
+    this.fetchMediaBytesUseCase,
   ) : super(AddOrEditMomentStateEmpty(timeLineId: '')) {
     on<SetupAddMomentEvent>(_handleShowEmpty);
     on<SetupEditMomentEvent>(_handleEditMoment);
@@ -120,13 +118,8 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
   }
 
   Future<({Uint8List bytes, String? contentType})?> _fetchBlob(String blobUrl) async {
-    try {
-      final res = await http.get(Uri.parse(blobUrl));
-      if (res.statusCode == 200) {
-        return (bytes: res.bodyBytes, contentType: res.headers['content-type']);
-      }
-    } catch (_) {}
-    return null;
+    final result = await fetchMediaBytesUseCase.call(blobUrl);
+    return result.data;
   }
 
   String _audioExtension(String? contentType) {

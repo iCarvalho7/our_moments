@@ -16,4 +16,7 @@ abstract class PhotoDataSource {
   Future clearAllMomentPhotos(String momentId);
 
   Future deleteMomentPhoto(List<String> paths, String momentId);
+
+  /// Downloads raw bytes from any HTTP/blob URL. Returns null on failure.
+  Future<({Uint8List bytes, String? contentType})?> fetchBytes(String url);
 }

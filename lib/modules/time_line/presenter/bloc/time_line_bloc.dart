@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:nossos_momentos/modules/core/premium/premium_service.dart';
 import 'package:nossos_momentos/modules/core/use_case/use_case.dart';
+import 'package:nossos_momentos/modules/login/domain/repository/auth_repository.dart';
 import 'package:nossos_momentos/modules/moment/domain/use_case/get_moments_use_case.dart';
 import 'package:nossos_momentos/modules/user/domain/use_case/get_user_premium_use_case.dart';
 
@@ -33,7 +34,11 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
   final UpdateMomentUseCase _updateMomentUseCase;
   final PremiumService _premiumService;
   final GetUserPremiumUseCase _getUserPremiumUseCase;
+  final AuthRepository _authRepository;
   late TimeLine timeLine;
+
+  /// Email of the currently logged-in user; populated in [_init].
+  String currentUserEmail = '';
 
   /// Every day (normalized, no time) that has at least one moment, across all
   /// months — used to mark dates in the calendar filter.
@@ -55,6 +60,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     this._updateMomentUseCase,
     this._premiumService,
     this._getUserPremiumUseCase,
+    this._authRepository,
   ) : super(TimeLineStateInitial()) {
     on<TimeLineEventInit>(_init);
     on<TimeLineEventChangeDate>(_handleChangeDate);
@@ -114,6 +120,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     timeLine = result.data!;
     _premiumService.bind(timeLine);
     await _bindUserPremium();
+    currentUserEmail = _authRepository.getCurrentUser()?.email ?? '';
 
     add(TimeLineEventChangeDate());
   }

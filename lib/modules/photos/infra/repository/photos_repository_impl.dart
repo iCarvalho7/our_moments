@@ -44,4 +44,8 @@ class PhotosRepositoryImpl extends PhotosRepository {
     final files = await filePickerDataSource.getFiles();
     return files?.whereType<String>().map((e) => Story(url: e)).toList() ?? [];
   }
+
+  @override
+  Future<({Uint8List bytes, String? contentType})?> fetchBytes(String url) =>
+      dataSource.fetchBytes(url);
 }

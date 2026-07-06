@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -10,6 +9,7 @@ import 'package:printing/printing.dart';
 import '../../core/utils/string_ext/string_ext.dart';
 import '../../core/utils/theme/app_theme.dart';
 import '../../moment/domain/entities/moment.dart';
+import '../../photos/domain/use_case/fetch_media_bytes_use_case.dart';
 import '../domain/entity/time_line.dart';
 
 /// Builds the couple's whole timeline as a shareable PDF "album" and opens the
@@ -20,7 +20,9 @@ import '../domain/entity/time_line.dart';
 /// export — this paginates the entire timeline (cover + one section per moment).
 @injectable
 class CoupleBookService {
-  const CoupleBookService();
+  const CoupleBookService(this._fetchMediaBytesUseCase);
+
+  final FetchMediaBytesUseCase _fetchMediaBytesUseCase;
 
   /// Max images embedded per moment, to keep the PDF light and avoid running
   /// out of memory while downloading/decoding photos.
@@ -315,14 +317,8 @@ class CoupleBookService {
   /// Fetches a single image URL into a [pw.MemoryImage], returning null on any
   /// failure (network error, non-200, empty body) so it can be skipped.
   Future<pw.MemoryImage?> _tryFetchImage(String url) async {
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode != 200 || response.bodyBytes.isEmpty) {
-        return null;
-      }
-      return pw.MemoryImage(response.bodyBytes);
-    } catch (_) {
-      return null;
-    }
+    final result = await _fetchMediaBytesUseCase.call(url);
+    if (result.data == null || result.data!.bytes.isEmpty) return null;
+    return pw.MemoryImage(result.data!.bytes);
   }
 }

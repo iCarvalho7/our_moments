@@ -6,6 +6,7 @@ import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/core/presenter/routes.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/app_card.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/background_gradient.dart';
+import 'package:nossos_momentos/modules/core/presenter/widgets/app_network_image.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/primary_app_bar.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
@@ -467,10 +468,11 @@ class _CoverPhotoHeader extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.network(
-            url,
+          AppNetworkImage(
+            url: url,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => DecoratedBox(
+            height: 140,
+            errorWidget: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [accent.withValues(alpha: 0.4), accent.withValues(alpha: 0.15)],

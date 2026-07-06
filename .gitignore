@@ -47,3 +47,10 @@ app.*.map.json
 
 # FVM Version Cache
 .fvm/
+
+# Scripts — service account key (never commit credentials)
+scripts/service-account.json
+scripts/node_modules/
+
+# Local dart-define overrides (API keys — never commit)
+dart_defines.json

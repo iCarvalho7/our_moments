@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
 import 'package:nossos_momentos/modules/core/utils/logging/request_logger.dart';
 import 'package:nossos_momentos/modules/photos/infra/data_source/photo_data_source.dart';
@@ -113,6 +114,17 @@ class FirebaseStoragePhotoDataSource extends PhotoDataSource {
           }
         },
       );
+
+  @override
+  Future<({Uint8List bytes, String? contentType})?> fetchBytes(String url) async {
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+        return (bytes: response.bodyBytes, contentType: response.headers['content-type']);
+      }
+    } catch (_) {}
+    return null;
+  }
 
   static const String photosStorage = "photosStorage";
 }

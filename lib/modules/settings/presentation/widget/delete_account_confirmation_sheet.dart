@@ -10,12 +10,10 @@ class DeleteAccountConfirmationSheet extends StatefulWidget {
   final VoidCallback onConfirm;
 
   @override
-  State<DeleteAccountConfirmationSheet> createState() =>
-      _DeleteAccountConfirmationSheetState();
+  State<DeleteAccountConfirmationSheet> createState() => _DeleteAccountConfirmationSheetState();
 }
 
-class _DeleteAccountConfirmationSheetState
-    extends State<DeleteAccountConfirmationSheet> {
+class _DeleteAccountConfirmationSheetState extends State<DeleteAccountConfirmationSheet> {
   bool _check1 = false;
   bool _check2 = false;
 
@@ -30,16 +28,9 @@ class _DeleteAccountConfirmationSheetState
     return Container(
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(AppRadii.card),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadii.card)),
       ),
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 12,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
-      ),
+      padding: EdgeInsets.only(left: 24, right: 24, top: 12, bottom: MediaQuery.of(context).viewInsets.bottom + 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -48,10 +39,7 @@ class _DeleteAccountConfirmationSheetState
             child: Container(
               width: 40,
               height: 4,
-              decoration: BoxDecoration(
-                color: palette.outline,
-                borderRadius: BorderRadius.circular(AppRadii.pill),
-              ),
+              decoration: BoxDecoration(color: palette.outline, borderRadius: BorderRadius.circular(AppRadii.pill)),
             ),
           ),
           kSpacerHeight24,
@@ -67,9 +55,7 @@ class _DeleteAccountConfirmationSheetState
                 child: Icon(Icons.person_off_outlined, color: errorColor, size: 24),
               ),
               kSpacerWidth12,
-              Expanded(
-                child: Text('Excluir sua conta?', style: textTheme.titleLarge),
-              ),
+              Expanded(child: Text('Excluir sua conta?', style: textTheme.titleLarge)),
             ],
           ),
           kSpacerHeight16,
@@ -83,7 +69,8 @@ class _DeleteAccountConfirmationSheetState
           _CheckRow(
             value: _check1,
             onChanged: (v) => setState(() => _check1 = v ?? false),
-            label: 'Entendo que minha conta e meus dados serão apagados '
+            label:
+                'Entendo que minha conta e meus dados serão apagados '
                 'permanentemente',
             palette: palette,
             textTheme: textTheme,
@@ -119,10 +106,7 @@ class _DeleteAccountConfirmationSheetState
           kSpacerHeight8,
           SizedBox(
             width: double.infinity,
-            child: TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
-            ),
+            child: TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
           ),
         ],
       ),
@@ -164,9 +148,7 @@ class _CheckRow extends StatelessWidget {
                 value: value,
                 onChanged: onChanged,
                 activeColor: errorColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
               ),
             ),
             kSpacerWidth12,

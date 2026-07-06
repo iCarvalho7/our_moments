@@ -85,8 +85,13 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     Emitter<SettingsState> emit,
   ) async {
     final res = getCurrentUserUseCase.call(NoParams.instance);
-    final timelineRes = await _getTimeLineFromIdUseCase.call(event.timeLineId);
-
+    if (event.timeLineId == null) {
+      if (res.isSuccess && res.data != null) {
+        emit(SettingsSuccess(timeLine: null, email: res.data!.email));
+      }
+      return;
+    }
+    final timelineRes = await _getTimeLineFromIdUseCase.call(event.timeLineId!);
     if (res.isSuccess && res.data != null && timelineRes.isSuccess) {
       emit(SettingsSuccess(timeLine: timelineRes.data!, email: res.data!.email));
     }

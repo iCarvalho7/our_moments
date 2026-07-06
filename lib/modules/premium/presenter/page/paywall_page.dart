@@ -10,7 +10,8 @@ import 'package:nossos_momentos/modules/core/presenter/widgets/primary_app_bar.d
 import 'package:nossos_momentos/modules/core/presenter/widgets/primary_button.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 
-import '../../domain/repository/purchase_repository.dart';
+import 'package:nossos_momentos/modules/core/premium/premium_service.dart';
+
 import '../../domain/use_case/present_customer_center_use_case.dart';
 import '../bloc/premium_bloc.dart';
 
@@ -76,7 +77,7 @@ class PaywallPage extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final storeAvailable = getIt<PurchaseRepository>().isStoreAvailable;
+    final storeAvailable = getIt<PremiumService>().isStoreAvailable;
     final busy = state is PremiumStatePurchasing;
 
     // Hard load failure with nothing to fall back on (only when the store is

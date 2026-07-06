@@ -17,7 +17,6 @@ import 'package:nossos_momentos/modules/moment/presenter/bloc/add_or_edit_moment
 import '../../domain/entity/time_line.dart';
 import '../../domain/entity/timeline_permissions.dart';
 import '../bloc/new_feed_cubit.dart';
-import '../bloc/select_time_line_bloc.dart';
 import '../widgets/new_moment_feed_card.dart';
 
 /// Social-feed home: every timeline the user belongs to and its moments merged
@@ -84,7 +83,7 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
     if (id == null) return;
     Navigator.pushNamed(
       context,
-      AppRoute.allTimelinesMap.tag,
+      AppRoute.momentsMap.tag,
     ).then((_) => context.mounted ? context.read<NewFeedCubit>().load() : null);
   }
 
@@ -102,13 +101,19 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
     ).then((_) => cubit.load());
   }
 
+  void _openTimelineSettings(BuildContext context, String timelineId) {
+    final cubit = context.read<NewFeedCubit>();
+    Navigator.pushNamed(
+      context,
+      AppRoute.timeLine.tag,
+      arguments: timelineId,
+    ).then((_) => context.mounted ? cubit.load() : null);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => getIt<SelectTimeLineBloc>()..add(SelectTimeLineEventFetchAll())),
-        BlocProvider(create: (_) => getIt<NewFeedCubit>()..load()),
-      ],
+    return BlocProvider(
+      create: (_) => getIt<NewFeedCubit>()..load(),
       child: Builder(
         builder: (context) {
           return Stack(
@@ -116,35 +121,21 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
               const BackgroundGradient(),
               Scaffold(
                 backgroundColor: Colors.transparent,
-                appBar: PrimaryAppBar(
-                  title: 'Nossos Momentos',
-                  back: IconButton(
-                    tooltip: 'Sair',
-                    icon: const Icon(Icons.logout_rounded),
-                    onPressed: () => context.read<SelectTimeLineBloc>().add(SelectTimeLineEventLogout()),
-                  ),
-                ),
+                appBar: const PrimaryAppBar(title: 'Nossos Momentos'),
                 body: SafeArea(
-                  child: BlocListener<SelectTimeLineBloc, SelectTimeLineState>(
+                  child: BlocConsumer<NewFeedCubit, NewFeedState>(
                     listener: (context, state) {
-                      if (state is SelectTimeLogoutSuccess) {
-                        Navigator.of(context).pushNamedAndRemoveUntil(AppRoute.login.tag, (route) => false);
+                      if (state is NewFeedLoaded && _savedScrollOffset > 0) {
+                        final offset = _savedScrollOffset;
+                        _savedScrollOffset = 0;
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (_scrollController.hasClients) {
+                            _scrollController.jumpTo(offset.clamp(0.0, _scrollController.position.maxScrollExtent));
+                          }
+                        });
                       }
                     },
-                    child: BlocConsumer<NewFeedCubit, NewFeedState>(
-                      listener: (context, state) {
-                        if (state is NewFeedLoaded && _savedScrollOffset > 0) {
-                          final offset = _savedScrollOffset;
-                          _savedScrollOffset = 0;
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (_scrollController.hasClients) {
-                              _scrollController.jumpTo(offset.clamp(0.0, _scrollController.position.maxScrollExtent));
-                            }
-                          });
-                        }
-                      },
-                      builder: _buildFeedBody,
-                    ),
+                    builder: _buildFeedBody,
                   ),
                 ),
                 bottomNavigationBar: AppBottomNav(
@@ -242,6 +233,13 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
               onTap: cubit.filterByTimeline,
             ),
           ),
+          if (loaded.activeTimelineId != null)
+            SliverToBoxAdapter(
+              child: _TimelineActionBar(
+                timeline: loaded.timelines.firstWhere((t) => t.id == loaded.activeTimelineId),
+                onSettings: () => _openTimelineSettings(context, loaded.activeTimelineId!),
+              ),
+            ),
           SliverToBoxAdapter(
             child: _FeedHeader(timelineCount: loaded.timelines.length, momentCount: loaded.moments.length),
           ),
@@ -414,6 +412,49 @@ class _StoryBubble extends StatelessWidget {
                   fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TimelineActionBar extends StatelessWidget {
+  const _TimelineActionBar({required this.timeline, required this.onSettings});
+
+  final TimeLine timeline;
+  final VoidCallback onSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+    final accent = timeline.accentColor != null ? Color(timeline.accentColor!) : palette.primary;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+      child: InkWell(
+        onTap: onSettings,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: accent.withValues(alpha: 0.25)),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.info_outline_rounded, size: 16, color: accent),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Ver mais detalhes de "${timeline.name.isNotEmpty ? timeline.name : 'Linha'}"',
+                  style: textTheme.bodySmall?.copyWith(color: accent, fontWeight: FontWeight.w500),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, size: 16, color: accent),
             ],
           ),
         ),

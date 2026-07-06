@@ -10,12 +10,11 @@ import '../utils/moment_counts.dart';
 /// Couple-only statistics over the timeline's moments. Pure read/count widget:
 /// receives the loaded moments and computes totals in memory (no repository).
 class CoupleStatsPage extends StatelessWidget {
-  const CoupleStatsPage({super.key, required this.moments});
-
-  final List<Moment> moments;
+  const CoupleStatsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final moments = ModalRoute.of(context)?.settings.arguments as List<Moment>? ?? const [];
     return Stack(
       children: [
         const BackgroundGradient(),

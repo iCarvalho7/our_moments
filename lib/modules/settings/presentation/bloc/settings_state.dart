@@ -38,3 +38,8 @@ final class SettingsReauthRequired extends SettingsState {
 final class SettingsAccountDeleteError extends SettingsState {
   SettingsAccountDeleteError({required super.timeLine, required super.email});
 }
+
+/// The user signed out; the UI should route to login.
+final class SettingsLoggedOut extends SettingsState {
+  SettingsLoggedOut({required super.timeLine, required super.email});
+}

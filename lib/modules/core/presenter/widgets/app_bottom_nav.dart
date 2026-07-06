@@ -4,12 +4,7 @@ import '../../utils/theme/app_theme.dart';
 
 /// A single entry in [AppBottomNav].
 class AppNavItem {
-  const AppNavItem({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.primary = false,
-  });
+  const AppNavItem({required this.icon, required this.label, required this.onTap, this.primary = false});
 
   final IconData icon;
   final String label;
@@ -30,12 +25,7 @@ class AppBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        0,
-        16,
-        12 + MediaQuery.of(context).padding.bottom,
-      ),
+      padding: EdgeInsets.fromLTRB(16, 0, 16, 12 + MediaQuery.of(context).padding.bottom),
       child: Container(
         height: 68,
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -66,15 +56,22 @@ class _NavButton extends StatelessWidget {
     if (item.primary) {
       return GestureDetector(
         onTap: item.onTap,
-        child: Container(
-          width: 54,
-          height: 54,
-          decoration: BoxDecoration(
-            color: palette.primary,
-            shape: BoxShape.circle,
-            boxShadow: AppShadows.soft(context),
-          ),
-          child: Icon(item.icon, color: palette.onPrimary, size: 28),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: palette.primary,
+                shape: BoxShape.circle,
+                boxShadow: AppShadows.soft(context),
+              ),
+              child: Icon(item.icon, color: palette.onPrimary, size: 28),
+            ),
+            const SizedBox(height: 3 + 10), // mirrors gap + label height of regular items
+          ],
         ),
       );
     }
@@ -90,10 +87,7 @@ class _NavButton extends StatelessWidget {
           const SizedBox(height: 3),
           Text(
             item.label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: palette.onSurfaceMuted,
-                  fontSize: 10,
-                ),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted, fontSize: 10),
           ),
         ],
       ),

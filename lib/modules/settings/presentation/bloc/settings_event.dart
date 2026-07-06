@@ -82,6 +82,9 @@ class LeaveTimelineEvent extends SettingsEvent {
   LeaveTimelineEvent({this.deleteAuthoredMoments = false});
 }
 
+/// Signs the current user out of the app.
+class LogoutEvent extends SettingsEvent {}
+
 /// Deletes the current user's account and their data.
 class DeleteAccountEvent extends SettingsEvent {}
 

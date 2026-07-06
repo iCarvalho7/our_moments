@@ -8,8 +8,19 @@ import 'package:nossos_momentos/modules/time_line/presenter/page/new_select_time
 import 'package:nossos_momentos/modules/time_line/presenter/page/select_time_line_page.dart';
 
 import '../../moment/presenter/page/add_moment_page.dart';
+import '../../moment/presenter/page/location_picker_page.dart';
+import '../../moment/presenter/page/share_moment_page.dart';
+import '../../premium/presenter/page/paywall_page.dart';
 import '../../stories/presenter/page/story_page.dart';
+import '../../time_line/bucket_list/presenter/page/bucket_list_page.dart';
+import '../../time_line/presenter/page/couple_features_hub_page.dart';
+import '../../time_line/presenter/page/couple_stats_page.dart';
+import '../../time_line/presenter/page/moments_map_page.dart';
+import '../../time_line/presenter/page/on_this_day_page.dart';
 import '../../time_line/presenter/page/time_line_page.dart';
+import '../../time_line/presenter/page/year_in_review_page.dart';
+import '../../time_line/special_dates/presenter/page/special_dates_page.dart';
+import '../../time_line/time_capsule/presenter/page/time_capsule_page.dart';
 
 enum AppRoute {
   login(
@@ -51,6 +62,50 @@ enum AppRoute {
   accountSettings(
     '//account_settings',
     AccountSettingsPage(),
+  ),
+  onThisDay(
+    '//on_this_day',
+    OnThisDayPage(),
+  ),
+  bucketList(
+    '//bucket_list',
+    BucketListPage(),
+  ),
+  specialDates(
+    '//special_dates',
+    SpecialDatesPage(),
+  ),
+  timeCapsule(
+    '//time_capsule',
+    TimeCapsulePage(),
+  ),
+  coupleStats(
+    '//couple_stats',
+    CoupleStatsPage(),
+  ),
+  shareMoment(
+    '//share_moment',
+    ShareMomentPage(),
+  ),
+  coupleFeaturesHub(
+    '//couple_features_hub',
+    CoupleFeaturesHubPage(),
+  ),
+  momentsMap(
+    '//moments_map',
+    MomentsMapPage(),
+  ),
+  yearInReview(
+    '//year_in_review',
+    YearInReviewPage(),
+  ),
+  paywall(
+    '//paywall',
+    PaywallPage(),
+  ),
+  locationPicker(
+    '//location_picker',
+    LocationPickerPage(),
   );
 
   final String tag;

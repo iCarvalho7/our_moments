@@ -15,18 +15,16 @@ import '../bloc/time_capsule_bloc.dart';
 /// Couple-only time capsule ("Cápsula do tempo"). Capsules live in the
 /// `time_line/{id}/time_capsules` subcollection. Reveal is client-side: locked
 /// capsules never expose their message until [TimeCapsule.revealDate].
-class TimeCapsulePage extends StatelessWidget {
-  const TimeCapsulePage({
-    super.key,
-    required this.timelineId,
-    required this.emails,
-  });
+typedef _TimeCapsuleArgs = ({String timelineId, List<String> emails});
 
-  final String timelineId;
-  final List<String> emails;
+class TimeCapsulePage extends StatelessWidget {
+  const TimeCapsulePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments as _TimeCapsuleArgs?;
+    final timelineId = args?.timelineId ?? '';
+    final emails = args?.emails ?? const [];
     return BlocProvider<TimeCapsuleBloc>(
       create: (_) => getIt<TimeCapsuleBloc>()
         ..add(TimeCapsuleStarted(timelineId: timelineId, emails: emails)),

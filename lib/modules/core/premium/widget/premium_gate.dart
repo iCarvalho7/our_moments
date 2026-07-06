@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nossos_momentos/di/injection.dart';
-import 'package:nossos_momentos/modules/premium/presenter/page/paywall_page.dart';
+import 'package:nossos_momentos/modules/core/presenter/routes.dart';
 
 import '../../utils/theme/app_theme.dart';
 import '../premium_feature.dart';
@@ -72,10 +72,9 @@ Future<bool> showPremiumPlaceholder(
   BuildContext context,
   PremiumFeature feature,
 ) async {
-  final result = await Navigator.of(context).push<bool>(
-    MaterialPageRoute(
-      builder: (_) => PaywallPage(highlightFeature: feature),
-    ),
-  );
+  final result = await Navigator.of(context).pushNamed(
+    AppRoute.paywall.tag,
+    arguments: feature,
+  ) as bool?;
   return result ?? false;
 }

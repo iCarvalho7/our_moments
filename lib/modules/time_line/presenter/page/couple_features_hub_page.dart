@@ -11,49 +11,34 @@ import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/time_line/couple_book/couple_book_service.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
 
-import '../../bucket_list/presenter/page/bucket_list_page.dart';
-import '../../special_dates/presenter/page/special_dates_page.dart';
-import '../../time_capsule/presenter/page/time_capsule_page.dart';
-import 'couple_stats_page.dart';
-import 'year_in_review_page.dart';
+import 'package:nossos_momentos/modules/core/presenter/routes.dart';
 
-/// Single discovery hub gathering every couple-tier feature in one place,
-/// replacing the cluster of AppBar icons on the timeline.
-///
-/// The entry icon always opens this hub (for discovery); the gate happens
-/// per-card on tap. Because the hub is a separate route — with no access to the
-/// timeline's [TimeLineBloc] — it tracks whether any feature was unlocked during
-/// the session and pops `true` so [TimeLinePage] can reload the timeline
-/// (re-binding [PremiumService]) on return.
+typedef _CoupleFeaturesHubArgs = ({List<Moment> moments, TimeLine timeLine});
+
 class CoupleFeaturesHubPage extends StatefulWidget {
-  const CoupleFeaturesHubPage({
-    super.key,
-    required this.moments,
-    required this.timeLine,
-  });
-
-  /// All moments loaded in memory (`TimeLineBloc.allMoments`) — used by stats,
-  /// year-in-review and the couple book.
-  final List<Moment> moments;
-
-  /// The active timeline — used for titles, the time capsule emails and the
-  /// couple book.
-  final TimeLine timeLine;
+  const CoupleFeaturesHubPage({super.key});
 
   @override
   State<CoupleFeaturesHubPage> createState() => _CoupleFeaturesHubPageState();
 }
 
 class _CoupleFeaturesHubPageState extends State<CoupleFeaturesHubPage> {
-  /// Set when the user unlocks premium during the session, signalling
-  /// [TimeLinePage] to reload the timeline on return.
+  late List<Moment> _moments;
+  late TimeLine _timeLine;
+  bool _initialized = false;
   bool _unlockedAny = false;
-
   bool _generatingBook = false;
 
-  /// Runs the premium gate for [feature]. Returns `true` when the action may
-  /// proceed (already unlocked, or just unlocked via the paywall). Records any
-  /// unlock so the hub pops a reload signal on return.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized) return;
+    _initialized = true;
+    final args = ModalRoute.of(context)!.settings.arguments as _CoupleFeaturesHubArgs;
+    _moments = args.moments;
+    _timeLine = args.timeLine;
+  }
+
   Future<bool> _ensure(PremiumFeature feature) async {
     if (getIt<PremiumService>().can(feature)) return true;
     final unlocked = await showPremiumPlaceholder(context, feature);
@@ -64,56 +49,36 @@ class _CoupleFeaturesHubPageState extends State<CoupleFeaturesHubPage> {
   Future<void> _openBucketList() async {
     if (!await _ensure(PremiumFeature.coupleBucketList)) return;
     if (!mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BucketListPage(timelineId: widget.timeLine.id),
-      ),
-    );
+    Navigator.of(context).pushNamed(AppRoute.bucketList.tag, arguments: _timeLine.id);
   }
 
   Future<void> _openSpecialDates() async {
     if (!await _ensure(PremiumFeature.specialDates)) return;
     if (!mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => SpecialDatesPage(timelineId: widget.timeLine.id),
-      ),
-    );
+    Navigator.of(context).pushNamed(AppRoute.specialDates.tag, arguments: _timeLine.id);
   }
 
   Future<void> _openTimeCapsule() async {
     if (!await _ensure(PremiumFeature.timeCapsule)) return;
     if (!mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => TimeCapsulePage(
-          timelineId: widget.timeLine.id,
-          emails: widget.timeLine.emails,
-        ),
-      ),
+    Navigator.of(context).pushNamed(
+      AppRoute.timeCapsule.tag,
+      arguments: (timelineId: _timeLine.id, emails: _timeLine.emails),
     );
   }
 
   Future<void> _openCoupleStats() async {
     if (!await _ensure(PremiumFeature.momentAuthorStats)) return;
     if (!mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => CoupleStatsPage(moments: widget.moments),
-      ),
-    );
+    Navigator.of(context).pushNamed(AppRoute.coupleStats.tag, arguments: _moments);
   }
 
   Future<void> _openYearInReview() async {
     if (!await _ensure(PremiumFeature.yearInReview)) return;
     if (!mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => YearInReviewPage(
-          moments: widget.moments,
-          coupleName: widget.timeLine.name,
-        ),
-      ),
+    Navigator.of(context).pushNamed(
+      AppRoute.yearInReview.tag,
+      arguments: (moments: _moments, coupleName: _timeLine.name, initialYear: null as int?),
     );
   }
 
@@ -125,7 +90,7 @@ class _CoupleFeaturesHubPageState extends State<CoupleFeaturesHubPage> {
     if (!await _ensure(PremiumFeature.coupleBook)) return;
     if (!mounted) return;
 
-    final moments = [...widget.moments]
+    final moments = [..._moments]
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
     final messenger = ScaffoldMessenger.of(context);
     if (moments.isEmpty) {
@@ -138,7 +103,7 @@ class _CoupleFeaturesHubPageState extends State<CoupleFeaturesHubPage> {
     setState(() => _generatingBook = true);
     try {
       await getIt<CoupleBookService>().generateAndShare(
-        timeline: widget.timeLine,
+        timeline: _timeLine,
         moments: moments,
       );
     } catch (_) {

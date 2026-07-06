@@ -76,7 +76,7 @@ class _SettingsPageState extends State<SettingsPage> {
         listener: (context, state) {
           if (state is SettingsTimeLineDeleted) {
             Navigator.of(context).pushNamedAndRemoveUntil(AppRoute.newSelectTimeLine.tag, (_) => false);
-          } else if (state is SettingsAccountDeleted) {
+          } else if (state is SettingsAccountDeleted || state is SettingsLoggedOut) {
             Navigator.of(context).pushNamedAndRemoveUntil(AppRoute.login.tag, (_) => false);
           } else if (state is SettingsReauthRequired) {
             _promptReauth(context);
@@ -226,6 +226,8 @@ class _SuccessContent extends StatelessWidget {
             ),
           ],
           kSpacerHeight16,
+          _LogoutButton(),
+          kSpacerHeight16,
           _DangerZoneSection(timeline: timeline, currentEmail: state.email!),
         ],
       ),
@@ -256,6 +258,22 @@ class _ManageSubscriptionButton extends StatelessWidget {
         onPressed: () => _open(context),
         icon: const Icon(Icons.settings_outlined, size: 20),
         label: const Text('Abrir gerenciamento'),
+      ),
+    );
+  }
+}
+
+class _LogoutButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => context.read<SettingsBloc>().add(LogoutEvent()),
+        icon: Icon(Icons.logout_rounded, size: 20),
+        label: Text('Sair da conta'),
+        style: OutlinedButton.styleFrom(side: BorderSide(color: palette.outline)),
       ),
     );
   }

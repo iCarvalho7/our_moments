@@ -16,12 +16,11 @@ import '../bloc/special_dates_bloc.dart';
 /// Dates live in the `time_line/{id}/special_dates` subcollection and sync in
 /// real time; each schedules a local reminder.
 class SpecialDatesPage extends StatelessWidget {
-  const SpecialDatesPage({super.key, required this.timelineId});
-
-  final String timelineId;
+  const SpecialDatesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final timelineId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
     return BlocProvider<SpecialDatesBloc>(
       create: (_) => getIt<SpecialDatesBloc>()
         ..add(SpecialDatesStarted(timelineId: timelineId)),

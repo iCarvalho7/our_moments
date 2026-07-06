@@ -9,7 +9,6 @@ import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/moment/interactions/presenter/bloc/interactions_bloc.dart';
 import 'package:nossos_momentos/modules/moment/interactions/presenter/widget/interactions_section.dart';
 import 'package:nossos_momentos/modules/moment/presenter/bloc/add_or_edit_moment_bloc.dart';
-import 'package:nossos_momentos/modules/moment/presenter/page/share_moment_page.dart';
 
 import '../../domain/entity/time_line.dart';
 import '../bloc/new_feed_cubit.dart';
@@ -594,10 +593,9 @@ class _ShareButton extends StatelessWidget {
     return IconButton(
       tooltip: 'Compartilhar',
       icon: Icon(Icons.share_outlined, size: 20, color: palette.onSurfaceMuted),
-      onPressed: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => ShareMomentPage(moment: moment),
-        ),
+      onPressed: () => Navigator.of(context).pushNamed(
+        AppRoute.shareMoment.tag,
+        arguments: moment,
       ),
     );
   }

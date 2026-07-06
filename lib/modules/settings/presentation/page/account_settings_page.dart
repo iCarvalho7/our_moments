@@ -36,19 +36,14 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
       create: (_) => getIt<SettingsBloc>()..add(FetchEmailEvent()),
       child: BlocListener<SettingsBloc, SettingsState>(
         listener: (context, state) {
-          if (state is SettingsAccountDeleted) {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoute.login.tag,
-              (_) => false,
-            );
+          if (state is SettingsAccountDeleted || state is SettingsLoggedOut) {
+            Navigator.of(context).pushNamedAndRemoveUntil(AppRoute.login.tag, (_) => false);
           } else if (state is SettingsReauthRequired) {
             _promptReauth(context);
           } else if (state is SettingsAccountDeleteError) {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
-              ..showSnackBar(const SnackBar(
-                content: Text('Não foi possível excluir a conta. Tente novamente.'),
-              ));
+              ..showSnackBar(const SnackBar(content: Text('Não foi possível excluir a conta. Tente novamente.')));
           }
         },
         child: Stack(
@@ -118,6 +113,8 @@ class _AccountContent extends StatelessWidget {
             ),
           ],
           kSpacerHeight16,
+          const _LogoutButton(),
+          kSpacerHeight16,
           const _DangerZone(),
         ],
       ),
@@ -138,20 +135,12 @@ class _EmailRow extends StatelessWidget {
         Container(
           width: 36,
           height: 36,
-          decoration: BoxDecoration(
-            color: palette.primarySoft,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: palette.primarySoft, shape: BoxShape.circle),
           alignment: Alignment.center,
           child: Icon(Icons.alternate_email_rounded, color: palette.primary, size: 18),
         ),
         kSpacerWidth12,
-        Expanded(
-          child: Text(
-            email,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ),
+        Expanded(child: Text(email, style: Theme.of(context).textTheme.bodyMedium)),
       ],
     );
   }
@@ -193,9 +182,9 @@ class _ReminderToggleState extends State<_ReminderToggle> {
       final granted = await service.enableReminder();
       if (!mounted) return;
       if (!granted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ative as notificações nas configurações do aparelho.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Ative as notificações nas configurações do aparelho.')));
       }
       setState(() => _enabled = granted);
     } else {
@@ -251,9 +240,7 @@ class _SubscriptionButton extends StatelessWidget {
     if (result.isError) {
       messenger
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-          content: Text('Não foi possível abrir o gerenciamento da assinatura.'),
-        ));
+        ..showSnackBar(const SnackBar(content: Text('Não foi possível abrir o gerenciamento da assinatura.')));
     }
   }
 
@@ -270,6 +257,24 @@ class _SubscriptionButton extends StatelessWidget {
   }
 }
 
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => context.read<SettingsBloc>().add(LogoutEvent()),
+        icon: Icon(Icons.logout_rounded, size: 20),
+        label: Text('Sair da conta'),
+        style: OutlinedButton.styleFrom(side: BorderSide(color: palette.outline)),
+      ),
+    );
+  }
+}
+
 class _DangerZone extends StatelessWidget {
   const _DangerZone();
 
@@ -279,9 +284,7 @@ class _DangerZone extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => DeleteAccountConfirmationSheet(
-        onConfirm: () => bloc.add(DeleteAccountEvent()),
-      ),
+      builder: (_) => DeleteAccountConfirmationSheet(onConfirm: () => bloc.add(DeleteAccountEvent())),
     );
   }
 
@@ -355,12 +358,7 @@ class _DangerZone extends StatelessWidget {
 }
 
 class _Section extends StatelessWidget {
-  const _Section({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.child,
-  });
+  const _Section({required this.icon, required this.title, required this.subtitle, required this.child});
 
   final IconData icon;
   final String title;
@@ -387,10 +385,7 @@ class _Section extends StatelessWidget {
               Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(
-                  color: palette.primarySoft,
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                decoration: BoxDecoration(color: palette.primarySoft, borderRadius: BorderRadius.circular(12)),
                 child: Icon(icon, color: palette.primary, size: 22),
               ),
               kSpacerWidth12,

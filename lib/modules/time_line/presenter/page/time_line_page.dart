@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:nossos_momentos/di/injection.dart';
-import 'package:nossos_momentos/modules/core/premium/premium_feature.dart';
-import 'package:nossos_momentos/modules/core/premium/premium_service.dart';
-import 'package:nossos_momentos/modules/core/premium/widget/premium_gate.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/app_bottom_nav.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/background_gradient.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
@@ -15,11 +12,8 @@ import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/moment/domain/entities/moment_type.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/timeline_permissions.dart';
-import 'package:nossos_momentos/modules/time_line/presenter/utils/relationship_duration.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/bloc/time_line_bloc.dart';
-import 'package:nossos_momentos/modules/time_line/presenter/page/couple_features_hub_page.dart';
-import 'package:nossos_momentos/modules/time_line/presenter/page/moments_map_page.dart';
-import 'package:nossos_momentos/modules/time_line/presenter/page/on_this_day_page.dart';
+import 'package:nossos_momentos/modules/time_line/presenter/utils/relationship_duration.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/widgets/memory_card.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
@@ -130,11 +124,10 @@ class _TimeLinePageState extends State<TimeLinePage> {
   Widget _buildBottomNav(BuildContext context) {
     return AppBottomNav(
       items: [
-        AppNavItem(icon: Icons.home_rounded, label: 'Início', onTap: _scrollToTop),
         AppNavItem(
-          icon: Icons.map_outlined,
-          label: 'Mapa',
-          onTap: () => _openMomentsMap(context),
+          icon: Icons.auto_awesome_outlined,
+          label: 'Neste dia',
+          onTap: () => _openOnThisDayFromNav(context),
         ),
         AppNavItem(
           icon: Icons.add_rounded,
@@ -143,27 +136,12 @@ class _TimeLinePageState extends State<TimeLinePage> {
           onTap: () => _goToAddMoment(context),
         ),
         AppNavItem(
-          icon: Icons.auto_awesome_outlined,
-          label: 'Neste dia',
-          onTap: () => _openOnThisDayFromNav(context),
-        ),
-        AppNavItem(
           icon: Icons.settings_outlined,
           label: 'Ajustes',
           onTap: () => _goToSettings(context, context.read<TimeLineBloc>().timeLine),
         ),
       ],
     );
-  }
-
-  void _scrollToTop() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
   }
 
   void _openOnThisDayFromNav(BuildContext context) {
@@ -268,11 +246,10 @@ class _TimeLinePageState extends State<TimeLinePage> {
     List<Moment> moments, {
     String? scopeLabel,
   }) async {
-    final selected = await Navigator.of(context).push<Moment>(
-      MaterialPageRoute(
-        builder: (_) => OnThisDayPage(moments: moments, scopeLabel: scopeLabel),
-      ),
-    );
+    final selected = await Navigator.of(context).pushNamed(
+      AppRoute.onThisDay.tag,
+      arguments: (moments: moments, scopeLabel: scopeLabel),
+    ) as Moment?;
     if (selected != null && context.mounted) {
       _openMoment(context, selected);
     }
@@ -737,46 +714,16 @@ class _TimeLinePageState extends State<TimeLinePage> {
     return d.year == today.year ? capitalized : '$capitalized de ${d.year}';
   }
 
-  Future<void> _openMomentsMap(BuildContext context) async {
-    final bloc = context.read<TimeLineBloc>();
-    // Map view is premium-only; open the paywall instead of navigating when
-    // locked. If the user becomes premium, reload the timeline (re-binds the
-    // PremiumService) and let them tap again.
-    if (!getIt<PremiumService>().can(PremiumFeature.mapView)) {
-      final unlocked = await showPremiumPlaceholder(context, PremiumFeature.mapView);
-      if (unlocked) {
-        bloc.add(TimeLineEventReloadTimeline());
-      }
-      return;
-    }
-    final moment = await Navigator.of(context).push<Moment>(
-      MaterialPageRoute(
-        builder: (_) => MomentsMapPage(
-          moments: bloc.allMoments,
-          relationshipStartDate: bloc.timeLine.relationshipStartDate,
-          accentColor: bloc.timeLine.accentColor,
-        ),
-      ),
-    );
-    if (moment != null && context.mounted) {
-      _openMoment(context, moment);
-    }
-  }
-
   /// Opens the couple-features hub (bucket list, special dates, time capsule,
   /// stats, year in review, couple book). The hub is a separate route and gates
   /// each feature on tap; it pops `true` when the user unlocked premium during
   /// the session, so we reload the timeline (re-binding the PremiumService).
   Future<void> _openCoupleFeaturesHub(BuildContext context) async {
     final bloc = context.read<TimeLineBloc>();
-    final unlocked = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => CoupleFeaturesHubPage(
-          moments: bloc.allMoments,
-          timeLine: bloc.timeLine,
-        ),
-      ),
-    );
+    final unlocked = await Navigator.of(context).pushNamed(
+      AppRoute.coupleFeaturesHub.tag,
+      arguments: (moments: bloc.allMoments, timeLine: bloc.timeLine),
+    ) as bool?;
     if (unlocked == true) {
       bloc.add(TimeLineEventReloadTimeline());
     }

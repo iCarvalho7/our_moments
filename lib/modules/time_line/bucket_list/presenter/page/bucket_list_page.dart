@@ -12,12 +12,11 @@ import '../bloc/bucket_list_bloc.dart';
 /// Couple-only bucket list ("Sonhos do casal"). Items live in the
 /// `time_line/{id}/bucket_list` subcollection and sync in real time.
 class BucketListPage extends StatelessWidget {
-  const BucketListPage({super.key, required this.timelineId});
-
-  final String timelineId;
+  const BucketListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final timelineId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
     return BlocProvider<BucketListBloc>(
       create: (_) =>
           getIt<BucketListBloc>()..add(BucketListStarted(timelineId: timelineId)),

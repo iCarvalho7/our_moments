@@ -23,12 +23,10 @@ class PickedLocation {
 /// Full-screen map picker styled to match the app: search a place, drag the
 /// centered pin, or jump to the device's location. Tiles follow the theme
 /// (light/dark) and the name is auto-filled (reverse geocoding) yet editable.
-class LocationPickerPage extends StatefulWidget {
-  const LocationPickerPage({super.key, this.initialLatitude, this.initialLongitude, this.initialName});
+typedef _LocationPickerArgs = ({double? initialLatitude, double? initialLongitude, String? initialName});
 
-  final double? initialLatitude;
-  final double? initialLongitude;
-  final String? initialName;
+class LocationPickerPage extends StatefulWidget {
+  const LocationPickerPage({super.key});
 
   @override
   State<LocationPickerPage> createState() => _LocationPickerPageState();
@@ -43,22 +41,31 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
 
+  double? _initialLatitude;
+  double? _initialLongitude;
   late LatLng _center;
   bool _nameEditedManually = false;
   bool _resolvingName = false;
   bool _searching = false;
+  bool _initialized = false;
   Timer? _debounce;
   Timer? _searchDebounce;
   List<PlaceSuggestion> _searchResults = const [];
 
   @override
-  void initState() {
-    super.initState();
-    _center = (widget.initialLatitude != null && widget.initialLongitude != null)
-        ? LatLng(widget.initialLatitude!, widget.initialLongitude!)
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized) return;
+    _initialized = true;
+    final args = ModalRoute.of(context)?.settings.arguments as _LocationPickerArgs?;
+    _initialLatitude = args?.initialLatitude;
+    _initialLongitude = args?.initialLongitude;
+    final initialName = args?.initialName;
+    _center = (_initialLatitude != null && _initialLongitude != null)
+        ? LatLng(_initialLatitude!, _initialLongitude!)
         : _fallbackCenter;
-    _nameController.text = widget.initialName ?? '';
-    _nameEditedManually = (widget.initialName ?? '').isNotEmpty;
+    _nameController.text = initialName ?? '';
+    _nameEditedManually = (initialName ?? '').isNotEmpty;
     WidgetsBinding.instance.addPostFrameCallback((_) => _requestLocationPermission());
   }
 
@@ -80,7 +87,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
     }
     if (!mounted) return;
     // If no initial position was given and permission is available, jump there.
-    if (widget.initialLatitude == null &&
+    if (_initialLatitude == null &&
         permission != LocationPermission.denied &&
         permission != LocationPermission.deniedForever) {
       _useCurrentLocation();
@@ -203,7 +210,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             mapController: _mapController,
             options: MapOptions(
               initialCenter: _center,
-              initialZoom: widget.initialLatitude != null ? 15 : 11,
+              initialZoom: _initialLatitude != null ? 15 : 11,
               onPositionChanged: (camera, hasGesture) {
                 _center = camera.center;
                 if (hasGesture) _scheduleReverseGeocode();

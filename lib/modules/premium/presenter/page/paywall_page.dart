@@ -19,13 +19,11 @@ import '../bloc/premium_bloc.dart';
 /// couple buy or restore, and pops `true` on success so the caller can refresh
 /// the timeline (re-binding [PremiumService]).
 class PaywallPage extends StatelessWidget {
-  const PaywallPage({super.key, this.highlightFeature});
-
-  /// Feature the user tapped to land here; surfaced in the header for context.
-  final PremiumFeature? highlightFeature;
+  const PaywallPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final highlightFeature = ModalRoute.of(context)?.settings.arguments as PremiumFeature?;
     return BlocProvider(
       create: (_) => getIt<PremiumBloc>()..add(PremiumEventLoadOfferings()),
       child: Builder(

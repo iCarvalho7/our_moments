@@ -6,6 +6,7 @@ import 'package:injectable/injectable.dart';
 import 'package:nossos_momentos/modules/core/entity/result.dart';
 import 'package:nossos_momentos/modules/core/use_case/use_case.dart';
 import 'package:nossos_momentos/modules/settings/domain/use_case/add_email_use_case.dart';
+import 'package:nossos_momentos/modules/time_line/domain/use_case/logout_use_case.dart';
 import 'package:nossos_momentos/modules/settings/domain/use_case/delete_account_use_case.dart';
 import 'package:nossos_momentos/modules/settings/domain/use_case/delete_email_use_case.dart';
 import 'package:nossos_momentos/modules/settings/domain/use_case/leave_timeline_use_case.dart';
@@ -47,6 +48,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     this._requestTimelineDeletionUseCase,
     this._approveTimelineDeletionUseCase,
     this._rejectTimelineDeletionUseCase,
+    this._logoutUseCase,
   ) : super(SettingsLoading(timeLine: null, email: null)) {
     on<FetchEmailEvent>(_init);
     on<AddEmailEvent>(_addEmail);
@@ -62,6 +64,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<LeaveTimelineEvent>(_leaveTimeline);
     on<DeleteAccountEvent>(_deleteAccount);
     on<ReauthenticateAndDeleteAccountEvent>(_reauthenticateAndDeleteAccount);
+    on<LogoutEvent>(_logout);
   }
 
   final AddEmailUseCase addEmailUseCase;
@@ -79,6 +82,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final RequestTimelineDeletionUseCase _requestTimelineDeletionUseCase;
   final ApproveTimelineDeletionUseCase _approveTimelineDeletionUseCase;
   final RejectTimelineDeletionUseCase _rejectTimelineDeletionUseCase;
+  final LogoutUseCase _logoutUseCase;
 
   FutureOr<void> _init(
     FetchEmailEvent event,
@@ -308,6 +312,14 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
     final res = await _deleteAccountUseCase.call(NoParams.instance);
     _emitDeleteAccountResult(res, emit);
+  }
+
+  FutureOr<void> _logout(
+    LogoutEvent event,
+    Emitter<SettingsState> emit,
+  ) async {
+    await _logoutUseCase.call(NoParams.instance);
+    emit(SettingsLoggedOut(timeLine: state.timeLine, email: state.email));
   }
 
   /// Maps the result of a delete-account attempt to a state. A

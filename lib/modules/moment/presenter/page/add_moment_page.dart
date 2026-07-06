@@ -2,12 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import '../../../core/presenter/routes.dart';
 import '../../../core/presenter/widgets/floating_cta_bar.dart';
 import '../../../core/presenter/widgets/loading_effect.dart';
 import '../../../core/presenter/widgets/overlay_sheet.dart';
 import '../../../core/utils/theme/app_theme.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
-import 'share_moment_page.dart';
 import '../../interactions/presenter/widget/interactions_section.dart';
 import '../widget/history_container_loading.dart';
 import '../widget/moment_form_section_loading.dart';
@@ -58,10 +58,9 @@ class AddOrEditMomentPage extends StatelessWidget {
                     const SizedBox(width: 8),
                     _CircleIconButton(
                       icon: Icons.ios_share_rounded,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ShareMomentPage(moment: state.moment),
-                        ),
+                      onTap: () => Navigator.of(context).pushNamed(
+                        AppRoute.shareMoment.tag,
+                        arguments: state.moment,
                       ),
                     ),
                     const SizedBox(width: 8),

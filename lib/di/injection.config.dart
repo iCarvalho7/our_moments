@@ -774,6 +774,7 @@ _i174.GetIt $initGetIt(
       gh<_i521.RequestTimelineDeletionUseCase>(),
       gh<_i817.ApproveTimelineDeletionUseCase>(),
       gh<_i573.RejectTimelineDeletionUseCase>(),
+      gh<_i44.LogoutUseCase>(),
     ),
   );
   return getIt;

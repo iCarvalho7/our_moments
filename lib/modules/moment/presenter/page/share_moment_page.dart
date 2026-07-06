@@ -8,9 +8,7 @@ import '../widget/shareable_moment_card.dart';
 
 /// Previews a shareable image of the moment and shares it (PNG) via share_plus.
 class ShareMomentPage extends StatefulWidget {
-  const ShareMomentPage({super.key, required this.moment});
-
-  final Moment moment;
+  const ShareMomentPage({super.key});
 
   @override
   State<ShareMomentPage> createState() => _ShareMomentPageState();
@@ -19,12 +17,22 @@ class ShareMomentPage extends StatefulWidget {
 class _ShareMomentPageState extends State<ShareMomentPage> {
   final GlobalKey _cardKey = GlobalKey();
   bool _sharing = false;
+  late Moment _moment;
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized) return;
+    _initialized = true;
+    _moment = ModalRoute.of(context)!.settings.arguments as Moment;
+  }
 
   Future<void> _share() async {
     setState(() => _sharing = true);
     final messenger = ScaffoldMessenger.of(context);
     try {
-      await captureAndShare(_cardKey, text: widget.moment.title);
+      await captureAndShare(_cardKey, text: _moment.title);
     } catch (_) {
       messenger.showSnackBar(const SnackBar(content: Text('Não foi possível gerar a imagem.')));
     } finally {
@@ -51,7 +59,7 @@ class _ShareMomentPageState extends State<ShareMomentPage> {
                 child: Center(
                   child: RepaintBoundary(
                     key: _cardKey,
-                    child: ShareableMomentCard(moment: widget.moment),
+                    child: ShareableMomentCard(moment: _moment),
                   ),
                 ),
               ),

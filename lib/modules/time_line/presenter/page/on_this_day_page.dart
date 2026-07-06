@@ -4,19 +4,16 @@ import '../../../core/utils/theme/app_theme.dart';
 import '../../../moment/domain/entities/moment.dart';
 import '../widgets/memory_card.dart';
 
-/// Lists "memories" — moments from this same day (or, as a fallback, this same
-/// month) in previous years. Tapping a card pops with the selected moment.
-///
-/// [scopeLabel] describes what is being shown (e.g. "15 de junho" or "junho").
-/// When [moments] is empty, a friendly empty state is shown instead.
-class OnThisDayPage extends StatelessWidget {
-  const OnThisDayPage({super.key, required this.moments, this.scopeLabel});
+typedef _OnThisDayArgs = ({List<Moment> moments, String? scopeLabel});
 
-  final List<Moment> moments;
-  final String? scopeLabel;
+class OnThisDayPage extends StatelessWidget {
+  const OnThisDayPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments as _OnThisDayArgs?;
+    final moments = args?.moments ?? const [];
+    final scopeLabel = args?.scopeLabel;
     final palette = context.palette;
     final now = DateTime.now();
 
@@ -26,11 +23,11 @@ class OnThisDayPage extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         title: const Text('Neste dia'),
       ),
-      body: moments.isEmpty ? _EmptyState(scopeLabel: scopeLabel) : _buildList(context, now),
+      body: moments.isEmpty ? _EmptyState(scopeLabel: scopeLabel) : _buildList(context, now, moments, scopeLabel),
     );
   }
 
-  Widget _buildList(BuildContext context, DateTime now) {
+  Widget _buildList(BuildContext context, DateTime now, List<Moment> moments, String? scopeLabel) {
     final sorted = [...moments]..sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
     // Flatten into [yearsAgo header, cards...] grouped by year.

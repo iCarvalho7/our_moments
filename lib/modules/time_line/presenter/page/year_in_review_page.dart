@@ -13,25 +13,11 @@ import '../utils/moment_counts.dart';
 /// Couple-only "year in review" slideshow. No persistence: it ranks the loaded
 /// moments of the selected year in memory and presents them as a swipeable
 /// story (opening cover → top moments → shareable summary).
+typedef _YearInReviewArgs = ({List<Moment> moments, String coupleName, int? initialYear});
+
 class YearInReviewPage extends StatefulWidget {
-  const YearInReviewPage({
-    super.key,
-    required this.moments,
-    this.coupleName = '',
-    this.initialYear,
-  });
+  const YearInReviewPage({super.key});
 
-  /// All moments already loaded in memory (e.g. `TimeLineBloc.allMoments`).
-  final List<Moment> moments;
-
-  /// Couple/timeline name shown on the cover slide.
-  final String coupleName;
-
-  /// Year to open with; defaults to the current year (or the most recent year
-  /// that actually has moments).
-  final int? initialYear;
-
-  /// How many top moments to feature in the slideshow.
   static const int topCount = 10;
 
   /// Ranking weight per type: romantic moments shine first, then good, then bad.
@@ -57,16 +43,24 @@ class YearInReviewPage extends StatefulWidget {
 
 class _YearInReviewPageState extends State<YearInReviewPage> {
   final GlobalKey _summaryKey = GlobalKey();
+  late List<Moment> _moments;
+  late String _coupleName;
   late List<int> _years;
   late int _selectedYear;
   bool _sharing = false;
+  bool _initialized = false;
 
   @override
-  void initState() {
-    super.initState();
-    _years = widget.moments.map((m) => m.dateTime.year).toSet().toList()
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized) return;
+    _initialized = true;
+    final args = ModalRoute.of(context)?.settings.arguments as _YearInReviewArgs?;
+    _moments = args?.moments ?? const [];
+    _coupleName = args?.coupleName ?? '';
+    _years = _moments.map((m) => m.dateTime.year).toSet().toList()
       ..sort((a, b) => b.compareTo(a));
-    final current = widget.initialYear ?? DateTime.now().year;
+    final current = args?.initialYear ?? DateTime.now().year;
     _selectedYear = _years.contains(current)
         ? current
         : (_years.isNotEmpty ? _years.first : current);
@@ -75,7 +69,7 @@ class _YearInReviewPageState extends State<YearInReviewPage> {
   /// Moments of the selected year, ranked: favorites first, then by type
   /// (romantic > good > bad), then most recent.
   List<Moment> get _rankedMoments {
-    final ofYear = widget.moments
+    final ofYear = _moments
         .where((m) => m.dateTime.year == _selectedYear)
         .toList()
       ..sort((a, b) {
@@ -112,11 +106,11 @@ class _YearInReviewPageState extends State<YearInReviewPage> {
   Widget build(BuildContext context) {
     final ranked = _rankedMoments;
     final counts = MomentCounts.from(
-      widget.moments.where((m) => m.dateTime.year == _selectedYear).toList(),
+      _moments.where((m) => m.dateTime.year == _selectedYear).toList(),
     );
 
     final slides = <Widget>[
-      _CoverSlide(year: _selectedYear, coupleName: widget.coupleName),
+      _CoverSlide(year: _selectedYear, coupleName: _coupleName),
       ...ranked.map((m) => _MomentSlide(moment: m)),
       RepaintBoundary(
         key: _summaryKey,

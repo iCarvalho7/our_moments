@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/presenter/routes.dart';
 import '../../../core/presenter/widgets/metadata_row.dart';
 import '../../../core/utils/theme/app_theme.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
@@ -96,15 +97,10 @@ class MomentMetaRows extends StatelessWidget {
   Future<void> _pickLocation(BuildContext context) async {
     final bloc = context.read<AddOrEditMomentBloc>();
     final moment = bloc.state.moment;
-    final result = await Navigator.of(context).push<PickedLocation>(
-      MaterialPageRoute(
-        builder: (_) => LocationPickerPage(
-          initialLatitude: moment.latitude,
-          initialLongitude: moment.longitude,
-          initialName: moment.locationName,
-        ),
-      ),
-    );
+    final result = await Navigator.of(context).pushNamed(
+      AppRoute.locationPicker.tag,
+      arguments: (initialLatitude: moment.latitude, initialLongitude: moment.longitude, initialName: moment.locationName),
+    ) as PickedLocation?;
     if (result != null) {
       bloc.add(AddOrEditMomentEventSetLocation(
         latitude: result.latitude,

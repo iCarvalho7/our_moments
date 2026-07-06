@@ -58,23 +58,14 @@ class MetadataRow extends StatelessWidget {
                     color: active ? palette.primarySoft : palette.surfaceAlt,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 20,
-                    color: active ? palette.primary : palette.onSurfaceMuted,
-                  ),
+                  child: Icon(icon, size: 20, color: active ? palette.primary : palette.onSurfaceMuted),
                 ),
                 kSpacerWidth12,
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        label,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: palette.onSurfaceMuted,
-                        ),
-                      ),
+                      Text(label, style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted)),
                       const SizedBox(height: 2),
                       Text(
                         value,
@@ -89,8 +80,7 @@ class MetadataRow extends StatelessWidget {
                   ),
                 ),
                 kSpacerWidth8,
-                trailing ??
-                    Icon(Icons.chevron_right_rounded, color: palette.onSurfaceMuted),
+                trailing ?? Icon(Icons.chevron_right_rounded, color: palette.onSurfaceMuted),
               ],
             ),
             if (showDivider)

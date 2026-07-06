@@ -23,17 +23,20 @@ class NewMomentFeedCard extends StatelessWidget {
     required this.moment,
     required this.timeline,
     required this.currentUserEmail,
+    this.onWillNavigate,
   });
 
   final Moment moment;
   final TimeLine timeline;
   final String currentUserEmail;
+  final VoidCallback? onWillNavigate;
 
   Color _accent(BuildContext context) => timeline.accentColor != null
       ? Color(timeline.accentColor!)
       : context.palette.primary;
 
   void _openMoment(BuildContext context) {
+    onWillNavigate?.call();
     final feedCubit = context.read<NewFeedCubit>();
     context.read<AddOrEditMomentBloc>().add(SetupEditMomentEvent(moment: moment));
     Navigator.pushNamed(

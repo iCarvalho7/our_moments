@@ -23,9 +23,6 @@ class Moment {
   final double? latitude;
   final double? longitude;
   final String audioUrl;
-
-  /// Email of the user who created the moment. Empty for legacy moments saved
-  /// before authorship was tracked ("Desconhecido" in the UI).
   final String author;
 
   const Moment(

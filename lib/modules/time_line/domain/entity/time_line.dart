@@ -130,7 +130,7 @@ class TimeLine {
 
   String get dateMonth {
     String day = DateFormat('dd', 'pt_BR').format(createdDate.toDate());
-    String month = TimeLineBloc.monthsName[createdDate.toDate().month];
+    String month = TimeLineBloc.monthsName[createdDate.toDate().month - 1];
 
     return '$day $month de ${createdDate.toDate().year}';
   }

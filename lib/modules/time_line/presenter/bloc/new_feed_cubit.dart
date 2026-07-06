@@ -31,9 +31,10 @@ class NewFeedCubit extends Cubit<NewFeedState> {
   List<Moment> _allMoments = [];
   List<TimeLine> _timelines = [];
   String _currentUserEmail = '';
+  String? _activeTimelineId;
 
   Future<void> load() async {
-    emit(NewFeedLoading());
+    if (state is! NewFeedLoaded) emit(NewFeedLoading());
     try {
       final currentUserEmail = _authRepository.getCurrentUser()?.email ?? '';
 
@@ -70,10 +71,14 @@ class NewFeedCubit extends Cubit<NewFeedState> {
       _timelines = timelines;
       _currentUserEmail = currentUserEmail;
 
+      final filtered = _activeTimelineId == null
+          ? moments
+          : moments.where((m) => m.timelineId == _activeTimelineId).toList();
+
       emit(NewFeedLoaded(
         timelines: timelines,
-        moments: moments,
-        activeTimelineId: null,
+        moments: filtered,
+        activeTimelineId: _activeTimelineId,
         currentUserEmail: currentUserEmail,
       ));
     } catch (error) {
@@ -84,6 +89,7 @@ class NewFeedCubit extends Cubit<NewFeedState> {
   /// Filters the already-loaded moments by timeline without hitting the backend.
   /// Passing null clears the filter (shows every timeline's moments).
   void filterByTimeline(String? id) {
+    _activeTimelineId = id;
     final moments = id == null
         ? _allMoments
         : _allMoments.where((m) => m.timelineId == id).toList();

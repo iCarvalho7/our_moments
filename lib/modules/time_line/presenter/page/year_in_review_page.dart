@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
@@ -331,12 +332,11 @@ class _MomentSlide extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (hero != null)
-            Image.network(
-              hero,
+            CachedNetworkImage(
+              imageUrl: hero,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _SlideGradient(colors: colors, icon: moment.type.icon),
-              loadingBuilder: (_, child, progress) =>
-                  progress == null ? child : _SlideGradient(colors: colors, icon: moment.type.icon),
+              errorWidget: (_, __, ___) => _SlideGradient(colors: colors, icon: moment.type.icon),
+              placeholder: (_, __) => _SlideGradient(colors: colors, icon: moment.type.icon),
             )
           else
             _SlideGradient(colors: colors, icon: moment.type.icon),

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' hide Path;
@@ -157,11 +158,11 @@ class _CircleMedia extends StatelessWidget {
         height: size,
         child: moment.downloadUrlList.isEmpty
             ? fallback
-            : Image.network(
-                moment.downloadUrlList.first,
+            : CachedNetworkImage(
+                imageUrl: moment.downloadUrlList.first,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => fallback,
-                loadingBuilder: (_, child, progress) => progress == null ? child : fallback,
+                errorWidget: (_, __, ___) => fallback,
+                placeholder: (_, __) => fallback,
               ),
       ),
     );

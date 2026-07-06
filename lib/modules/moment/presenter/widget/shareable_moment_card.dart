@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:nossos_momentos/di/injection.dart';
 
@@ -32,12 +33,11 @@ class ShareableMomentCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (hero != null)
-              Image.network(
-                hero,
+              CachedNetworkImage(
+                imageUrl: hero,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _Gradient(colors: colors, icon: moment.type.icon),
-                loadingBuilder: (_, child, progress) =>
-                    progress == null ? child : _Gradient(colors: colors, icon: moment.type.icon),
+                errorWidget: (_, __, ___) => _Gradient(colors: colors, icon: moment.type.icon),
+                placeholder: (_, __) => _Gradient(colors: colors, icon: moment.type.icon),
               )
             else
               _Gradient(colors: colors, icon: moment.type.icon),

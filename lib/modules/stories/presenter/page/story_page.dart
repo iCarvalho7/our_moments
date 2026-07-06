@@ -278,21 +278,25 @@ class _MediaSectionState extends State<_MediaSection> {
   Widget _buildImageWidget(ImageProvider provider) {
     return ColoredBox(
       color: Colors.black,
-      child: Image(
-        image: provider,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-        loadingBuilder: (context, child, event) {
-          if (event == null) return child;
-          return const Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2.0,
-              color: Colors.white,
-            ),
-          );
-        },
-        errorBuilder: (_, __, ___) => const _ImageErrorBox(),
+      child: InteractiveViewer(
+        minScale: 1.0,
+        maxScale: 4.0,
+        child: Image(
+          image: provider,
+          fit: BoxFit.contain,
+          width: double.infinity,
+          height: double.infinity,
+          loadingBuilder: (context, child, event) {
+            if (event == null) return child;
+            return const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2.0,
+                color: Colors.white,
+              ),
+            );
+          },
+          errorBuilder: (_, __, ___) => const _ImageErrorBox(),
+        ),
       ),
     );
   }

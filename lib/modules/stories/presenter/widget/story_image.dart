@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.dart';
 import 'package:nossos_momentos/modules/core/utils/data_url/data_url.dart';
@@ -42,6 +43,6 @@ ImageProvider? storyImageProvider(String url) {
     final bytes = decodeDataUrl(url);
     return bytes == null ? null : MemoryImage(bytes);
   }
-  if (url.isHttpUrl) return NetworkImage(url);
+  if (url.isHttpUrl) return CachedNetworkImageProvider(url);
   return FileImage(File(url));
 }

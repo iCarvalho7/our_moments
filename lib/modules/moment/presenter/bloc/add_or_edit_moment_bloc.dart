@@ -206,7 +206,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
       moment: state.moment.copyWith(
         dateTime: event.date,
         year: event.date.year.toString(),
-        month: TimeLineBloc.monthsName[event.date.month],
+        month: TimeLineBloc.monthsName[event.date.month - 1],
         monthDay: event.date.day.toString(),
       ),
       photosToDelete: state.photosToDelete,

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/core/presenter/routes.dart';
@@ -10,6 +11,7 @@ import 'package:nossos_momentos/modules/core/presenter/widgets/loading_effect.da
 import 'package:nossos_momentos/modules/core/presenter/widgets/primary_app_bar.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 import 'package:nossos_momentos/modules/moment/interactions/presenter/bloc/interactions_bloc.dart';
+import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/moment/presenter/bloc/add_or_edit_moment_bloc.dart';
 
 import '../../domain/entity/time_line.dart';
@@ -39,11 +41,7 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
 
   void _scrollToTop() {
     if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+      _scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
     }
   }
 
@@ -59,9 +57,7 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
     if (editable.length == 1) {
       target = editable.first;
     } else if (cubitState.activeTimelineId != null) {
-      final active = editable
-          .where((tl) => tl.id == cubitState.activeTimelineId)
-          .toList();
+      final active = editable.where((tl) => tl.id == cubitState.activeTimelineId).toList();
       if (active.isNotEmpty) target = active.first;
     }
 
@@ -70,10 +66,7 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
     _openAdd(context, target);
   }
 
-  Future<TimeLine?> _pickTimeline(
-    BuildContext context,
-    List<TimeLine> editable,
-  ) {
+  Future<TimeLine?> _pickTimeline(BuildContext context, List<TimeLine> editable) {
     return showModalBottomSheet<TimeLine>(
       context: context,
       isScrollControlled: true,
@@ -86,20 +79,19 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
     final cubitState = context.read<NewFeedCubit>().state;
     String? id;
     if (cubitState is NewFeedLoaded) {
-      id = cubitState.activeTimelineId ??
-          (cubitState.timelines.isNotEmpty ? cubitState.timelines.first.id : null);
+      id = cubitState.activeTimelineId ?? (cubitState.timelines.isNotEmpty ? cubitState.timelines.first.id : null);
     }
     if (id == null) return;
-    Navigator.pushNamed(context, AppRoute.timeLine.tag, arguments: id)
-        .then((_) => context.mounted ? context.read<NewFeedCubit>().load() : null);
+    Navigator.pushNamed(
+      context,
+      AppRoute.allTimelinesMap.tag,
+    ).then((_) => context.mounted ? context.read<NewFeedCubit>().load() : null);
   }
 
   void _openAdd(BuildContext context, TimeLine timeline) {
     final cubit = context.read<NewFeedCubit>();
     _savedScrollOffset = _scrollController.hasClients ? _scrollController.offset : 0;
-    context
-        .read<AddOrEditMomentBloc>()
-        .add(SetupAddMomentEvent(timelineId: timeline.id));
+    context.read<AddOrEditMomentBloc>().add(SetupAddMomentEvent(timelineId: timeline.id));
     Navigator.pushNamed(
       context,
       AppRoute.addMoment.tag,
@@ -114,13 +106,8 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (_) =>
-              getIt<SelectTimeLineBloc>()..add(SelectTimeLineEventFetchAll()),
-        ),
-        BlocProvider(
-          create: (_) => getIt<NewFeedCubit>()..load(),
-        ),
+        BlocProvider(create: (_) => getIt<SelectTimeLineBloc>()..add(SelectTimeLineEventFetchAll())),
+        BlocProvider(create: (_) => getIt<NewFeedCubit>()..load()),
       ],
       child: Builder(
         builder: (context) {
@@ -134,19 +121,14 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
                   back: IconButton(
                     tooltip: 'Sair',
                     icon: const Icon(Icons.logout_rounded),
-                    onPressed: () => context
-                        .read<SelectTimeLineBloc>()
-                        .add(SelectTimeLineEventLogout()),
+                    onPressed: () => context.read<SelectTimeLineBloc>().add(SelectTimeLineEventLogout()),
                   ),
                 ),
                 body: SafeArea(
                   child: BlocListener<SelectTimeLineBloc, SelectTimeLineState>(
                     listener: (context, state) {
                       if (state is SelectTimeLogoutSuccess) {
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          AppRoute.login.tag,
-                          (route) => false,
-                        );
+                        Navigator.of(context).pushNamedAndRemoveUntil(AppRoute.login.tag, (route) => false);
                       }
                     },
                     child: BlocConsumer<NewFeedCubit, NewFeedState>(
@@ -156,9 +138,7 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
                           _savedScrollOffset = 0;
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             if (_scrollController.hasClients) {
-                              _scrollController.jumpTo(
-                                offset.clamp(0.0, _scrollController.position.maxScrollExtent),
-                              );
+                              _scrollController.jumpTo(offset.clamp(0.0, _scrollController.position.maxScrollExtent));
                             }
                           });
                         }
@@ -169,37 +149,18 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
                 ),
                 bottomNavigationBar: AppBottomNav(
                   items: [
-                    AppNavItem(
-                      icon: Icons.home_rounded,
-                      label: 'Início',
-                      onTap: _scrollToTop,
-                    ),
-                    AppNavItem(
-                      icon: Icons.timeline_rounded,
-                      label: 'Mapa',
-                      onTap: () => _openTimeline(context),
-                    ),
-                    AppNavItem(
-                      icon: Icons.add_rounded,
-                      label: 'Criar',
-                      primary: true,
-                      onTap: () => _onCreate(context),
-                    ),
+                    AppNavItem(icon: Icons.home_rounded, label: 'Início', onTap: _scrollToTop),
+                    AppNavItem(icon: Icons.timeline_rounded, label: 'Mapa', onTap: () => _openTimeline(context)),
+                    AppNavItem(icon: Icons.add_rounded, label: 'Criar', primary: true, onTap: () => _onCreate(context)),
                     AppNavItem(
                       icon: Icons.travel_explore_rounded,
                       label: 'Momentos',
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        AppRoute.allTimelinesMap.tag,
-                      ),
+                      onTap: () => Navigator.pushNamed(context, AppRoute.allTimelinesMap.tag),
                     ),
                     AppNavItem(
                       icon: Icons.settings_outlined,
                       label: 'Ajustes',
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        AppRoute.accountSettings.tag,
-                      ),
+                      onTap: () => Navigator.pushNamed(context, AppRoute.accountSettings.tag),
                     ),
                   ],
                 ),
@@ -222,10 +183,7 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
           child: LoadingEffect(
             child: Container(
               height: 180,
-              decoration: BoxDecoration(
-                color: palette.surface,
-                borderRadius: BorderRadius.circular(AppRadii.card),
-              ),
+              decoration: BoxDecoration(color: palette.surface, borderRadius: BorderRadius.circular(AppRadii.card)),
             ),
           ),
         ),
@@ -247,10 +205,7 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
                 style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
               ),
               kSpacerHeight12,
-              TextButton(
-                onPressed: () => context.read<NewFeedCubit>().load(),
-                child: const Text('Tentar novamente'),
-              ),
+              TextButton(onPressed: () => context.read<NewFeedCubit>().load(), child: const Text('Tentar novamente')),
             ],
           ),
         ),
@@ -260,6 +215,19 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
     final loaded = state as NewFeedLoaded;
     final cubit = context.read<NewFeedCubit>();
     final timelineById = {for (final t in loaded.timelines) t.id: t};
+
+    final List<_FeedItem> feedItems = [];
+    String? lastKey;
+    for (final moment in loaded.moments) {
+      final dt = moment.dateTime;
+      final key = '${dt.year}-${dt.month.toString().padLeft(2, '0')}';
+      if (key != lastKey) {
+        final raw = DateFormat('MMMM yyyy', 'pt_BR').format(dt);
+        feedItems.add(_FeedMonthHeader(raw[0].toUpperCase() + raw.substring(1)));
+        lastKey = key;
+      }
+      feedItems.add(_FeedMomentItem(moment));
+    }
 
     return RefreshIndicator(
       onRefresh: () => cubit.load(),
@@ -275,41 +243,37 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
             ),
           ),
           SliverToBoxAdapter(
-            child: _FeedHeader(
-              timelineCount: loaded.timelines.length,
-              momentCount: loaded.moments.length,
-            ),
+            child: _FeedHeader(timelineCount: loaded.timelines.length, momentCount: loaded.moments.length),
           ),
           if (loaded.moments.isEmpty)
-            const SliverFillRemaining(
-              hasScrollBody: false,
-              child: _EmptyFeed(),
-            )
+            const SliverFillRemaining(hasScrollBody: false, child: _EmptyFeed())
           else
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final moment = loaded.moments[index];
-                    final timeline = timelineById[moment.timelineId];
-                    if (timeline == null) return const SizedBox.shrink();
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: BlocProvider<InteractionsBloc>(
-                        key: ValueKey('interactions_${moment.id}'),
-                        create: (_) => getIt<InteractionsBloc>()
-                          ..add(InteractionsStarted(momentId: moment.id)),
-                        child: NewMomentFeedCard(
-                          moment: moment,
-                          timeline: timeline,
-                          currentUserEmail: loaded.currentUserEmail,
-                        ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final item = feedItems[index];
+                  if (item is _FeedMonthHeader) return _MonthHeader(label: item.label);
+                  if (item is! _FeedMomentItem) return const SizedBox.shrink();
+                  final moment = item.moment;
+                  final timeline = timelineById[moment.timelineId];
+                  if (timeline == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: BlocProvider<InteractionsBloc>(
+                      key: ValueKey('interactions_${moment.id}'),
+                      create: (_) => getIt<InteractionsBloc>()..add(InteractionsStarted(momentId: moment.id)),
+                      child: NewMomentFeedCard(
+                        moment: moment,
+                        timeline: timeline,
+                        currentUserEmail: loaded.currentUserEmail,
+                        onWillNavigate: () {
+                          _savedScrollOffset = _scrollController.hasClients ? _scrollController.offset : 0;
+                        },
                       ),
-                    );
-                  },
-                  childCount: loaded.moments.length,
-                ),
+                    ),
+                  );
+                }, childCount: feedItems.length),
               ),
             ),
           SliverPadding(
@@ -317,11 +281,7 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
             sliver: SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  _CreateTimelineCardFeed(),
-                  kSpacerHeight16,
-                  _HelpNote(),
-                ],
+                children: const [_CreateTimelineCardFeed(), kSpacerHeight16, _HelpNote()],
               ),
             ),
           ),
@@ -333,11 +293,7 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
 
 /// Horizontal "stories"-style row to filter the feed by timeline.
 class _TimelineStoriesRow extends StatelessWidget {
-  const _TimelineStoriesRow({
-    required this.timelines,
-    required this.activeId,
-    required this.onTap,
-  });
+  const _TimelineStoriesRow({required this.timelines, required this.activeId, required this.onTap});
 
   final List<TimeLine> timelines;
   final String? activeId;
@@ -361,9 +317,7 @@ class _TimelineStoriesRow extends StatelessWidget {
             onTap: () => onTap(null),
           ),
           ...timelines.map((timeline) {
-            final accent = timeline.accentColor != null
-                ? Color(timeline.accentColor!)
-                : palette.primary;
+            final accent = timeline.accentColor != null ? Color(timeline.accentColor!) : palette.primary;
             return _StoryBubble(
               label: timeline.name.isNotEmpty ? timeline.name : 'Linha',
               active: activeId == timeline.id,
@@ -399,22 +353,14 @@ class _StoryBubble extends StatelessWidget {
   Widget _avatar(BuildContext context) {
     if (isAll) {
       return Container(
-        decoration: BoxDecoration(
-          color: accent.withValues(alpha: 0.15),
-          shape: BoxShape.circle,
-        ),
+        decoration: BoxDecoration(color: accent.withValues(alpha: 0.15), shape: BoxShape.circle),
         alignment: Alignment.center,
         child: Icon(Icons.apps_rounded, color: accent, size: 24),
       );
     }
     if (coverUrl.isNotEmpty) {
       return ClipOval(
-        child: AppNetworkImage(
-          url: coverUrl,
-          width: 52,
-          height: 52,
-          errorWidget: _initialAvatar(context),
-        ),
+        child: AppNetworkImage(url: coverUrl, width: 52, height: 52, errorWidget: _initialAvatar(context)),
       );
     }
     return _initialAvatar(context);
@@ -423,17 +369,11 @@ class _StoryBubble extends StatelessWidget {
   Widget _initialAvatar(BuildContext context) {
     final initial = label.isNotEmpty ? label[0].toUpperCase() : '?';
     return Container(
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.18),
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: accent.withValues(alpha: 0.18), shape: BoxShape.circle),
       alignment: Alignment.center,
       child: Text(
         initial,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w700,
-            ),
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: accent, fontWeight: FontWeight.w700),
       ),
     );
   }
@@ -492,10 +432,8 @@ class _FeedHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final palette = context.palette;
-    final timelineLabel =
-        timelineCount == 1 ? '1 linha do tempo' : '$timelineCount linhas do tempo';
-    final momentLabel =
-        momentCount == 1 ? '1 momento' : '$momentCount momentos';
+    final timelineLabel = timelineCount == 1 ? '1 linha do tempo' : '$timelineCount linhas do tempo';
+    final momentLabel = momentCount == 1 ? '1 momento' : '$momentCount momentos';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       child: Row(
@@ -527,18 +465,11 @@ class _EmptyFeed extends StatelessWidget {
           Container(
             width: 88,
             height: 88,
-            decoration: BoxDecoration(
-              color: palette.primarySoft,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: palette.primarySoft, shape: BoxShape.circle),
             child: Icon(Icons.photo_library_outlined, color: palette.primary, size: 40),
           ),
           kSpacerHeight16,
-          Text(
-            'Nenhum momento encontrado',
-            style: textTheme.titleMedium,
-            textAlign: TextAlign.center,
-          ),
+          Text('Nenhum momento encontrado', style: textTheme.titleMedium, textAlign: TextAlign.center),
           kSpacerHeight8,
           Text(
             'Registre um momento para começar a preencher o seu feed.',
@@ -562,16 +493,10 @@ class _TimelinePickerSheet extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final palette = context.palette;
     return Container(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        20,
-        20,
-        20 + MediaQuery.of(context).viewInsets.bottom,
-      ),
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).viewInsets.bottom),
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(AppRadii.card)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadii.card)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -588,27 +513,19 @@ class _TimelinePickerSheet extends StatelessWidget {
             child: ListView(
               shrinkWrap: true,
               children: timelines.map((timeline) {
-                final accent = timeline.accentColor != null
-                    ? Color(timeline.accentColor!)
-                    : palette.primary;
-                final name = timeline.name.isNotEmpty
-                    ? timeline.name
-                    : 'Nossa linha do tempo';
+                final accent = timeline.accentColor != null ? Color(timeline.accentColor!) : palette.primary;
+                final name = timeline.name.isNotEmpty ? timeline.name : 'Nossa linha do tempo';
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: Container(
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.18),
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: BoxDecoration(color: accent.withValues(alpha: 0.18), shape: BoxShape.circle),
                     alignment: Alignment.center,
                     child: Icon(Icons.favorite_rounded, color: accent, size: 20),
                   ),
                   title: Text(name, style: textTheme.titleSmall),
-                  trailing: Icon(Icons.chevron_right_rounded,
-                      color: palette.onSurfaceMuted),
+                  trailing: Icon(Icons.chevron_right_rounded, color: palette.onSurfaceMuted),
                   onTap: () => Navigator.of(context).pop(timeline),
                 );
               }).toList(),
@@ -634,10 +551,7 @@ class _CreateTimelineCardFeed extends StatelessWidget {
       builder: (_) => const _MomentEditPolicySheet(),
     );
     if (policy == null) return;
-    await navigator.pushNamed(
-      AppRoute.timeLine.tag,
-      arguments: (timeLineId: null, momentEditPolicy: policy),
-    );
+    await navigator.pushNamed(AppRoute.timeLine.tag, arguments: (timeLineId: null, momentEditPolicy: policy));
     cubit.load();
   }
 
@@ -651,8 +565,7 @@ class _CreateTimelineCardFeed extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          gradient:
-              LinearGradient(colors: [palette.primary, palette.secondaryAccent]),
+          gradient: LinearGradient(colors: [palette.primary, palette.secondaryAccent]),
           borderRadius: BorderRadius.circular(AppRadii.card),
           boxShadow: AppShadows.soft(context),
         ),
@@ -661,8 +574,7 @@ class _CreateTimelineCardFeed extends StatelessWidget {
             Container(
               width: 48,
               height: 48,
-              decoration:
-                  const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
               child: Icon(Icons.add_rounded, color: palette.primary, size: 28),
             ),
             kSpacerWidth16,
@@ -672,17 +584,12 @@ class _CreateTimelineCardFeed extends StatelessWidget {
                 children: [
                   Text(
                     'Criar nova linha do tempo',
-                    style: textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Registre seus momentos e compartilhe com quem quiser.',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
+                    style: textTheme.bodySmall?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
                   ),
                 ],
               ),
@@ -712,16 +619,10 @@ class _MomentEditPolicySheetState extends State<_MomentEditPolicySheet> {
     final palette = context.palette;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        20,
-        20,
-        20 + MediaQuery.of(context).viewInsets.bottom,
-      ),
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).viewInsets.bottom),
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(AppRadii.card)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadii.card)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -795,10 +696,7 @@ class _PolicyOption extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? palette.primarySoft : palette.surfaceAlt,
           borderRadius: BorderRadius.circular(AppRadii.input),
-          border: Border.all(
-            color: selected ? palette.primary : Colors.transparent,
-            width: 1.5,
-          ),
+          border: Border.all(color: selected ? palette.primary : Colors.transparent, width: 1.5),
         ),
         child: Row(
           children: [
@@ -810,15 +708,48 @@ class _PolicyOption extends StatelessWidget {
                 children: [
                   Text(title, style: textTheme.titleSmall),
                   const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
-                  ),
+                  Text(subtitle, style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted)),
                 ],
               ),
             ),
             if (selected) Icon(Icons.check_circle, color: palette.primary),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+sealed class _FeedItem {}
+
+class _FeedMonthHeader extends _FeedItem {
+  _FeedMonthHeader(this.label);
+
+  final String label;
+}
+
+class _FeedMomentItem extends _FeedItem {
+  _FeedMomentItem(this.moment);
+
+  final Moment moment;
+}
+
+class _MonthHeader extends StatelessWidget {
+  const _MonthHeader({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: palette.onSurfaceMuted,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.4,
         ),
       ),
     );
@@ -835,10 +766,7 @@ class _HelpNote extends StatelessWidget {
     final palette = context.palette;
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: palette.surfaceAlt,
-        borderRadius: BorderRadius.circular(AppRadii.input),
-      ),
+      decoration: BoxDecoration(color: palette.surfaceAlt, borderRadius: BorderRadius.circular(AppRadii.input)),
       child: Row(
         children: [
           Icon(Icons.info_outline_rounded, size: 20, color: palette.onSurfaceMuted),

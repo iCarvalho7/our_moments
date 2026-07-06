@@ -283,6 +283,7 @@ class TimeLineBloc extends Bloc<TimeLineEvent, TimeLineState> {
     'Abr',
     'Mai',
     'Jun',
+    'Jul',
     'Ago',
     'Set',
     'Out',

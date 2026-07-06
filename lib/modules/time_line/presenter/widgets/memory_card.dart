@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/theme/app_theme.dart';
@@ -47,12 +48,11 @@ class MemoryCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (heroUrl != null)
-              Image.network(
-                heroUrl,
+              CachedNetworkImage(
+                imageUrl: heroUrl,
                 fit: BoxFit.cover,
-                loadingBuilder: (_, child, progress) =>
-                    progress == null ? child : _GradientBackground(colors: colors),
-                errorBuilder: (_, __, ___) =>
+                placeholder: (_, __) => _GradientBackground(colors: colors),
+                errorWidget: (_, __, ___) =>
                     _GradientBackground(colors: colors, icon: moment.type.icon),
               )
             else

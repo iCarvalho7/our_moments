@@ -82,18 +82,6 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
     );
   }
 
-  void _openTimeline(BuildContext context) {
-    final cubitState = context.read<NewFeedCubit>().state;
-    String? id;
-    if (cubitState is NewFeedLoaded) {
-      id = cubitState.activeTimelineId ??
-          (cubitState.timelines.isNotEmpty ? cubitState.timelines.first.id : null);
-    }
-    if (id == null) return;
-    Navigator.pushNamed(context, AppRoute.timeLine.tag, arguments: id)
-        .then((_) => context.mounted ? context.read<NewFeedCubit>().load() : null);
-  }
-
   void _openAdd(BuildContext context, TimeLine timeline) {
     final cubit = context.read<NewFeedCubit>();
     _savedScrollOffset = _scrollController.hasClients ? _scrollController.offset : 0;
@@ -138,6 +126,16 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
                         .read<SelectTimeLineBloc>()
                         .add(SelectTimeLineEventLogout()),
                   ),
+                  icons: [
+                    IconButton(
+                      tooltip: 'Ajustes',
+                      icon: const Icon(Icons.settings_outlined),
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        AppRoute.accountSettings.tag,
+                      ),
+                    ),
+                  ],
                 ),
                 body: SafeArea(
                   child: BlocListener<SelectTimeLineBloc, SelectTimeLineState>(
@@ -175,30 +173,17 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
                       onTap: _scrollToTop,
                     ),
                     AppNavItem(
-                      icon: Icons.map_outlined,
-                      label: 'Mapa',
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        AppRoute.allTimelinesMap.tag,
-                      ),
-                    ),
-                    AppNavItem(
                       icon: Icons.add_rounded,
                       label: 'Criar',
                       primary: true,
                       onTap: () => _onCreate(context),
                     ),
                     AppNavItem(
-                      icon: Icons.timeline_rounded,
-                      label: 'Linha',
-                      onTap: () => _openTimeline(context),
-                    ),
-                    AppNavItem(
-                      icon: Icons.settings_outlined,
-                      label: 'Ajustes',
+                      icon: Icons.map_outlined,
+                      label: 'Mapa',
                       onTap: () => Navigator.pushNamed(
                         context,
-                        AppRoute.accountSettings.tag,
+                        AppRoute.allTimelinesMap.tag,
                       ),
                     ),
                   ],

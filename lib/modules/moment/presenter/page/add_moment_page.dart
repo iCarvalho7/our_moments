@@ -52,6 +52,7 @@ class AddOrEditMomentPage extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _CircleIconButton(
+                      key: const ValueKey('key_moment_delete_button'),
                       icon: CupertinoIcons.delete,
                       onTap: () => _confirmDelete(context),
                     ),
@@ -170,47 +171,50 @@ class AddOrEditMomentPage extends StatelessWidget {
 
   Widget _buildLoadingState(BuildContext context) {
     final palette = context.palette;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Hero shimmer — matches MomentPhotoHero's default height (360px),
-        // extends behind the transparent app bar (extendBodyBehindAppBar: true).
-        LoadingEffect(
-          child: Container(
-            height: 360,
-            width: double.infinity,
-            color: palette.surfaceAlt,
+    return SingleChildScrollView(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Hero shimmer — matches MomentPhotoHero's default height (360px),
+          // extends behind the transparent app bar (extendBodyBehindAppBar: true).
+          LoadingEffect(
+            child: Container(
+              height: 360,
+              width: double.infinity,
+              color: palette.surfaceAlt,
+            ),
           ),
-        ),
-        // Content sheet — mirrors OverlaySheet: -24px overlap, rounded top, same padding.
-        Transform.translate(
-          offset: const Offset(0, -24),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
-            decoration: BoxDecoration(
-              color: palette.background,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppRadii.sheet),
+          // Content sheet — mirrors OverlaySheet: -24px overlap, rounded top, same padding.
+          Transform.translate(
+            offset: const Offset(0, -24),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+              decoration: BoxDecoration(
+                color: palette.background,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadii.sheet),
+                ),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  HistoryContainerLoading(),
+                  MomentFormSectionLoading(),
+                ],
               ),
             ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                HistoryContainerLoading(),
-                MomentFormSectionLoading(),
-              ],
-            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
 /// Translucent circular button used over the hero photo (back / share).
 class _CircleIconButton extends StatelessWidget {
-  const _CircleIconButton({required this.icon, required this.onTap});
+  const _CircleIconButton({super.key, required this.icon, required this.onTap});
 
   final IconData icon;
   final VoidCallback onTap;

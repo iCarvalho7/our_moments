@@ -79,7 +79,7 @@ class _NavButton extends StatelessWidget {
               ),
               child: Icon(item.icon, color: palette.onPrimary, size: 28),
             ),
-            const SizedBox(height: 3 + 10), // mirrors gap + label height of regular items
+            const SizedBox(height: 3 + 9), // mirrors gap + label height of regular items
           ],
         ),
       );

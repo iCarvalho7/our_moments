@@ -31,6 +31,8 @@ class F {
   static final Finder signUpConfirmPasswordField =
       find.byKey(const ValueKey('key_signup_confirm_password_field'));
   static final Finder signUpSubmit = find.byKey(const ValueKey('key_signup_submit_button'));
+  /// Success bottom sheet shown after account creation; tap to go to login.
+  static final Finder signUpSuccessLoginButton = find.text('Fazer login');
 
   // --- Home feed (NewSelectTimeLinePage) --------------------------------
   static final Finder feedAppBarTitle = find.text('Nossos Momentos');
@@ -39,6 +41,12 @@ class F {
   static final Finder navMap = find.byKey(const ValueKey('key_bottom_nav_map'));
   static final Finder navMoments = find.byKey(const ValueKey('key_bottom_nav_moments'));
   static final Finder navSettings = find.byKey(const ValueKey('key_bottom_nav_settings'));
+
+  // --- Timeline page nav (TimeLinePage) ---------------------------------
+  static final Finder timelineNavCreate =
+      find.byKey(const ValueKey('key_timeline_nav_create'));
+  static final Finder timelineNavSettings =
+      find.byKey(const ValueKey('key_timeline_nav_settings'));
 
   // --- Add / edit moment ------------------------------------------------
   static final Finder momentTitleField = find.byKey(const ValueKey('key_moment_form_title_field'));
@@ -52,6 +60,9 @@ class F {
   static final Finder momentSaveNew = momentSave;
   static final Finder momentSaveEdit = momentSave;
 
+  /// Delete icon in the moment form app bar (only visible when editing).
+  static final Finder momentDeleteButton =
+      find.byKey(const ValueKey('key_moment_delete_button'));
   static final Finder momentDeleteConfirmTitle = find.text('Deletar momento');
   static final Finder momentDeleteConfirmButton =
       find.byKey(const ValueKey('key_moment_delete_confirm_button'));
@@ -81,12 +92,20 @@ class F {
   static final Finder deleteTimelineButton = find.text('Deletar linha do tempo');
   static final Finder deleteTimelineSheetTitle = find.text('Deletar linha do tempo?');
   static final Finder continueButton = find.widgetWithText(ElevatedButton, 'Continuar');
-  static final Finder deleteConfirmButton = find.text('Deletar');
+  static final Finder deleteConfirmButton =
+      find.byKey(const ValueKey('key_timeline_delete_confirm_button'));
 
   // --- Map --------------------------------------------------------------
   static final Finder mapView = find.byKey(const ValueKey('key_map_view'));
+
+  // key_bottom_nav_map → MomentsMapPage (requires an active timeline).
   static final Finder mapTitle = find.text('Mapa dos momentos');
   static final Finder mapEmpty = find.text('Nenhum momento com localização');
+
+  // key_bottom_nav_moments (navMoments) → AllTimelinesMapPage (always available).
+  static final Finder allTimelinesMapTitle = find.text('Todos os momentos');
+  static final Finder allTimelinesMapEmpty = find.text('Nenhum momento ainda');
+
   static final Finder mapFilterAll = find.text('Todos');
   static final Finder mapOpenMoment = find.byKey(const ValueKey('key_map_open_moment_button'));
 
@@ -105,5 +124,9 @@ class F {
   static final Finder deleteAccountButton = find.text('Excluir minha conta');
 
   /// Finds a moment feed card / list item by the moment title it displays.
-  static Finder momentByTitle(String title) => find.text(title);
+  /// Uses a plain Text widget predicate to avoid matching the EditableText
+  /// inside the moment form field (which has the same content while editing).
+  static Finder momentByTitle(String title) => find.byWidgetPredicate(
+    (w) => w is Text && w.data == title,
+  );
 }

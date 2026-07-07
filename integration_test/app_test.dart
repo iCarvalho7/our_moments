@@ -1,6 +1,7 @@
 import 'package:integration_test/integration_test.dart';
 
 import 'auth_test.dart' as auth;
+import 'full_lifecycle_test.dart' as lifecycle;
 import 'map_test.dart' as map;
 import 'moment_test.dart' as moment;
 import 'settings_test.dart' as settings;
@@ -39,6 +40,7 @@ import 'timeline_test.dart' as timeline;
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
+  lifecycle.fullLifecycleTests();
   auth.authTests();
   timeline.timelineTests();
   moment.momentTests();

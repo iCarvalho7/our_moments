@@ -330,6 +330,7 @@ class _Step2 extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
+            key: const ValueKey('key_timeline_delete_confirm_button'),
             onPressed: canDelete ? onDelete : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: errorColor,

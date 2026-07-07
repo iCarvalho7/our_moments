@@ -133,11 +133,13 @@ class _TimeLinePageState extends State<TimeLinePage> {
           icon: Icons.add_rounded,
           label: 'Criar',
           primary: true,
+          navKey: const ValueKey('key_timeline_nav_create'),
           onTap: () => _goToAddMoment(context),
         ),
         AppNavItem(
           icon: Icons.settings_outlined,
           label: 'Ajustes',
+          navKey: const ValueKey('key_timeline_nav_settings'),
           onTap: () => _goToSettings(context, context.read<TimeLineBloc>().timeLine),
         ),
       ],

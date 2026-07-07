@@ -261,6 +261,11 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
           SliverToBoxAdapter(
             child: _FeedHeader(timelineCount: loaded.timelines.length, momentCount: loaded.moments.length),
           ),
+          if (loaded.timelines.isEmpty)
+            const SliverPadding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              sliver: SliverToBoxAdapter(child: _CreateTimelineCardFeed()),
+            ),
           if (loaded.moments.isEmpty)
             const SliverFillRemaining(hasScrollBody: false, child: _EmptyFeed())
           else

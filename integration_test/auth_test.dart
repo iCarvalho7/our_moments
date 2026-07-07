@@ -34,6 +34,8 @@ void authTests() {
         await Flows.signInWithTestAccount(tester);
         expect(F.feedAppBarTitle, findsWidgets,
             reason: 'Após o login deve abrir o feed "Nossos Momentos".');
+        // Aguarda feed carregar para evitar race condition no logout.
+        await settle(tester);
 
         // Logout
         await Flows.openAccountSettings(tester);
@@ -61,13 +63,16 @@ void authTests() {
         await tester.tap(F.goToSignUp);
         await pumpUntilFound(tester, F.signUpTitle);
 
-        await tester.enterText(F.textFieldAt(0), email); // e-mail
-        await tester.enterText(F.textFieldAt(1), password); // senha
-        await tester.enterText(F.textFieldAt(2), password); // confirmar senha
+        await tester.enterText(F.signUpEmailField, email);
+        await tester.enterText(F.signUpPasswordField, password);
+        await tester.enterText(F.signUpConfirmPasswordField, password);
         await settle(tester);
         await tester.tap(F.signUpSubmit);
 
-        // On success the signup page pops back to login.
+        // On success a bottom sheet appears; wait for it to finish opening then tap.
+        await pumpUntilFound(tester, F.signUpSuccessLoginButton);
+        await settle(tester); // let the sheet slide fully into view
+        await tester.tap(F.signUpSuccessLoginButton);
         await pumpUntilGone(tester, F.signUpTitle);
         await settle(tester);
 
@@ -77,6 +82,10 @@ void authTests() {
         }
         expect(F.feedAppBarTitle, findsWidgets,
             reason: 'A conta criada deve conseguir logar e ver o feed.');
+        // Aguarda NewFeedCubit terminar de carregar (conta nova → sem timelines).
+        // Sem isso, o logout dispara pushNamedAndRemoveUntil antes do cubit
+        // completar, causando "Cannot emit new states after calling close".
+        await pumpUntilFound(tester, F.createTimelineCard);
 
         // --- 3. Logout ------------------------------------------------
         await Flows.openAccountSettings(tester);
@@ -85,6 +94,8 @@ void authTests() {
 
         // --- 4. Login novamente e excluir a conta ---------------------
         await Flows.signIn(tester, email: email, password: password);
+        // Wait for feed to load again before navigating to settings.
+        await pumpUntilFound(tester, F.createTimelineCard);
         await Flows.openAccountSettings(tester);
         await _deleteAccount(tester, password: password);
 

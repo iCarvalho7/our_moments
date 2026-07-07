@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -10,42 +9,64 @@ import 'helpers/test_config.dart';
 
 /// E2E — Momentos
 ///
-/// Covers the requested moment scenarios in a single self-cleaning journey:
+/// Self-contained: creates a throwaway account + timeline, exercises the full
+/// moment lifecycle, deletes the timeline, then deletes the account.
+///
 ///   - Criar momento (título, descrição, tipo/categoria)
 ///   - Visualizar o momento (aparece no feed)
 ///   - Editar momento existente
 ///   - Excluir momento
-///
-/// Media (photos/videos) is intentionally NOT exercised: it requires the native
-/// gallery/file picker which cannot be automated headlessly. Media is optional
-/// on a moment, so a text-only moment is valid.
-///
-/// Runs against the real backend, so it needs the shared QA credentials. It
-/// deletes the moment it creates, leaving no residue.
 void momentTests() {
   group('Momentos', () {
     testWidgets(
       'cria, visualiza, edita e exclui um momento',
       (tester) async {
+        final email = TestConfig.freshEmail();
+        const password = TestConfig.signupPassword;
+        final timelineName = 'E2E ${DateTime.now().millisecondsSinceEpoch}';
         final title = 'E2E Momento ${DateTime.now().millisecondsSinceEpoch}';
         final editedTitle = '$title (editado)';
-        const body = 'Descrição criada pelo teste de integração.';
 
         await launchLoggedOut(tester);
-        await Flows.signInWithTestAccount(tester);
+        await Flows.signUpAndSignIn(tester, email: email, password: password);
+
+        // --- Criar timeline (necessária para criar momentos) ----------
+        await pumpUntilFound(tester, F.createTimelineCard);
+        await tester.tap(F.createTimelineCard);
+        await pumpUntilFound(tester, F.policySheetTitle);
+        await tester.tap(F.createTimelineConfirm);
+        await pumpUntilFound(tester, F.relationshipDateCta);
+        await tester.tap(F.relationshipDateCta);
+        await pumpUntilFound(tester, find.text('OK'));
+        await tester.tap(find.text('OK'));
+        await pumpUntilFound(tester, F.togetherLabel);
 
         // --- Criar momento --------------------------------------------
-        await _openMomentForm(tester);
-        await tester.enterText(_titleField, title);
-        await tester.enterText(_bodyField, body);
-        await tester.pump();
+        await pumpUntilFound(tester, F.timelineNavCreate);
+        await tester.tap(F.timelineNavCreate);
+        await settle(tester);
 
-        // Categoria/tipo: seleciona o chip "Romântico" (MomentType.romantic).
+        if (F.timelinePickerSheet.evaluate().isNotEmpty) {
+          await tester.tap(find.byType(ListTile).first);
+          await settle(tester);
+        }
+
+        await pumpUntilFound(tester, F.momentTitleField);
+        await tester.enterText(F.momentTitleField, title);
+        await tester.enterText(F.momentBodyField, 'Descrição criada pelo teste.');
+        await tester.pump();
         await tester.tap(find.text('Romântico'));
         await tester.pump();
-
+        await tester.tap(F.momentDateSelector);
+        await pumpUntilFound(tester, find.text('OK'));
+        await tester.tap(find.text('OK')); // date picker
+        await pumpUntilFound(tester, find.text('OK'));
+        await tester.tap(find.text('OK')); // time picker
+        await settle(tester);
         await tester.tap(F.momentSaveNew);
+        await pumpUntilGone(tester, F.momentSave);
         await pumpUntilFound(tester, F.momentByTitle(title));
+        await settle(tester);
 
         // --- Visualizar -----------------------------------------------
         expect(F.momentByTitle(title), findsWidgets,
@@ -54,46 +75,68 @@ void momentTests() {
         // --- Editar ----------------------------------------------------
         await tester.tap(F.momentByTitle(title).first);
         await pumpUntilFound(tester, F.momentSaveEdit);
-        await tester.enterText(_titleField, editedTitle);
+        await settle(tester);
+        await tester.enterText(F.momentTitleField, editedTitle);
         await tester.pump();
         await tester.tap(F.momentSaveEdit);
+        await pumpUntilGone(tester, F.momentSave);
         await pumpUntilFound(tester, F.momentByTitle(editedTitle));
+        await settle(tester);
         expect(F.momentByTitle(editedTitle), findsWidgets,
             reason: 'O título editado deve refletir no feed.');
 
-        // --- Excluir ---------------------------------------------------
+        // --- Excluir momento ------------------------------------------
         await tester.tap(F.momentByTitle(editedTitle).first);
         await pumpUntilFound(tester, F.momentSaveEdit);
-        await tester.tap(find.byIcon(CupertinoIcons.delete));
+        await settle(tester);
+        await tester.tap(F.momentDeleteButton);
         await pumpUntilFound(tester, F.momentDeleteConfirmTitle);
         await tester.tap(F.momentDeleteConfirmButton);
         await pumpUntilGone(tester, F.momentByTitle(editedTitle));
         expect(F.momentByTitle(editedTitle), findsNothing,
             reason: 'O momento excluído não deve mais aparecer no feed.');
+
+        // --- Excluir timeline -----------------------------------------
+        // Rename first so we know the exact name for the confirmation field.
+        await pumpUntilFound(tester, F.timelineNavSettings);
+        await tester.tap(F.timelineNavSettings);
+        await pumpUntilFound(tester, F.timelineSettingsAppBar);
+
+        await tester.ensureVisible(F.timelineNameField);
+        await tester.enterText(F.timelineNameField, timelineName);
+        await tester.ensureVisible(F.saveTimelineChanges.first);
+        await tester.tap(F.saveTimelineChanges.first);
+        await settle(tester);
+
+        await tester.ensureVisible(F.deleteTimelineButton);
+        await tester.tap(F.deleteTimelineButton);
+        await pumpUntilFound(tester, F.deleteTimelineSheetTitle);
+
+        final checks = find.byType(Checkbox);
+        await tester.tap(checks.at(0));
+        await tester.pump();
+        await tester.tap(checks.at(1));
+        await tester.pump();
+        await tester.tap(F.continueButton);
+        await settle(tester);
+
+        final confirmField = F.fieldByHint('Digite o nome aqui');
+        await pumpUntilFound(tester, confirmField);
+        await tester.enterText(confirmField, timelineName);
+        await tester.pump();
+        await tester.tap(F.deleteConfirmButton);
+        await pumpUntilGone(tester, F.deleteTimelineSheetTitle);
+        await pumpUntilFound(tester, F.feedAppBarTitle);
+
+        // --- Excluir conta -------------------------------------------
+        await Flows.deleteAccount(tester, password: password);
+        expect(F.loginButton, findsOneWidget,
+            reason: 'Após excluir a conta deve voltar para o login.');
       },
-      skip: !TestConfig.hasCredentials,
+      skip: !TestConfig.runDestructive,
     );
   });
 }
-
-/// Taps the "Criar" nav action and lands on the add-moment form, choosing the
-/// first timeline if the app asks which timeline to write to.
-Future<void> _openMomentForm(WidgetTester tester) async {
-  await pumpUntilFound(tester, F.navCreate);
-  await tester.tap(F.navCreate);
-  await settle(tester);
-
-  // If the account can edit more than one timeline, a picker sheet appears.
-  if (F.timelinePickerSheet.evaluate().isNotEmpty) {
-    await tester.tap(find.byType(ListTile).first);
-    await settle(tester);
-  }
-  await pumpUntilFound(tester, F.momentTitleHint);
-}
-
-/// The moment form has exactly two text fields: [0] title, [1] description.
-Finder get _titleField => find.byType(TextField).at(0);
-Finder get _bodyField => find.byType(TextField).at(1);
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

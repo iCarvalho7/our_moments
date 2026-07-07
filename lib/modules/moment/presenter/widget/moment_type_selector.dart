@@ -21,6 +21,7 @@ class MomentTypeSelector extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             children: MomentType.values.map((type) {
               return _Chip(
+                key: ValueKey('key_moment_type_${type.value}'),
                 type: type,
                 selected: state.moment.type == type,
                 onTap: () => context
@@ -36,7 +37,7 @@ class MomentTypeSelector extends StatelessWidget {
 }
 
 class _Chip extends StatelessWidget {
-  const _Chip({required this.type, required this.selected, required this.onTap});
+  const _Chip({super.key, required this.type, required this.selected, required this.onTap});
 
   final MomentType type;
   final bool selected;

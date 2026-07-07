@@ -140,15 +140,33 @@ class _NewSelectTimeLinePageState extends State<NewSelectTimeLinePage> {
                 ),
                 bottomNavigationBar: AppBottomNav(
                   items: [
-                    AppNavItem(icon: Icons.home_rounded, label: 'Início', onTap: _scrollToTop),
-                    AppNavItem(icon: Icons.timeline_rounded, label: 'Mapa', onTap: () => _openTimeline(context)),
-                    AppNavItem(icon: Icons.add_rounded, label: 'Criar', primary: true, onTap: () => _onCreate(context)),
                     AppNavItem(
+                      navKey: const ValueKey('key_bottom_nav_home'),
+                      icon: Icons.home_rounded,
+                      label: 'Início',
+                      onTap: _scrollToTop,
+                    ),
+                    AppNavItem(
+                      navKey: const ValueKey('key_bottom_nav_map'),
+                      icon: Icons.timeline_rounded,
+                      label: 'Mapa',
+                      onTap: () => _openTimeline(context),
+                    ),
+                    AppNavItem(
+                      navKey: const ValueKey('key_bottom_nav_create'),
+                      icon: Icons.add_rounded,
+                      label: 'Criar',
+                      primary: true,
+                      onTap: () => _onCreate(context),
+                    ),
+                    AppNavItem(
+                      navKey: const ValueKey('key_bottom_nav_moments'),
                       icon: Icons.travel_explore_rounded,
                       label: 'Momentos',
                       onTap: () => Navigator.pushNamed(context, AppRoute.allTimelinesMap.tag),
                     ),
                     AppNavItem(
+                      navKey: const ValueKey('key_bottom_nav_settings'),
                       icon: Icons.settings_outlined,
                       label: 'Ajustes',
                       onTap: () => Navigator.pushNamed(context, AppRoute.accountSettings.tag),
@@ -697,6 +715,7 @@ class _MomentEditPolicySheetState extends State<_MomentEditPolicySheet> {
           SizedBox(
             width: double.infinity,
             child: FilledButton(
+              key: const ValueKey('key_timeline_create_confirm_button'),
               onPressed: () => Navigator.of(context).pop(_policy),
               child: const Text('Criar linha do tempo'),
             ),

@@ -133,6 +133,7 @@ class _MomentsMapViewState extends State<_MomentsMapView> {
                   child: Stack(
                     children: [
                       FlutterMap(
+                        key: const ValueKey('key_map_view'),
                         options: MapOptions(
                           initialCameraFit: CameraFit.coordinates(
                             coordinates: points,
@@ -161,6 +162,7 @@ class _MomentsMapViewState extends State<_MomentsMapView> {
                                 height: size + 12,
                                 alignment: Alignment.bottomCenter,
                                 child: GestureDetector(
+                                  key: ValueKey('key_map_marker_${moment.id}'),
                                   onTap: () => setState(() => _selected = moment),
                                   child: _MomentMarker(moment: moment, size: size, selected: selected),
                                 ),
@@ -440,7 +442,11 @@ class _MomentMapCard extends StatelessWidget {
             ),
           ),
           kSpacerWidth8,
-          TextButton(onPressed: onOpen, child: const Text('Abrir')),
+          TextButton(
+            key: const ValueKey('key_map_open_moment_button'),
+            onPressed: onOpen,
+            child: const Text('Abrir'),
+          ),
         ],
       ),
     );

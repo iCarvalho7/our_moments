@@ -100,6 +100,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             kSpacerHeight32,
                             LoginTextField(
+                              key: const ValueKey('key_signup_email_field'),
                               startIcon: Icons.alternate_email_rounded,
                               errorText: _emailErrorTxt,
                               hint: 'seu@email.com',
@@ -107,6 +108,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             kSpacerHeight16,
                             LoginTextField(
+                              key: const ValueKey('key_signup_password_field'),
                               startIcon: Icons.lock_outline,
                               endIcon: Icons.remove_red_eye_outlined,
                               errorText: _passwordErrorTxt,
@@ -116,6 +118,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             kSpacerHeight16,
                             LoginTextField(
+                              key: const ValueKey('key_signup_confirm_password_field'),
                               startIcon: Icons.lock_outline,
                               endIcon: Icons.remove_red_eye_outlined,
                               hint: '*********',
@@ -125,6 +128,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             kSpacerHeight32,
                             PrimaryButton(
+                              key: const ValueKey('key_signup_submit_button'),
                               label: 'Criar conta',
                               onPressed: () => _signUp(context),
                             ),

@@ -4,7 +4,13 @@ import '../../utils/theme/app_theme.dart';
 
 /// A single entry in [AppBottomNav].
 class AppNavItem {
-  const AppNavItem({required this.icon, required this.label, required this.onTap, this.primary = false});
+  const AppNavItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.primary = false,
+    this.navKey,
+  });
 
   final IconData icon;
   final String label;
@@ -12,6 +18,9 @@ class AppNavItem {
 
   /// Renders as the elevated accent "+" action in the middle of the bar.
   final bool primary;
+
+  /// Optional key applied to the rendered nav button (used by E2E tests).
+  final Key? navKey;
 }
 
 /// Floating pill-shaped bottom navigation with a highlighted central action,
@@ -37,7 +46,7 @@ class AppBottomNav extends StatelessWidget {
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: items.map((item) => _NavButton(item: item)).toList(),
+          children: items.map((item) => _NavButton(key: item.navKey, item: item)).toList(),
         ),
       ),
     );
@@ -45,7 +54,7 @@ class AppBottomNav extends StatelessWidget {
 }
 
 class _NavButton extends StatelessWidget {
-  const _NavButton({required this.item});
+  const _NavButton({super.key, required this.item});
 
   final AppNavItem item;
 

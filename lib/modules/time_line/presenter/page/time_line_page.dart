@@ -265,6 +265,7 @@ class _TimeLinePageState extends State<TimeLinePage> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 2),
       child: GestureDetector(
+        key: const ValueKey('key_timeline_start_date_button'),
         onTap: () => _pickRelationshipDate(context, startDate),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

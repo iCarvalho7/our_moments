@@ -35,6 +35,7 @@ class MomentMetaRows extends StatelessWidget {
         return MetadataCard(
           children: [
             MetadataRow(
+              key: const ValueKey('key_moment_form_date_selector'),
               icon: Icons.calendar_today_rounded,
               label: 'Quando aconteceu',
               value: dateValue,

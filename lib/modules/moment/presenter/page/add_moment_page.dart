@@ -109,6 +109,7 @@ class AddOrEditMomentPage extends StatelessWidget {
             child: const Text('Cancelar'),
           ),
           TextButton(
+            key: const ValueKey('key_moment_delete_confirm_button'),
             onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(
               'Deletar',
@@ -243,6 +244,7 @@ class _TitleField extends StatelessWidget {
       buildWhen: (p, c) => false, // keep TextFormField's own state
       builder: (context, state) {
         return TextFormField(
+          key: const ValueKey('key_moment_form_title_field'),
           initialValue: state.moment.title,
           textInputAction: TextInputAction.next,
           textCapitalization: TextCapitalization.sentences,
@@ -280,6 +282,7 @@ class _BodyField extends StatelessWidget {
       buildWhen: (p, c) => false,
       builder: (context, state) {
         return TextFormField(
+          key: const ValueKey('key_moment_form_body_field'),
           initialValue: state.moment.body,
           textInputAction: TextInputAction.newline,
           keyboardType: TextInputType.multiline,
@@ -359,6 +362,7 @@ class _SubmitButton extends StatelessWidget {
             (!state.moment.isEditing || bloc.isDirty);
         return FloatingCtaBar(
           child: ElevatedButton(
+            key: const ValueKey('key_moment_form_save_button'),
             onPressed: enabled
                 ? () => bloc.add(const AddOrEditMomentEventCreateOrUpdateMoment())
                 : null,

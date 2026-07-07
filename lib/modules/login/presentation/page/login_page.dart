@@ -85,6 +85,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             kSpacerHeight32,
                             LoginTextField(
+                              key: const ValueKey('key_login_email_field'),
                               controller: _userNameTextController,
                               errorText: _usernameErrorText,
                               startIcon: Icons.person_outline,
@@ -92,6 +93,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             kSpacerHeight16,
                             LoginTextField(
+                              key: const ValueKey('key_login_password_field'),
                               controller: _passwordTextController,
                               errorText: _passwordErrorText,
                               startIcon: Icons.lock_outline,
@@ -101,11 +103,13 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             kSpacerHeight32,
                             PrimaryButton(
+                              key: const ValueKey('key_login_submit_button'),
                               label: 'Entrar',
                               onPressed: () => _signIn(context),
                             ),
                             kSpacerHeight8,
                             TextButton(
+                              key: const ValueKey('key_login_create_account_button'),
                               onPressed: () {
                                 Navigator.pushNamed(context, AppRoute.signup.tag);
                               },

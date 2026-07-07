@@ -865,6 +865,7 @@ class _TimelineDetailsSectionState extends State<_TimelineDetailsSection> {
         _AccentPreview(accent: accent, name: _nameController.text),
         kSpacerHeight24,
         TextField(
+          key: const ValueKey('key_timeline_form_name_field'),
           controller: _nameController,
           textCapitalization: TextCapitalization.sentences,
           onChanged: (_) => setState(() {}),
@@ -901,6 +902,7 @@ class _TimelineDetailsSectionState extends State<_TimelineDetailsSection> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
+            key: const ValueKey('key_timeline_form_save_button'),
             onPressed: _save,
             icon: const Icon(Icons.check_rounded, size: 20),
             label: const Text('Salvar alterações'),
@@ -916,14 +918,12 @@ class _Swatch extends StatelessWidget {
     required this.selected,
     required this.background,
     required this.onTap,
-    this.locked = false,
     this.child,
   });
 
   final bool selected;
   final Color background;
   final VoidCallback onTap;
-  final bool locked;
   final Widget? child;
 
   @override
@@ -941,7 +941,7 @@ class _Swatch extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(color: selected ? palette.onSurface : palette.outline, width: selected ? 3 : 1),
         ),
-        child: locked ? Icon(Icons.lock_rounded, color: Colors.white.withValues(alpha: 0.9), size: 18) : child,
+        child: child,
       ),
     );
   }

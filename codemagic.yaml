@@ -27,8 +27,9 @@ workflows:
       - name: Set up Firebase service account
         script: |
           set -ex
-          echo -e "$FIREBASE_SERVICE_ACCOUNT" > $FCI_BUILD_DIR/firebase-sa.json
-          python3 -c "import json; d=json.load(open('$FCI_BUILD_DIR/firebase-sa.json')); print('JSON OK - project:', d['project_id'])"
+          echo -e "$FIREBASE_SERVICE_ACCOUNT" > /tmp/firebase-sa.json
+          python3 -c "import json; d=json.load(open('/tmp/firebase-sa.json')); print('JSON OK - project:', d['project_id'])"
+          echo "FIREBASE_SERVICE_ACCOUNT_JSON=$(cat /tmp/firebase-sa.json)" >> $CM_ENV
       - name: Set up iOS signing
         script: |
           set -ex
@@ -63,19 +64,24 @@ workflows:
             --dart-define-from-file=dart_defines.txt \
             --build-name=1.1.5 \
             --build-number=$BUILD_NUMBER
+      - name: Publish to Firebase App Distribution
+        script: |
+          set -ex
+          npm install -g firebase-tools
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-sa.json
+          IPA=$(find build/ios/ipa -name "*.ipa" | head -1)
+          APK=$(find build/app/outputs/flutter-apk -name "*.apk" | head -1)
+          AAB=$(find build/app/outputs/bundle/release -name "*.aab" | head -1)
+          firebase appdistribution:distribute "$IPA" \
+            --app 1:258810302381:ios:90432b4f388901ab481b24 \
+            --groups testers
+          firebase appdistribution:distribute "$APK" \
+            --app 1:258810302381:android:14a0ee32c7f504a6481b24 \
+            --groups testers
+          firebase appdistribution:distribute "$AAB" \
+            --app 1:258810302381:android:14a0ee32c7f504a6481b24 \
+            --groups testers
     artifacts:
       - build/ios/ipa/*.ipa
       - build/app/outputs/flutter-apk/app-release.apk
       - build/app/outputs/bundle/release/app-release.aab
-    publishing:
-      firebase:
-        firebase_service_account: $FCI_BUILD_DIR/firebase-sa.json
-        android:
-          app_id: 1:258810302381:android:14a0ee32c7f504a6481b24
-          artifact_type: aab
-          groups:
-            - testers
-        ios:
-          app_id: 1:258810302381:ios:90432b4f388901ab481b24
-          groups:
-            - testers

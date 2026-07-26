@@ -52,6 +52,7 @@ workflows:
         script: |
           set -ex
           flutter config --no-enable-swift-package-manager
+          cd ios && pod repo update && cd ..
           flutter build ipa --release \
             --dart-define-from-file=dart_defines.txt \
             --build-name=1.1.5 \

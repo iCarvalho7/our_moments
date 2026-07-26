@@ -69,18 +69,18 @@ workflows:
           set -ex
           npm install -g firebase-tools
           export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-sa.json
-          IPA=$(find build/ios/ipa -name "*.ipa" | head -1)
-          APK=$(find build/app/outputs/flutter-apk -name "*.apk" | head -1)
-          AAB=$(find build/app/outputs/bundle/release -name "*.aab" | head -1)
-          firebase appdistribution:distribute "$IPA" \
+          IPA=$(find build/ios/ipa -name "*.ipa" 2>/dev/null | head -1)
+          APK=$(find build/app/outputs/flutter-apk -name "*.apk" 2>/dev/null | head -1)
+          AAB=$(find build/app/outputs/bundle/release -name "*.aab" 2>/dev/null | head -1)
+          [ -n "$IPA" ] && firebase appdistribution:distribute "$IPA" \
             --app 1:258810302381:ios:90432b4f388901ab481b24 \
-            --groups testers
-          firebase appdistribution:distribute "$APK" \
+            --groups testers || echo "No IPA found, skipping iOS publish"
+          [ -n "$APK" ] && firebase appdistribution:distribute "$APK" \
             --app 1:258810302381:android:14a0ee32c7f504a6481b24 \
-            --groups testers
-          firebase appdistribution:distribute "$AAB" \
+            --groups testers || echo "No APK found, skipping APK publish"
+          [ -n "$AAB" ] && firebase appdistribution:distribute "$AAB" \
             --app 1:258810302381:android:14a0ee32c7f504a6481b24 \
-            --groups testers
+            --groups testers || echo "No AAB found, skipping AAB publish"
     artifacts:
       - build/ios/ipa/*.ipa
       - build/app/outputs/flutter-apk/app-release.apk

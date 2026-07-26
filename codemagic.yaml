@@ -13,6 +13,8 @@ workflows:
         bundle_identifier: cc.gambiapps.nossosmomentos
       vars:
         GOOGLE_PLACES_API_KEY: changeme
+      groups:
+        - firebase_creds
       flutter: 3.44.1
       xcode: latest
       cocoapods: default
@@ -26,7 +28,7 @@ workflows:
       - name: Set up Firebase service account
         script: |
           set -ex
-          cp $FCI_BUILD_DIR/firebase-sa.json /tmp/firebase-sa.json
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > /tmp/firebase-sa.json
           python3 -c "import json; d=json.load(open('/tmp/firebase-sa.json')); print('JSON OK - project:', d['project_id'])"
       - name: Set up iOS signing
         script: |

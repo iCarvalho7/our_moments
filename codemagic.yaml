@@ -68,5 +68,9 @@ workflows:
         android:
           app_id: 1:258810302381:android:14a0ee32c7f504a6481b24
           artifact_type: aab
+          groups:
+            - testers
         ios:
           app_id: 1:258810302381:ios:90432b4f388901ab481b24
+          groups:
+            - testers

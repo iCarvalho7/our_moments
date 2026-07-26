@@ -26,9 +26,8 @@ workflows:
       - name: Set up Firebase service account
         script: |
           set -ex
-          echo -e "$FIREBASE_SERVICE_ACCOUNT" > /tmp/firebase-sa.json
+          cp $FCI_BUILD_DIR/firebase-sa.json /tmp/firebase-sa.json
           python3 -c "import json; d=json.load(open('/tmp/firebase-sa.json')); print('JSON OK - project:', d['project_id'])"
-          echo "FIREBASE_SERVICE_ACCOUNT_JSON=$(cat /tmp/firebase-sa.json)" >> $CM_ENV
       - name: Set up iOS signing
         script: |
           set -ex

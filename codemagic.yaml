@@ -30,6 +30,18 @@ workflows:
           keychain initialize
           keychain add-certificates
           xcode-project use-profiles
+      - name: Debug Firebase auth
+        script: |
+          set -ex
+          echo "=== Env var length: $(echo -n "$FIREBASE_SERVICE_ACCOUNT" | wc -c) ==="
+          echo "=== First 50 chars: $(echo "$FIREBASE_SERVICE_ACCOUNT" | head -c 50) ==="
+          echo "=== Has literal backslash-n: $(echo "$FIREBASE_SERVICE_ACCOUNT" | grep -c '\\\\n' || echo 0) ==="
+          echo "=== Has real newlines: $(echo "$FIREBASE_SERVICE_ACCOUNT" | wc -l) ==="
+          echo "$FIREBASE_SERVICE_ACCOUNT" > /tmp/firebase-test.json
+          python3 -c "import json; json.load(open('/tmp/firebase-test.json')); print('JSON VALID')"
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-test.json
+          firebase appdistribution:distribute --help > /dev/null 2>&1 || true
+          echo "AUTH TEST: GOOGLE_APPLICATION_CREDENTIALS set to /tmp/firebase-test.json"
       - name: Inject dart defines
         script: |
           echo "GOOGLE_PLACES_API_KEY=$GOOGLE_PLACES_API_KEY" > dart_defines.txt
@@ -64,7 +76,7 @@ workflows:
       - build/app/outputs/bundle/release/app-release.aab
     publishing:
       firebase:
-        firebase_service_account: $FIREBASE_SERVICE_ACCOUNT
+        firebase_service_account: ./scripts/nossosmomentos-22-064115481422.json
         android:
           app_id: 1:258810302381:android:14a0ee32c7f504a6481b24
           artifact_type: aab

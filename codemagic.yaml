@@ -9,7 +9,7 @@ workflows:
       android_signing:
         - upload
       ios_signing:
-        distribution_type: development
+        distribution_type: ad_hoc
         bundle_identifier: cc.gambiapps.nossosmomentos
       vars:
         GOOGLE_PLACES_API_KEY: changeme

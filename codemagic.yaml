@@ -8,8 +8,8 @@ workflows:
       xcode: latest
       cocoapods: default
       vars:
-        GOOGLE_PLACES_API_KEY: Encrypted(...)
-        FIREBASE_SERVICE_ACCOUNT: Encrypted(...)
+        GOOGLE_PLACES_API_KEY: changeme
+        FIREBASE_SERVICE_ACCOUNT: changeme
     triggering:
       events:
         - push

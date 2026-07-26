@@ -54,3 +54,7 @@ scripts/node_modules/
 
 # Local dart-define overrides (API keys — never commit)
 dart_defines.json
+# Android keystore and signing secrets
+android/key.properties
+*.jks
+.aider*

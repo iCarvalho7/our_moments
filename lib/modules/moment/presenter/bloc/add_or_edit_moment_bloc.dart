@@ -16,6 +16,7 @@ import '../../domain/use_case/delete_moments_use_case.dart';
 import '../../domain/use_case/register_moments_use_case.dart';
 import '../../domain/use_case/update_moment_use_case.dart';
 import '../../../photos/domain/use_case/upload_photo_use_case.dart';
+import '../widget/moment_celebration_overlay.dart';
 
 part 'add_or_edit_moment_event.dart';
 
@@ -69,6 +70,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
     on<AddOrEditMomentEventSetLocation>(_handleSetLocation);
     on<AddOrEditMomentEventSetAudio>(_handleSetAudio);
     on<AddOrEditMomentEventRemoveAudio>(_handleRemoveAudio);
+    on<AddOrEditMomentEventSetVisibility>(_handleSetVisibility);
     on<AddOrEditMomentEventCreateOrUpdateMoment>(_handleCreateOrUpdateMoment);
     on<AddOrEditMomentEventDeleteMoment>(_handleDeleteMoment);
   }
@@ -89,6 +91,16 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
   ) {
     emit(AddOrEditMomentStateUpdate(
       moment: state.moment.copyWith(audioUrl: ''),
+      photosToDelete: state.photosToDelete,
+    ));
+  }
+
+  FutureOr<void> _handleSetVisibility(
+    AddOrEditMomentEventSetVisibility event,
+    Emitter<AddOrEditMomentState> emit,
+  ) {
+    emit(AddOrEditMomentStateUpdate(
+      moment: state.moment.copyWith(visibility: event.visibility),
       photosToDelete: state.photosToDelete,
     ));
   }
@@ -265,7 +277,7 @@ class AddOrEditMomentBloc extends Bloc<AddOrEditMomentEvent, AddOrEditMomentStat
       author: authRepository.getCurrentUser()?.email ?? '',
     );
     await registerMomentsUseCase.call(moment);
-    emit(AddOrEditMomentStateUpdate(
+    emit(AddOrEditMomentStateCreate(
       moment: moment,
       photosToDelete: [],
     ));

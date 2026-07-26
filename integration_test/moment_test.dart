@@ -100,7 +100,8 @@ void momentTests() {
         // Rename first so we know the exact name for the confirmation field.
         await pumpUntilFound(tester, F.timelineNavSettings);
         await tester.tap(F.timelineNavSettings);
-        await pumpUntilFound(tester, F.timelineSettingsAppBar);
+        // Wait for SettingsSuccess (name field only appears after BLoC loads).
+        await pumpUntilFound(tester, F.timelineNameField);
 
         await tester.ensureVisible(F.timelineNameField);
         await tester.enterText(F.timelineNameField, timelineName);

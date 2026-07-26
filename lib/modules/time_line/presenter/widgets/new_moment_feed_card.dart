@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:nossos_momentos/modules/core/presenter/routes.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/app_card.dart';
 import 'package:nossos_momentos/modules/core/presenter/widgets/app_network_image.dart';
+import 'package:nossos_momentos/modules/core/presenter/widgets/privacy_badge.dart';
 import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/moment/interactions/presenter/bloc/interactions_bloc.dart';
@@ -81,7 +82,15 @@ class NewMomentFeedCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _TypeBadge(moment: moment),
+                Row(
+                  children: [
+                    _TypeBadge(moment: moment),
+                    if (moment.isPrivate) ...[
+                      kSpacerWidth8,
+                      const PrivacyBadge(memberCount: 1, isPrivate: true),
+                    ],
+                  ],
+                ),
                 kSpacerHeight8,
                 Text(
                   moment.title.isNotEmpty ? moment.title : 'Sem título',
@@ -159,7 +168,7 @@ class _TimelineBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final name = timeline.name.isNotEmpty ? timeline.name : 'Linha do tempo';
+    final name = timeline.name.isNotEmpty ? timeline.name : 'História';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(

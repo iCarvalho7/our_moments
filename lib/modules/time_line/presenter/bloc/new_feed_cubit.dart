@@ -65,6 +65,11 @@ class NewFeedCubit extends Cubit<NewFeedState> {
           moments.addAll(result.data!);
         }
       }
+      // A private moment is only visible to its author, even to other members
+      // of the same timeline. (Server-side, direct `get` is also blocked; see
+      // firestore.rules — list reads stay member-scoped so this client filter
+      // is what hides them from the feed.)
+      moments.removeWhere((m) => m.isPrivate && m.author != currentUserEmail);
       moments.sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
       _allMoments = moments;

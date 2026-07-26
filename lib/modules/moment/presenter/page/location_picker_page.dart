@@ -8,6 +8,9 @@ import 'package:nossos_momentos/di/injection.dart';
 import 'package:nossos_momentos/modules/location/domain/entity/place_suggestion.dart';
 import 'package:nossos_momentos/modules/location/domain/use_case/reverse_geocode_use_case.dart';
 import 'package:nossos_momentos/modules/location/domain/use_case/search_places_use_case.dart';
+import 'package:nossos_momentos/modules/location/infra/data_source/favorite_places_store.dart';
+import 'package:nossos_momentos/modules/location/infra/data_source/location_search_history_store.dart';
+import 'package:nossos_momentos/modules/location/infra/data_source/place_suggestion_codec.dart';
 
 import '../../../core/utils/theme/app_theme.dart';
 
@@ -37,9 +40,12 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
 
   final _searchPlacesUseCase = getIt<SearchPlacesUseCase>();
   final _reverseGeocodeUseCase = getIt<ReverseGeocodeUseCase>();
+  final _historyStore = getIt<LocationSearchHistoryStore>();
+  final _favoritesStore = getIt<FavoritePlacesStore>();
   final MapController _mapController = MapController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
 
   double? _initialLatitude;
   double? _initialLongitude;
@@ -51,6 +57,9 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
   Timer? _debounce;
   Timer? _searchDebounce;
   List<PlaceSuggestion> _searchResults = const [];
+  List<PlaceSuggestion> _history = const [];
+  List<PlaceSuggestion> _favorites = const [];
+  bool _searchFocused = false;
 
   @override
   void didChangeDependencies() {
@@ -66,7 +75,24 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
         : _fallbackCenter;
     _nameController.text = initialName ?? '';
     _nameEditedManually = (initialName ?? '').isNotEmpty;
+    _searchFocus.addListener(() {
+      if (mounted) setState(() => _searchFocused = _searchFocus.hasFocus);
+    });
+    _loadSaved();
     WidgetsBinding.instance.addPostFrameCallback((_) => _requestLocationPermission());
+  }
+
+  Future<void> _loadSaved() async {
+    final results = await Future.wait([
+      _historyStore.recent(),
+      _favoritesStore.favorites(),
+    ]);
+    if (mounted) {
+      setState(() {
+        _history = results[0];
+        _favorites = results[1];
+      });
+    }
   }
 
   @override
@@ -75,6 +101,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
     _searchDebounce?.cancel();
     _nameController.dispose();
     _searchController.dispose();
+    _searchFocus.dispose();
     _mapController.dispose();
     super.dispose();
   }
@@ -151,6 +178,84 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
       _searchResults = const [];
     });
     _mapController.move(latLng, 15);
+    _rememberPlace(suggestion);
+  }
+
+  Future<void> _rememberPlace(PlaceSuggestion suggestion) async {
+    await _historyStore.add(suggestion);
+    await _loadSaved();
+  }
+
+  Future<void> _removeFromHistory(PlaceSuggestion suggestion) async {
+    await _historyStore.remove(suggestion);
+    await _loadSaved();
+  }
+
+  Future<void> _clearHistory() async {
+    if (!await _confirmClear('Limpar buscas recentes?')) return;
+    await _historyStore.clear();
+    await _loadSaved();
+  }
+
+  Future<void> _clearFavorites() async {
+    if (!await _confirmClear('Remover todos os favoritos?')) return;
+    await _favoritesStore.clear();
+    await _loadSaved();
+  }
+
+  Future<bool> _confirmClear(String title) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: const Text('Essa ação não pode ser desfeita.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Limpar')),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
+
+  bool _isFavorite(PlaceSuggestion suggestion) =>
+      _favorites.any((f) => samePlace(f, suggestion));
+
+  Future<void> _toggleFavorite(PlaceSuggestion suggestion) async {
+    if (_isFavorite(suggestion)) {
+      await _favoritesStore.remove(suggestion);
+    } else {
+      await _favoritesStore.add(suggestion);
+    }
+    await _loadSaved();
+  }
+
+  /// Builds a suggestion from the current pin + typed name. When the user typed
+  /// the name themselves it is flagged as a custom, user-authored place.
+  PlaceSuggestion _currentPinSuggestion() {
+    final name = _nameController.text.trim();
+    return PlaceSuggestion(
+      name: name,
+      address: name,
+      latitude: _center.latitude,
+      longitude: _center.longitude,
+      primaryType: _nameEditedManually ? kCustomPlaceType : '',
+    );
+  }
+
+  Future<void> _toggleFavoriteCurrent() async {
+    final suggestion = _currentPinSuggestion();
+    if (suggestion.name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Dê um nome ao local antes de favoritar.')),
+      );
+      return;
+    }
+    // A custom place is also recorded in history so it resurfaces easily.
+    if (suggestion.primaryType == kCustomPlaceType && !_isFavorite(suggestion)) {
+      await _historyStore.add(suggestion);
+    }
+    await _toggleFavorite(suggestion);
   }
 
 
@@ -181,12 +286,17 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
   }
 
   void _confirm() {
+    final suggestion = _currentPinSuggestion();
+    if (suggestion.name.isNotEmpty) {
+      // Fire-and-forget: the page is about to close, so don't await the reload.
+      _historyStore.add(suggestion);
+    }
     Navigator.pop(
       context,
       PickedLocation(
         latitude: _center.latitude,
         longitude: _center.longitude,
-        name: _nameController.text.trim(),
+        name: suggestion.name,
       ),
     );
   }
@@ -261,7 +371,9 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                 _BottomPanel(
                   nameController: _nameController,
                   resolving: _resolvingName,
-                  onNameChanged: () => _nameEditedManually = true,
+                  isFavorite: _isFavorite(_currentPinSuggestion()),
+                  onNameChanged: () => setState(() => _nameEditedManually = true),
+                  onToggleFavorite: _toggleFavoriteCurrent,
                   onConfirm: _confirm,
                 ),
               ],
@@ -277,6 +389,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
               children: [
                 _SearchBar(
                   controller: _searchController,
+                  focusNode: _searchFocus,
                   searching: _searching,
                   onChanged: _onSearchChanged,
                   onSubmit: () => _runSearch(_searchController.text.trim()),
@@ -285,6 +398,21 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                   _SearchResults(
                     results: _searchResults,
                     onSelect: _selectResult,
+                    isFavorite: _isFavorite,
+                    onToggleFavorite: _toggleFavorite,
+                  )
+                else if (_searchFocused &&
+                    _searchController.text.trim().length < 3 &&
+                    (_favorites.isNotEmpty || _history.isNotEmpty))
+                  _SavedPlaces(
+                    favorites: _favorites,
+                    recents: _history,
+                    onSelect: _selectResult,
+                    onToggleFavorite: _toggleFavorite,
+                    onRemoveRecent: _removeFromHistory,
+                    onClearFavorites: _clearFavorites,
+                    onClearRecents: _clearHistory,
+                    isFavorite: _isFavorite,
                   ),
               ],
             ),
@@ -298,12 +426,14 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
 class _SearchBar extends StatelessWidget {
   const _SearchBar({
     required this.controller,
+    required this.focusNode,
     required this.searching,
     required this.onChanged,
     required this.onSubmit,
   });
 
   final TextEditingController controller;
+  final FocusNode focusNode;
   final bool searching;
   final ValueChanged<String> onChanged;
   final VoidCallback onSubmit;
@@ -319,6 +449,7 @@ class _SearchBar extends StatelessWidget {
       ),
       child: TextField(
         controller: controller,
+        focusNode: focusNode,
         textInputAction: TextInputAction.search,
         onChanged: onChanged,
         onSubmitted: (_) => onSubmit(),
@@ -342,68 +473,154 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
-class _SearchResults extends StatelessWidget {
-  const _SearchResults({required this.results, required this.onSelect});
-
-  final List<PlaceSuggestion> results;
-  final void Function(PlaceSuggestion) onSelect;
-
-  static IconData _iconFor(String type) {
-    switch (type) {
-      case 'restaurant':
-      case 'cafe':
-      case 'bar':
-      case 'fast_food':
-      case 'food_court':
-        return Icons.restaurant_outlined;
-      case 'hotel':
-      case 'lodging':
-      case 'motel':
-        return Icons.hotel_outlined;
-      case 'bus_station':
-      case 'transit_station':
-      case 'ferry_terminal':
-        return Icons.directions_bus_outlined;
-      case 'airport':
-        return Icons.flight_outlined;
-      case 'hospital':
-      case 'doctor':
-      case 'pharmacy':
-        return Icons.local_hospital_outlined;
-      case 'school':
-      case 'university':
-        return Icons.school_outlined;
-      case 'museum':
-      case 'tourist_attraction':
-      case 'amusement_park':
-        return Icons.museum_outlined;
-      case 'park':
-      case 'campground':
-      case 'beach':
-        return Icons.park_outlined;
-      case 'shopping_mall':
-      case 'supermarket':
-      case 'store':
-        return Icons.shopping_bag_outlined;
-      case 'locality':
-      case 'administrative_area_level_1':
-      case 'administrative_area_level_2':
-        return Icons.location_city_outlined;
-    }
-    return Icons.place_outlined;
+IconData _iconForPlace(String type) {
+  switch (type) {
+    case kCustomPlaceType:
+      return Icons.push_pin_outlined;
+    case 'restaurant':
+    case 'cafe':
+    case 'bar':
+    case 'fast_food':
+    case 'food_court':
+      return Icons.restaurant_outlined;
+    case 'hotel':
+    case 'lodging':
+    case 'motel':
+      return Icons.hotel_outlined;
+    case 'bus_station':
+    case 'transit_station':
+    case 'ferry_terminal':
+      return Icons.directions_bus_outlined;
+    case 'airport':
+      return Icons.flight_outlined;
+    case 'hospital':
+    case 'doctor':
+    case 'pharmacy':
+      return Icons.local_hospital_outlined;
+    case 'school':
+    case 'university':
+      return Icons.school_outlined;
+    case 'museum':
+    case 'tourist_attraction':
+    case 'amusement_park':
+      return Icons.museum_outlined;
+    case 'park':
+    case 'campground':
+    case 'beach':
+      return Icons.park_outlined;
+    case 'shopping_mall':
+    case 'supermarket':
+    case 'store':
+      return Icons.shopping_bag_outlined;
+    case 'locality':
+    case 'administrative_area_level_1':
+    case 'administrative_area_level_2':
+      return Icons.location_city_outlined;
   }
+  return Icons.place_outlined;
+}
 
-  /// Extracts "City - State, Country" from a Google formatted address.
-  static String _cityHint(String address) {
-    final parts = address.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
-    if (parts.length <= 1) return address;
-    return parts.sublist(parts.length < 3 ? 0 : parts.length - 2).join(', ');
-  }
+/// Extracts "City - State, Country" from a Google formatted address.
+String _cityHint(String address) {
+  final parts = address.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+  if (parts.length <= 1) return address;
+  return parts.sublist(parts.length < 3 ? 0 : parts.length - 2).join(', ');
+}
+
+/// A single place row: leading category icon, name + hint, a favorite toggle
+/// and (for recents) a remove button.
+class _PlaceRow extends StatelessWidget {
+  const _PlaceRow({
+    required this.place,
+    required this.onTap,
+    required this.isFavorite,
+    required this.onToggleFavorite,
+    this.onRemove,
+    this.borderRadius = BorderRadius.zero,
+  });
+
+  final PlaceSuggestion place;
+  final VoidCallback onTap;
+  final bool isFavorite;
+  final VoidCallback onToggleFavorite;
+  final VoidCallback? onRemove;
+  final BorderRadius borderRadius;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
     final textTheme = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: borderRadius,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: palette.primarySoft,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              alignment: Alignment.center,
+              child: Icon(_iconForPlace(place.primaryType), color: palette.primary, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(place.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.titleSmall),
+                  const SizedBox(height: 2),
+                  Text(
+                    _cityHint(place.address),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Icon(
+                isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+                size: 20,
+                color: isFavorite ? palette.primary : palette.onSurfaceMuted,
+              ),
+              onPressed: onToggleFavorite,
+              tooltip: isFavorite ? 'Remover dos favoritos' : 'Favoritar',
+            ),
+            if (onRemove != null)
+              IconButton(
+                icon: Icon(Icons.close_rounded, size: 18, color: palette.onSurfaceMuted),
+                onPressed: onRemove,
+                tooltip: 'Remover',
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchResults extends StatelessWidget {
+  const _SearchResults({
+    required this.results,
+    required this.onSelect,
+    required this.isFavorite,
+    required this.onToggleFavorite,
+  });
+
+  final List<PlaceSuggestion> results;
+  final void Function(PlaceSuggestion) onSelect;
+  final bool Function(PlaceSuggestion) isFavorite;
+  final void Function(PlaceSuggestion) onToggleFavorite;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
     return Container(
       margin: const EdgeInsets.only(top: 6),
       constraints: const BoxConstraints(maxHeight: 280),
@@ -419,49 +636,122 @@ class _SearchResults extends StatelessWidget {
         separatorBuilder: (_, __) => Divider(height: 1, indent: 56, color: palette.outline),
         itemBuilder: (context, index) {
           final s = results[index];
-          final hint = _cityHint(s.address);
-          return InkWell(
+          return _PlaceRow(
+            place: s,
             onTap: () => onSelect(s),
+            isFavorite: isFavorite(s),
+            onToggleFavorite: () => onToggleFavorite(s),
             borderRadius: index == 0
                 ? const BorderRadius.vertical(top: Radius.circular(AppRadii.input))
                 : index == results.length - 1
                     ? const BorderRadius.vertical(bottom: Radius.circular(AppRadii.input))
                     : BorderRadius.zero,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: palette.primarySoft,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(_iconFor(s.primaryType), color: palette.primary, size: 18),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(s.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.titleSmall),
-                        const SizedBox(height: 2),
-                        Text(
-                          hint,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Locally-stored favorites and recent picks, shown when the search box is
+/// focused and empty.
+class _SavedPlaces extends StatelessWidget {
+  const _SavedPlaces({
+    required this.favorites,
+    required this.recents,
+    required this.onSelect,
+    required this.onToggleFavorite,
+    required this.onRemoveRecent,
+    required this.onClearFavorites,
+    required this.onClearRecents,
+    required this.isFavorite,
+  });
+
+  final List<PlaceSuggestion> favorites;
+  final List<PlaceSuggestion> recents;
+  final void Function(PlaceSuggestion) onSelect;
+  final void Function(PlaceSuggestion) onToggleFavorite;
+  final void Function(PlaceSuggestion) onRemoveRecent;
+  final VoidCallback onClearFavorites;
+  final VoidCallback onClearRecents;
+  final bool Function(PlaceSuggestion) isFavorite;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Container(
+      margin: const EdgeInsets.only(top: 6),
+      constraints: const BoxConstraints(maxHeight: 320),
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(AppRadii.input),
+        boxShadow: AppShadows.soft(context),
+      ),
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.only(bottom: 4),
+        children: [
+          if (favorites.isNotEmpty) ...[
+            _SectionHeader(icon: Icons.star_rounded, label: 'Favoritos', onClear: onClearFavorites),
+            for (final s in favorites)
+              _PlaceRow(
+                place: s,
+                onTap: () => onSelect(s),
+                isFavorite: true,
+                onToggleFavorite: () => onToggleFavorite(s),
+                onRemove: () => onToggleFavorite(s),
+              ),
+          ],
+          if (recents.isNotEmpty) ...[
+            _SectionHeader(icon: Icons.history_rounded, label: 'Buscas recentes', onClear: onClearRecents),
+            for (final s in recents)
+              _PlaceRow(
+                place: s,
+                onTap: () => onSelect(s),
+                isFavorite: isFavorite(s),
+                onToggleFavorite: () => onToggleFavorite(s),
+                onRemove: () => onRemoveRecent(s),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.icon, required this.label, this.onClear});
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: palette.onSurfaceMuted),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: textTheme.labelLarge?.copyWith(color: palette.onSurfaceMuted),
+          ),
+          const Spacer(),
+          if (onClear != null)
+            TextButton(
+              onPressed: onClear,
+              style: TextButton.styleFrom(
+                foregroundColor: palette.onSurfaceMuted,
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
+              child: const Text('Limpar'),
+            ),
+        ],
       ),
     );
   }
@@ -471,13 +761,17 @@ class _BottomPanel extends StatelessWidget {
   const _BottomPanel({
     required this.nameController,
     required this.resolving,
+    required this.isFavorite,
     required this.onNameChanged,
+    required this.onToggleFavorite,
     required this.onConfirm,
   });
 
   final TextEditingController nameController;
   final bool resolving;
+  final bool isFavorite;
   final VoidCallback onNameChanged;
+  final VoidCallback onToggleFavorite;
   final VoidCallback onConfirm;
 
   @override
@@ -495,20 +789,33 @@ class _BottomPanel extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextField(
-            controller: nameController,
-            textCapitalization: TextCapitalization.words,
-            onChanged: (_) => onNameChanged(),
-            decoration: InputDecoration(
-              hintText: 'Nome do lugar (ex: Nosso restaurante)',
-              prefixIcon: const Icon(Icons.place_outlined),
-              suffixIcon: resolving
-                  ? const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
-                    )
-                  : null,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: nameController,
+                  textCapitalization: TextCapitalization.words,
+                  onChanged: (_) => onNameChanged(),
+                  decoration: InputDecoration(
+                    hintText: 'Nome do lugar (ex: Nosso restaurante)',
+                    prefixIcon: const Icon(Icons.place_outlined),
+                    suffixIcon: resolving
+                        ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+                          )
+                        : null,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton.filledTonal(
+                onPressed: onToggleFavorite,
+                icon: Icon(isFavorite ? Icons.star_rounded : Icons.star_outline_rounded),
+                color: isFavorite ? palette.primary : palette.onSurfaceMuted,
+                tooltip: isFavorite ? 'Remover dos favoritos' : 'Salvar como favorito',
+              ),
+            ],
           ),
           kSpacerHeight12,
           ElevatedButton(onPressed: onConfirm, child: const Text('Usar este local')),

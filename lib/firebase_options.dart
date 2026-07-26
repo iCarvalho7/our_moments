@@ -53,7 +53,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBhtcdjW51vhA3ht_8JnENemT6-gCnmCmU',
-    appId: '1:258810302381:android:80bce144dd1e6ff7481b24',
+    appId: '1:258810302381:android:14a0ee32c7f504a6481b24',
     messagingSenderId: '258810302381',
     projectId: 'nossosmomentos-22',
     databaseURL: 'https://nossosmomentos-22-default-rtdb.firebaseio.com',
@@ -61,8 +61,8 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDEuVAm7Bo061JGPe9FoYfGJRIbJYu8PME',
-    appId: '1:258810302381:ios:2285e0e041d5c09e481b24',
+    apiKey: 'AIzaSyCGcddg3Nauz_UfR73y-PgsktMWhyAZGCE',
+    appId: '1:258810302381:ios:90432b4f388901ab481b24',
     messagingSenderId: '258810302381',
     projectId: 'nossosmomentos-22',
     databaseURL: 'https://nossosmomentos-22-default-rtdb.firebaseio.com',

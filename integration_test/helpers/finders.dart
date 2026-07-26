@@ -74,11 +74,11 @@ class F {
 
   /// The timeline picker that pops up when the account can edit more than one
   /// timeline (title of the bottom sheet).
-  static final Finder timelinePickerSheet = find.text('Em qual linha do tempo?');
+  static final Finder timelinePickerSheet = find.text('Em qual história?');
 
   // --- Timeline ---------------------------------------------------------
-  static final Finder createTimelineCard = find.text('Criar nova linha do tempo');
-  static final Finder policySheetTitle = find.text('Nova linha do tempo');
+  static final Finder createTimelineCard = find.text('Criar nova história');
+  static final Finder policySheetTitle = find.text('Nova história');
   static final Finder createTimelineConfirm =
       find.byKey(const ValueKey('key_timeline_create_confirm_button'));
   static final Finder relationshipDateCta =
@@ -89,8 +89,8 @@ class F {
       find.byKey(const ValueKey('key_timeline_form_name_field'));
   static final Finder saveTimelineChanges =
       find.byKey(const ValueKey('key_timeline_form_save_button'));
-  static final Finder deleteTimelineButton = find.text('Deletar linha do tempo');
-  static final Finder deleteTimelineSheetTitle = find.text('Deletar linha do tempo?');
+  static final Finder deleteTimelineButton = find.text('Deletar história');
+  static final Finder deleteTimelineSheetTitle = find.text('Deletar história?');
   static final Finder continueButton = find.widgetWithText(ElevatedButton, 'Continuar');
   static final Finder deleteConfirmButton =
       find.byKey(const ValueKey('key_timeline_delete_confirm_button'));

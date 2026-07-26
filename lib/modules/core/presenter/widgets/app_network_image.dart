@@ -24,11 +24,25 @@ class AppNetworkImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    // Decode images at (roughly) the size they're displayed instead of at full
+    // resolution — a 3000px photo shown in a 240px card otherwise decodes several
+    // MB into memory. When a dimension is unbounded (e.g. a full-width carousel),
+    // fall back to the screen width so we still cap the decode. Only the in-memory
+    // decode is sized: `maxWidthDiskCache` re-encodes/rewrites the cached file and
+    // is prone to a PathNotFoundException race, so the disk cache is left intact.
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    int? decodeSize(double? logical, double fallback) {
+      final resolved = (logical != null && logical.isFinite) ? logical : fallback;
+      return (resolved * dpr).round();
+    }
+
     return CachedNetworkImage(
       imageUrl: url,
       fit: fit,
       width: width,
       height: height,
+      memCacheWidth: decodeSize(width, screenWidth),
       placeholder: (_, __) => LoadingEffect(
         child: Container(
           width: width,

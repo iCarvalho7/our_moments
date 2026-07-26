@@ -210,11 +210,11 @@ class _Header extends StatelessWidget {
   String _subtitleFor(PremiumFeature? feature) {
     if (feature == null) {
       return 'Solo desbloqueia os recursos pessoais. Grupo libera tudo para '
-          'todo mundo da timeline — casal, amigos, quem for.';
+          'todo mundo da história — casal, amigos, quem for.';
     }
     if (feature.minTier == PremiumTier.couple) {
       return '${feature.label} faz parte do plano Grupo: qualquer pessoa da '
-          'timeline assina e todos aproveitam.';
+          'história assina e todos aproveitam.';
     }
     return '${feature.label} está disponível nos dois planos. Escolham o que '
         'fizer mais sentido.';

@@ -86,6 +86,13 @@ class AddOrEditMomentEventRemoveAudio extends AddOrEditMomentEvent {
   const AddOrEditMomentEventRemoveAudio();
 }
 
+class AddOrEditMomentEventSetVisibility extends AddOrEditMomentEvent {
+  /// 'shared' or 'private'.
+  final String visibility;
+
+  const AddOrEditMomentEventSetVisibility({required this.visibility});
+}
+
 class AddOrEditMomentEventCreateOrUpdateMoment extends AddOrEditMomentEvent {
   const AddOrEditMomentEventCreateOrUpdateMoment();
 }

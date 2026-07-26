@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:nossos_momentos/di/injection.dart';
+import '../../../core/feature_toggles/feature_toggle_manager.dart';
 import '../../../core/presenter/routes.dart';
 import '../../../core/presenter/widgets/floating_cta_bar.dart';
 import '../../../core/presenter/widgets/loading_effect.dart';
@@ -10,6 +13,7 @@ import '../../../core/utils/theme/app_theme.dart';
 import '../bloc/add_or_edit_moment_bloc.dart';
 import '../../interactions/presenter/widget/interactions_section.dart';
 import '../widget/history_container_loading.dart';
+import '../widget/moment_celebration_overlay.dart';
 import '../widget/moment_form_section_loading.dart';
 import '../widget/moment_meta_rows.dart';
 import '../widget/moment_photo_hero.dart';
@@ -75,6 +79,7 @@ class AddOrEditMomentPage extends StatelessWidget {
           listenWhen: (prev, c) =>
               c is AddOrEditMomentStateError ||
               c is AddOrEditMomentStateDeleted ||
+              c is AddOrEditMomentStateCreate ||
               (prev is AddOrEditMomentStateLoading && c is AddOrEditMomentStateUpdate),
           listener: (context, state) {
             if (state is AddOrEditMomentStateError) {
@@ -83,6 +88,20 @@ class AddOrEditMomentPage extends StatelessWidget {
                   content: Text('Não foi possível salvar o momento. Verifique sua conexão e tente novamente.'),
                 ),
               );
+              return;
+            }
+            // A brand-new moment earns a celebration before returning to the
+            // feed; editing/deleting just pops silently as before.
+            if (state is AddOrEditMomentStateCreate &&
+                getIt<FeatureToggleManager>()
+                    .isEnabled(AppFeatureToggle.momentCelebration)) {
+              showMomentCelebration(
+                context,
+                tier: state.celebrationTier,
+                achievementTitle: state.achievementTitle,
+              ).then((_) {
+                if (context.mounted) Navigator.of(context).pop(true);
+              });
               return;
             }
             Navigator.of(context).pop(true);
@@ -148,6 +167,11 @@ class AddOrEditMomentPage extends StatelessWidget {
                       const _BodyField(),
                       kSpacerHeight24,
                       MomentMetaRows(lastDate: endDate),
+                      if (getIt<FeatureToggleManager>()
+                          .isEnabled(AppFeatureToggle.privateMoments)) ...[
+                        kSpacerHeight16,
+                        const _PrivacyToggle(),
+                      ],
                       if (state.moment.isEditing) ...[
                         kSpacerHeight24,
                         Text(
@@ -340,7 +364,7 @@ class _EndDateBanner extends StatelessWidget {
           kSpacerWidth8,
           Expanded(
             child: Text(
-              'Linha do tempo encerrada em ${DateFormat('dd/MM/yyyy').format(endDate)}. '
+              'História encerrada em ${DateFormat('dd/MM/yyyy').format(endDate)}. '
               'Momentos devem ter data até esse dia.',
               style: Theme.of(context)
                   .textTheme
@@ -350,6 +374,66 @@ class _EndDateBanner extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Toggle that keeps a moment private to its author, even inside a shared
+/// timeline. Makes the app's privacy control tangible at the point of creation.
+class _PrivacyToggle extends StatelessWidget {
+  const _PrivacyToggle();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+    return BlocBuilder<AddOrEditMomentBloc, AddOrEditMomentState>(
+      buildWhen: (p, c) => p.moment.visibility != c.moment.visibility,
+      builder: (context, state) {
+        final isPrivate = state.moment.isPrivate;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: palette.surface,
+            borderRadius: BorderRadius.circular(AppRadii.card),
+            border: Border.all(color: palette.outline),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isPrivate ? Icons.lock_rounded : Icons.lock_open_rounded,
+                size: 20,
+                color: isPrivate ? palette.primary : palette.onSurfaceMuted,
+              ),
+              kSpacerWidth12,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Momento privado', style: textTheme.bodyMedium),
+                    const SizedBox(height: 2),
+                    Text(
+                      isPrivate
+                          ? 'Só você vê este momento.'
+                          : 'Visível para todos que têm acesso à história.',
+                      style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                key: const ValueKey('key_moment_form_private_switch'),
+                value: isPrivate,
+                onChanged: (value) => context.read<AddOrEditMomentBloc>().add(
+                      AddOrEditMomentEventSetVisibility(
+                        visibility: value ? 'private' : 'shared',
+                      ),
+                    ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -368,7 +452,11 @@ class _SubmitButton extends StatelessWidget {
           child: ElevatedButton(
             key: const ValueKey('key_moment_form_save_button'),
             onPressed: enabled
-                ? () => bloc.add(const AddOrEditMomentEventCreateOrUpdateMoment())
+                ? () {
+                    // A little tactile reward the instant the memory is saved.
+                    HapticFeedback.mediumImpact();
+                    bloc.add(const AddOrEditMomentEventCreateOrUpdateMoment());
+                  }
                 : null,
             child: Text(state.moment.isEditing ? 'Salvar edição' : 'Registrar eternamente'),
           ),

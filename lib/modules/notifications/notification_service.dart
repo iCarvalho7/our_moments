@@ -167,6 +167,6 @@ class NotificationService {
     // The "Neste dia" screen lives inside the timeline (it needs a loaded
     // TimeLineBloc + moments), so we route to the timeline. If the user is not
     // logged in / no timeline selected yet, the normal startup flow takes over.
-    navigatorKey.currentState?.pushNamed(AppRoute.timeLine.tag);
+    navigatorKey.currentState?.pushNamed(AppRoute.newSelectTimeLine.tag);
   }
 }

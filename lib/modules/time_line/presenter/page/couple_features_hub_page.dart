@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nossos_momentos/di/injection.dart';
+import 'package:nossos_momentos/modules/core/feature_toggles/feature_toggle_manager.dart';
 import 'package:nossos_momentos/modules/core/premium/premium_feature.dart';
 import 'package:nossos_momentos/modules/core/premium/premium_service.dart';
 import 'package:nossos_momentos/modules/core/premium/widget/premium_gate.dart';
@@ -10,6 +11,8 @@ import 'package:nossos_momentos/modules/core/utils/theme/app_theme.dart';
 import 'package:nossos_momentos/modules/moment/domain/entities/moment.dart';
 import 'package:nossos_momentos/modules/time_line/couple_book/couple_book_service.dart';
 import 'package:nossos_momentos/modules/time_line/domain/entity/time_line.dart';
+import 'package:nossos_momentos/modules/time_line/gamification/domain/entity/momentum_progress.dart';
+import 'package:nossos_momentos/modules/time_line/gamification/presenter/widget/progress_card.dart';
 
 import 'package:nossos_momentos/modules/core/presenter/routes.dart';
 
@@ -179,16 +182,41 @@ class _CoupleFeaturesHubPageState extends State<CoupleFeaturesHubPage> {
             appBar: PrimaryAppBar(title: 'Recursos do grupo'),
             body: SafeArea(
               top: false,
-              child: GridView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 0.92,
-                ),
-                itemCount: features.length,
-                itemBuilder: (_, index) => _HubCard(feature: features[index]),
+              child: Column(
+                children: [
+                  if (getIt<FeatureToggleManager>()
+                      .isEnabled(AppFeatureToggle.gamification))
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: ProgressCard(
+                        title: 'Nível da história',
+                        progress: MomentumProgress.from(
+                          _moments,
+                          relationshipStart: _timeLine.relationshipStartDate,
+                        ),
+                        onTap: () => Navigator.of(context).pushNamed(
+                          AppRoute.achievements.tag,
+                          arguments: (
+                            moments: _moments,
+                            timeLine: _timeLine,
+                          ),
+                        ),
+                      ),
+                    ),
+                  Expanded(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        childAspectRatio: 0.92,
+                      ),
+                      itemCount: features.length,
+                      itemBuilder: (_, index) => _HubCard(feature: features[index]),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

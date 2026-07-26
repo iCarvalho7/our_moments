@@ -455,8 +455,8 @@ class _FloatingCard extends StatelessWidget {
         border: Border.all(color: pinColor.withValues(alpha: 0.50), width: 1.5),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: pinColor.withValues(alpha: 0.22), blurRadius: 20, offset: const Offset(0, 6)),
-          BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(color: pinColor.withValues(alpha: 0.22), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 6, offset: const Offset(0, 2)),
         ],
       ),
       child: ClipRRect(
@@ -560,10 +560,14 @@ class _FloatingCard extends StatelessWidget {
       ),
     );
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: arrowBelow ? [card, arrow] : [arrow, card],
+    // Isolate each card's raster so the blurred shadows aren't repainted for the
+    // whole list on every scroll frame.
+    return RepaintBoundary(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: arrowBelow ? [card, arrow] : [arrow, card],
+      ),
     );
   }
 }

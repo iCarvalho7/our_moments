@@ -138,7 +138,8 @@ void fullLifecycleTests() {
         // ── 6. Renomear + deletar timeline ───────────────────────────────────
         await pumpUntilFound(tester, F.timelineNavSettings);
         await tester.tap(F.timelineNavSettings);
-        await pumpUntilFound(tester, F.timelineSettingsAppBar);
+        // Wait for SettingsSuccess (name field only appears after BLoC loads).
+        await pumpUntilFound(tester, F.timelineNameField);
 
         // Renomeia para ter o nome exato que o campo de confirmação vai exigir.
         await tester.ensureVisible(F.timelineNameField);

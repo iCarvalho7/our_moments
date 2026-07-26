@@ -33,6 +33,19 @@ class _StoryPage extends StatefulWidget {
 class _StoryPageState extends State<_StoryPage> with TickerProviderStateMixin {
   AnimationController? controller;
   VideoPlayerController? _videoPlayerController;
+  // True while the photo is pinch-zoomed. In this state the story timer is
+  // paused and left/right tap navigation is suppressed so panning around the
+  // zoomed image does not jump to the next/previous story.
+  bool _isImageZoomed = false;
+
+  void _handleZoomChanged(bool zoomed) {
+    _isImageZoomed = zoomed;
+    if (zoomed) {
+      controller?.stop(canceled: false);
+    } else {
+      controller?.forward(from: controller?.value ?? 0);
+    }
+  }
 
   @override
   void initState() {
@@ -86,6 +99,7 @@ class _StoryPageState extends State<_StoryPage> with TickerProviderStateMixin {
         controller?.stop(canceled: false);
       },
       onTapUp: (details) {
+        if (_isImageZoomed) return;
         final width = MediaQuery.of(context).size.width;
         if (details.globalPosition.dx < width / 3) {
           context.read<StoryBloc>().add(const StoryEventPreviousStory());
@@ -100,6 +114,7 @@ class _StoryPageState extends State<_StoryPage> with TickerProviderStateMixin {
             story: state.story,
             controller: controller,
             videoController: _videoPlayerController,
+            onZoomChanged: _handleZoomChanged,
           ),
           Positioned(
             top: 0,
@@ -205,10 +220,14 @@ class _MediaSection extends StatefulWidget {
   final AnimationController? controller;
   final VideoPlayerController? videoController;
 
+  /// Called when the photo crosses in/out of the zoomed state (scale > 1).
+  final ValueChanged<bool>? onZoomChanged;
+
   const _MediaSection({
     required this.story,
     required this.controller,
     required this.videoController,
+    this.onZoomChanged,
   });
 
   @override
@@ -220,9 +239,14 @@ class _MediaSectionState extends State<_MediaSection> {
   ImageStream? _imageStream;
   bool _animationStarted = false;
 
+  final TransformationController _transformationController =
+      TransformationController();
+  bool _isZoomed = false;
+
   @override
   void initState() {
     super.initState();
+    _transformationController.addListener(_onTransformChanged);
     _attachImageListener();
   }
 
@@ -230,6 +254,8 @@ class _MediaSectionState extends State<_MediaSection> {
   void didUpdateWidget(_MediaSection old) {
     super.didUpdateWidget(old);
     if (old.story.url != widget.story.url || old.controller != widget.controller) {
+      // Reset zoom so a newly shown photo always starts fit-to-screen.
+      _transformationController.value = Matrix4.identity();
       _detachImageListener();
       _animationStarted = false;
       _attachImageListener();
@@ -238,8 +264,19 @@ class _MediaSectionState extends State<_MediaSection> {
 
   @override
   void dispose() {
+    _transformationController.removeListener(_onTransformChanged);
+    _transformationController.dispose();
     _detachImageListener();
     super.dispose();
+  }
+
+  void _onTransformChanged() {
+    final scale = _transformationController.value.getMaxScaleOnAxis();
+    final zoomed = scale > 1.01;
+    if (zoomed != _isZoomed) {
+      _isZoomed = zoomed;
+      widget.onZoomChanged?.call(zoomed);
+    }
   }
 
   void _attachImageListener() {
@@ -279,6 +316,7 @@ class _MediaSectionState extends State<_MediaSection> {
     return ColoredBox(
       color: Colors.black,
       child: InteractiveViewer(
+        transformationController: _transformationController,
         minScale: 1.0,
         maxScale: 4.0,
         child: Image(

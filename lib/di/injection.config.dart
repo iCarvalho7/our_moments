@@ -81,6 +81,10 @@ import '../modules/notifications/domain/repository/notification_repository.dart'
     as _i727;
 import '../modules/notifications/infra/data_source/local_notification_data_source.dart'
     as _i674;
+import '../modules/location/infra/data_source/favorite_places_store.dart'
+    as _i992;
+import '../modules/location/infra/data_source/location_search_history_store.dart'
+    as _i991;
 import '../modules/notifications/infra/data_source/notification_preference_store.dart'
     as _i374;
 import '../modules/notifications/infra/repository/notification_repository_impl.dart'
@@ -279,6 +283,12 @@ _i174.GetIt $initGetIt(
   );
   gh.factory<_i374.NotificationPreferenceStore>(
     () => _i374.SharedPrefsNotificationPreferenceStore(),
+  );
+  gh.factory<_i991.LocationSearchHistoryStore>(
+    () => _i991.SharedPrefsLocationSearchHistoryStore(),
+  );
+  gh.factory<_i992.FavoritePlacesStore>(
+    () => _i992.SharedPrefsFavoritePlacesStore(),
   );
   gh.factory<_i333.TimeCapsuleDataSource>(
     () => _i674.FirebaseTimeCapsuleDataSource(

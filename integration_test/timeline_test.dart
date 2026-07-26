@@ -47,7 +47,8 @@ void timelineTests() {
 
         // --- Editar: nome (tela de ajustes da timeline) ---------------
         await tester.tap(F.timelineNavSettings);
-        await pumpUntilFound(tester, F.timelineSettingsAppBar);
+        // Wait for SettingsSuccess (name field only appears after BLoC loads).
+        await pumpUntilFound(tester, F.timelineNameField);
 
         await tester.ensureVisible(F.timelineNameField);
         await tester.enterText(F.timelineNameField, name);

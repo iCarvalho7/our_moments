@@ -17,8 +17,20 @@ class AddOrEditMomentStateUpdate extends AddOrEditMomentState {
   const AddOrEditMomentStateUpdate({required super.moment, required super.photosToDelete});
 }
 
+/// Emitted when a brand-new moment is saved successfully. Distinct from
+/// [AddOrEditMomentStateUpdate] (edit success) so the page can celebrate a
+/// creation with confetti before popping. Carries how big the celebration
+/// should feel and an optional achievement title unlocked by this moment.
 class AddOrEditMomentStateCreate extends AddOrEditMomentState {
-  const AddOrEditMomentStateCreate({required super.moment, required super.photosToDelete });
+  final CelebrationTier celebrationTier;
+  final String? achievementTitle;
+
+  const AddOrEditMomentStateCreate({
+    required super.moment,
+    required super.photosToDelete,
+    this.celebrationTier = CelebrationTier.standard,
+    this.achievementTitle,
+  });
 }
 
 class AddOrEditMomentStateLoading extends AddOrEditMomentState {

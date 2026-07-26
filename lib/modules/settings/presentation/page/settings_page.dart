@@ -71,19 +71,32 @@ class _SettingsPageState extends State<SettingsPage> {
     final timeLineId = ModalRoute.of(context)?.settings.arguments as String;
 
     return BlocProvider<SettingsBloc>(
-      create: (context) => getIt<SettingsBloc>()..add(FetchEmailEvent(timeLineId: timeLineId)),
+      create: (context) =>
+          getIt<SettingsBloc>()..add(FetchEmailEvent(timeLineId: timeLineId)),
       child: BlocListener<SettingsBloc, SettingsState>(
         listener: (context, state) {
           if (state is SettingsTimeLineDeleted) {
-            Navigator.of(context).pushNamedAndRemoveUntil(AppRoute.newSelectTimeLine.tag, (_) => false);
-          } else if (state is SettingsAccountDeleted || state is SettingsLoggedOut) {
-            Navigator.of(context).pushNamedAndRemoveUntil(AppRoute.login.tag, (_) => false);
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              AppRoute.newSelectTimeLine.tag,
+              (_) => false,
+            );
+          } else if (state is SettingsAccountDeleted ||
+              state is SettingsLoggedOut) {
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil(AppRoute.login.tag, (_) => false);
           } else if (state is SettingsReauthRequired) {
             _promptReauth(context);
           } else if (state is SettingsAccountDeleteError) {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
-              ..showSnackBar(const SnackBar(content: Text('Não foi possível excluir a conta. Tente novamente.')));
+              ..showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Não foi possível excluir a conta. Tente novamente.',
+                  ),
+                ),
+              );
           }
         },
         child: Stack(
@@ -92,22 +105,25 @@ class _SettingsPageState extends State<SettingsPage> {
             Scaffold(
               backgroundColor: Colors.transparent,
               appBar: PrimaryAppBar(title: 'Gerenciar acesso'),
-              body: Padding(
-                padding: const EdgeInsets.all(16),
-                child: BlocBuilder<SettingsBloc, SettingsState>(
-                  builder: (context, state) {
-                    if (state is SettingsSuccess) {
-                      return _SuccessContent(
-                        timeline: state.timeLine!,
-                        usernameController: usernameController,
-                        state: state,
-                      );
-                    }
-                    if (state is SettingsLoading) {
-                      return const _LoadingContent();
-                    }
-                    return const SizedBox.shrink();
-                  },
+              body: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: BlocBuilder<SettingsBloc, SettingsState>(
+                    builder: (context, state) {
+                      if (state is SettingsSuccess) {
+                        return _SuccessContent(
+                          timeline: state.timeLine!,
+                          usernameController: usernameController,
+                          state: state,
+                        );
+                      }
+                      if (state is SettingsLoading) {
+                        return const _LoadingContent();
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
                 ),
               ),
             ),
@@ -124,14 +140,21 @@ class _LoadingContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final surface = context.palette.surface;
-    BoxDecoration deco() => BoxDecoration(color: surface, borderRadius: BorderRadius.circular(AppRadii.card));
+    BoxDecoration deco() => BoxDecoration(
+      color: surface,
+      borderRadius: BorderRadius.circular(AppRadii.card),
+    );
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           LoadingEffect(
-            child: Container(width: MediaQuery.of(context).size.width, height: 260, decoration: deco()),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              height: 260,
+              decoration: deco(),
+            ),
           ),
           const SizedBox(height: 16),
           LoadingEffect(
@@ -148,7 +171,11 @@ class _LoadingContent extends StatelessWidget {
 }
 
 class _SuccessContent extends StatelessWidget {
-  const _SuccessContent({required this.state, required this.timeline, required this.usernameController});
+  const _SuccessContent({
+    required this.state,
+    required this.timeline,
+    required this.usernameController,
+  });
 
   final TimeLine timeline;
   final TextEditingController usernameController;
@@ -166,23 +193,35 @@ class _SuccessContent extends StatelessWidget {
           _SettingsSection(
             icon: Icons.palette_outlined,
             title: 'Personalizar',
-            subtitle: 'Nome e cor da sua linha do tempo',
+            subtitle: 'Nome e cor da sua história',
             child: _TimelineDetailsSection(timeline: timeline),
           ),
           kSpacerHeight16,
           _SettingsSection(
             icon: Icons.group_outlined,
             title: 'Quem tem acesso',
-            subtitle: emails.length == 1 ? '1 pessoa' : '${emails.length} pessoas',
-            child: _AccessList(emails: emails, state: state, usernameController: usernameController),
+            subtitle: emails.length == 1
+                ? '1 pessoa'
+                : '${emails.length} pessoas',
+            child: _AccessList(
+              emails: emails,
+              state: state,
+              usernameController: usernameController,
+            ),
           ),
+          kSpacerHeight16,
+          const _PrivacyExplainerLink(),
           if (emails.length > 1) ...[
             kSpacerHeight16,
             _SettingsSection(
               icon: Icons.security_outlined,
               title: 'Níveis de acesso',
               subtitle: 'Defina quem pode editar ou apenas visualizar',
-              child: _AccessLevelSection(timeline: timeline, emails: emails, currentEmail: state.email!),
+              child: _AccessLevelSection(
+                timeline: timeline,
+                emails: emails,
+                currentEmail: state.email!,
+              ),
             ),
           ],
           if (TimelinePermissions.isDeletionPending(timeline) &&
@@ -192,7 +231,10 @@ class _SuccessContent extends StatelessWidget {
               icon: Icons.hourglass_top_outlined,
               title: 'Deleção pendente',
               subtitle: 'A exclusão precisa da aprovação de todos os donos',
-              child: _PendingDeletionSection(timeline: timeline, currentEmail: state.email!),
+              child: _PendingDeletionSection(
+                timeline: timeline,
+                currentEmail: state.email!,
+              ),
             ),
           ],
           kSpacerHeight16,
@@ -242,11 +284,19 @@ class _ManageSubscriptionButton extends StatelessWidget {
 
   Future<void> _open(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
-    final result = await getIt<PresentCustomerCenterUseCase>().call(NoParams.instance);
+    final result = await getIt<PresentCustomerCenterUseCase>().call(
+      NoParams.instance,
+    );
     if (result.isError) {
       messenger
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('Não foi possível abrir o gerenciamento da assinatura.')));
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Não foi possível abrir o gerenciamento da assinatura.',
+            ),
+          ),
+        );
     }
   }
 
@@ -263,17 +313,101 @@ class _ManageSubscriptionButton extends StatelessWidget {
   }
 }
 
+/// Tappable row that opens the privacy explainer — makes the app's access
+/// model a stated, discoverable feature instead of something buried in the
+/// access controls above.
+class _PrivacyExplainerLink extends StatelessWidget {
+  const _PrivacyExplainerLink();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: () =>
+          Navigator.of(context).pushNamed(AppRoute.privacyExplainer.tag),
+      borderRadius: BorderRadius.circular(AppRadii.card),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: palette.surface,
+          borderRadius: BorderRadius.circular(AppRadii.card),
+          border: Border.all(color: palette.outline),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: palette.primarySoft,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.shield_outlined,
+                color: palette.primary,
+                size: 22,
+              ),
+            ),
+            kSpacerWidth12,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Entenda sua privacidade', style: textTheme.titleMedium),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Quem vê seus momentos e como você controla isso',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: palette.onSurfaceMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: palette.onSurfaceMuted,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _LogoutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () => context.read<SettingsBloc>().add(LogoutEvent()),
-        icon: Icon(Icons.logout_rounded, size: 20),
-        label: Text('Sair da conta'),
-        style: OutlinedButton.styleFrom(side: BorderSide(color: palette.outline)),
+    return InkWell(
+      onTap: () => context.read<SettingsBloc>().add(LogoutEvent()),
+      borderRadius: BorderRadius.circular(AppRadii.card),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: palette.surface,
+          borderRadius: BorderRadius.circular(AppRadii.card),
+          border: Border.all(color: palette.outline),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.logout_rounded, size: 20, color: palette.onSurfaceMuted),
+            kSpacerWidth12,
+            Expanded(
+              child: Text(
+                'Sair da conta',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: palette.onSurfaceMuted,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -293,7 +427,10 @@ class _CoupleHeaderSection extends StatefulWidget {
 
 class _CoupleHeaderSectionState extends State<_CoupleHeaderSection> {
   late final Map<String, TextEditingController> _controllers = {
-    for (final email in widget.emails) email: TextEditingController(text: widget.timeline.nicknames[email] ?? ''),
+    for (final email in widget.emails)
+      email: TextEditingController(
+        text: widget.timeline.nicknames[email] ?? '',
+      ),
   };
 
   /// A freshly picked local cover (file path on mobile, data URL on web), if any.
@@ -343,9 +480,15 @@ class _CoupleHeaderSectionState extends State<_CoupleHeaderSection> {
     });
 
     context.read<SettingsBloc>().add(
-      UpdateCoupleHeaderEvent(nicknames: nicknames, localCoverPath: _localCover, keepCoverUrl: _keepCoverUrl),
+      UpdateCoupleHeaderEvent(
+        nicknames: nicknames,
+        localCoverPath: _localCover,
+        keepCoverUrl: _keepCoverUrl,
+      ),
     );
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Capa e apelidos atualizados.')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Capa e apelidos atualizados.')),
+    );
   }
 
   @override
@@ -373,7 +516,10 @@ class _CoupleHeaderSectionState extends State<_CoupleHeaderSection> {
                 ? Stack(
                     fit: StackFit.expand,
                     children: [
-                      _CoverPreview(localCover: _localCover, remoteUrl: _keepCoverUrl),
+                      _CoverPreview(
+                        localCover: _localCover,
+                        remoteUrl: _keepCoverUrl,
+                      ),
                       Positioned(
                         top: 8,
                         right: 8,
@@ -385,7 +531,11 @@ class _CoupleHeaderSectionState extends State<_CoupleHeaderSection> {
                             onTap: _removeCover,
                             child: const Padding(
                               padding: EdgeInsets.all(6),
-                              child: Icon(Icons.close_rounded, color: Colors.white, size: 18),
+                              child: Icon(
+                                Icons.close_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                             ),
                           ),
                         ),
@@ -395,18 +545,27 @@ class _CoupleHeaderSectionState extends State<_CoupleHeaderSection> {
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add_photo_alternate_outlined, color: palette.onSurfaceMuted, size: 30),
+                      Icon(
+                        Icons.add_photo_alternate_outlined,
+                        color: palette.onSurfaceMuted,
+                        size: 30,
+                      ),
                       kSpacerHeight8,
                       Text(
                         'Adicionar foto de capa',
-                        style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: palette.onSurfaceMuted,
+                        ),
                       ),
                     ],
                   ),
           ),
         ),
         kSpacerHeight24,
-        Text('Apelidos do casal', style: textTheme.titleSmall?.copyWith(color: palette.onSurfaceMuted)),
+        Text(
+          'Apelidos do casal',
+          style: textTheme.titleSmall?.copyWith(color: palette.onSurfaceMuted),
+        ),
         kSpacerHeight12,
         ..._controllers.entries.map((entry) {
           return Padding(
@@ -448,19 +607,34 @@ class _CoverPreview extends StatelessWidget {
     final fallback = Container(
       color: context.palette.surfaceAlt,
       alignment: Alignment.center,
-      child: Icon(Icons.broken_image_outlined, color: context.palette.onSurfaceMuted),
+      child: Icon(
+        Icons.broken_image_outlined,
+        color: context.palette.onSurfaceMuted,
+      ),
     );
 
     final local = localCover;
     if (local != null) {
       final bytes = decodeDataUrl(local);
       if (bytes != null) {
-        return Image.memory(bytes, fit: BoxFit.cover, errorBuilder: (_, __, ___) => fallback);
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => fallback,
+        );
       }
-      return Image.file(File(local), fit: BoxFit.cover, errorBuilder: (_, __, ___) => fallback);
+      return Image.file(
+        File(local),
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => fallback,
+      );
     }
 
-    return AppNetworkImage(url: remoteUrl, fit: BoxFit.cover, errorWidget: fallback);
+    return AppNetworkImage(
+      url: remoteUrl,
+      fit: BoxFit.cover,
+      errorWidget: fallback,
+    );
   }
 }
 
@@ -471,7 +645,8 @@ class _OnThisDayReminderToggle extends StatefulWidget {
   const _OnThisDayReminderToggle();
 
   @override
-  State<_OnThisDayReminderToggle> createState() => _OnThisDayReminderToggleState();
+  State<_OnThisDayReminderToggle> createState() =>
+      _OnThisDayReminderToggleState();
 }
 
 class _OnThisDayReminderToggleState extends State<_OnThisDayReminderToggle> {
@@ -499,7 +674,10 @@ class _OnThisDayReminderToggleState extends State<_OnThisDayReminderToggle> {
     // Premium gate: turning the reminder on requires premium. Free users get
     // the paywall; on success, schedule and reflect the new state.
     if (value && !getIt<PremiumService>().can(PremiumFeature.onThisDayPush)) {
-      final unlocked = await showPremiumPlaceholder(context, PremiumFeature.onThisDayPush);
+      final unlocked = await showPremiumPlaceholder(
+        context,
+        PremiumFeature.onThisDayPush,
+      );
       if (!unlocked) return;
     }
 
@@ -507,9 +685,13 @@ class _OnThisDayReminderToggleState extends State<_OnThisDayReminderToggle> {
       final granted = await service.enableReminder();
       if (!mounted) return;
       if (!granted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Ative as notificações nas configurações do aparelho.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Ative as notificações nas configurações do aparelho.',
+            ),
+          ),
+        );
       }
       setState(() => _enabled = granted);
     } else {
@@ -528,7 +710,11 @@ class _OnThisDayReminderToggleState extends State<_OnThisDayReminderToggle> {
     if (_loading) {
       return const Align(
         alignment: Alignment.centerLeft,
-        child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)),
+        child: SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
       );
     }
 
@@ -544,7 +730,9 @@ class _OnThisDayReminderToggleState extends State<_OnThisDayReminderToggle> {
                 isPremium
                     ? 'Toque na notificação para reviver suas memórias.'
                     : 'Recurso premium — desbloqueie para ativar.',
-                style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+                style: textTheme.bodySmall?.copyWith(
+                  color: palette.onSurfaceMuted,
+                ),
               ),
             ],
           ),
@@ -557,7 +745,10 @@ class _OnThisDayReminderToggleState extends State<_OnThisDayReminderToggle> {
 }
 
 class _DangerZoneSection extends StatelessWidget {
-  const _DangerZoneSection({required this.timeline, required this.currentEmail});
+  const _DangerZoneSection({
+    required this.timeline,
+    required this.currentEmail,
+  });
 
   final TimeLine timeline;
   final String currentEmail;
@@ -581,7 +772,9 @@ class _DangerZoneSection extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => DeleteAccountConfirmationSheet(onConfirm: () => bloc.add(DeleteAccountEvent())),
+      builder: (_) => DeleteAccountConfirmationSheet(
+        onConfirm: () => bloc.add(DeleteAccountEvent()),
+      ),
     );
   }
 
@@ -593,8 +786,9 @@ class _DangerZoneSection extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => LeaveTimelineSheet(
         timelineName: timeline.name,
-        onConfirm: (deleteAuthoredMoments) =>
-            bloc.add(LeaveTimelineEvent(deleteAuthoredMoments: deleteAuthoredMoments)),
+        onConfirm: (deleteAuthoredMoments) => bloc.add(
+          LeaveTimelineEvent(deleteAuthoredMoments: deleteAuthoredMoments),
+        ),
       ),
     );
   }
@@ -604,6 +798,44 @@ class _DangerZoneSection extends StatelessWidget {
     final palette = context.palette;
     final textTheme = Theme.of(context).textTheme;
     final errorColor = Theme.of(context).colorScheme.error;
+
+    final rows = <Widget>[];
+
+    if (TimelinePermissions.canDeleteTimeline(timeline, currentEmail)) {
+      rows.add(
+        _DangerRow(
+          icon: Icons.delete_forever_rounded,
+          label: 'Deletar história',
+          onTap: () => _openDeleteSheet(context),
+          errorColor: errorColor,
+        ),
+      );
+    }
+
+    if (timeline.emails.length > 1) {
+      if (rows.isNotEmpty)
+        rows.add(Divider(color: errorColor.withValues(alpha: 0.2), height: 1));
+      rows.add(
+        _DangerRow(
+          icon: Icons.logout_rounded,
+          label: 'Sair da história',
+          onTap: () => _openLeaveSheet(context),
+          errorColor: errorColor,
+        ),
+      );
+    }
+
+    if (rows.isNotEmpty)
+      rows.add(Divider(color: errorColor.withValues(alpha: 0.2), height: 1));
+    rows.add(
+      _DangerRow(
+        icon: Icons.person_off_outlined,
+        label: 'Excluir minha conta',
+        subtitle: 'Apaga sua conta e dados que pertencem só a você',
+        onTap: () => _openDeleteAccountSheet(context),
+        errorColor: errorColor,
+      ),
+    );
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -624,7 +856,11 @@ class _DangerZoneSection extends StatelessWidget {
                   color: errorColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.warning_amber_outlined, color: errorColor, size: 22),
+                child: Icon(
+                  Icons.warning_amber_outlined,
+                  color: errorColor,
+                  size: 22,
+                ),
               ),
               kSpacerWidth12,
               Expanded(
@@ -635,63 +871,78 @@ class _DangerZoneSection extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       'Ações permanentes e irreversíveis',
-                      style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: palette.onSurfaceMuted,
+                      ),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          kSpacerHeight24,
-          // Deleting the whole timeline is an owner-only action.
-          if (TimelinePermissions.canDeleteTimeline(timeline, currentEmail))
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _openDeleteSheet(context),
-                icon: const Icon(Icons.delete_forever_rounded, size: 20),
-                label: const Text('Deletar linha do tempo'),
-                style: ElevatedButton.styleFrom(backgroundColor: errorColor, foregroundColor: Colors.white),
+          kSpacerHeight16,
+          ...rows,
+        ],
+      ),
+    );
+  }
+}
+
+class _DangerRow extends StatelessWidget {
+  const _DangerRow({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    required this.errorColor,
+    this.subtitle,
+  });
+
+  final IconData icon;
+  final String label;
+  final String? subtitle;
+  final VoidCallback onTap;
+  final Color errorColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Icon(icon, color: errorColor, size: 20),
+            kSpacerWidth12,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: textTheme.bodyMedium?.copyWith(color: errorColor),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: errorColor.withValues(alpha: 0.65),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-          if (timeline.emails.length > 1) ...[
-            if (TimelinePermissions.canDeleteTimeline(timeline, currentEmail)) kSpacerHeight12,
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _openLeaveSheet(context),
-                icon: const Icon(Icons.logout_rounded, size: 20, color: Colors.white),
-                label: Text('Sair da timeline', style: TextStyle(color: Colors.white)),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: errorColor,
-                  side: BorderSide(color: errorColor.withValues(alpha: 0.6)),
-                ),
-              ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: errorColor.withValues(alpha: 0.6),
             ),
           ],
-          kSpacerHeight24,
-          Divider(color: errorColor.withValues(alpha: 0.2), height: 1),
-          kSpacerHeight24,
-          Text('Excluir conta', style: textTheme.titleMedium),
-          const SizedBox(height: 2),
-          Text(
-            'Apaga sua conta e os dados que pertencem só a você',
-            style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
-          ),
-          kSpacerHeight12,
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _openDeleteAccountSheet(context),
-              icon: const Icon(Icons.person_off_outlined, size: 20, color: Colors.white),
-              label: const Text('Excluir minha conta', style: TextStyle(color: Colors.white)),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: errorColor,
-                side: BorderSide(color: errorColor.withValues(alpha: 0.6)),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -699,7 +950,12 @@ class _DangerZoneSection extends StatelessWidget {
 
 /// A titled rounded card grouping a settings area.
 class _SettingsSection extends StatelessWidget {
-  const _SettingsSection({required this.icon, required this.title, required this.subtitle, required this.child});
+  const _SettingsSection({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.child,
+  });
 
   final IconData icon;
   final String title;
@@ -726,7 +982,10 @@ class _SettingsSection extends StatelessWidget {
               Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(color: palette.primarySoft, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: palette.primarySoft,
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Icon(icon, color: palette.primary, size: 22),
               ),
               kSpacerWidth12,
@@ -736,7 +995,12 @@ class _SettingsSection extends StatelessWidget {
                   children: [
                     Text(title, style: textTheme.titleMedium),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted)),
+                    Text(
+                      subtitle,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: palette.onSurfaceMuted,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -751,7 +1015,11 @@ class _SettingsSection extends StatelessWidget {
 }
 
 class _AccessList extends StatelessWidget {
-  const _AccessList({required this.emails, required this.state, required this.usernameController});
+  const _AccessList({
+    required this.emails,
+    required this.state,
+    required this.usernameController,
+  });
 
   final List<String> emails;
   final SettingsState state;
@@ -770,39 +1038,63 @@ class _AccessList extends StatelessWidget {
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-            decoration: BoxDecoration(color: palette.surfaceAlt, borderRadius: BorderRadius.circular(AppRadii.input)),
+            decoration: BoxDecoration(
+              color: palette.surfaceAlt,
+              borderRadius: BorderRadius.circular(AppRadii.input),
+            ),
             child: Row(
               children: [
                 Container(
                   width: 36,
                   height: 36,
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(color: palette.primarySoft, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: palette.primarySoft,
+                    shape: BoxShape.circle,
+                  ),
                   child: Text(
                     item.isNotEmpty ? item[0].toUpperCase() : '?',
-                    style: textTheme.titleSmall?.copyWith(color: palette.primary, fontWeight: FontWeight.w700),
+                    style: textTheme.titleSmall?.copyWith(
+                      color: palette.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 kSpacerWidth12,
                 Expanded(
-                  child: Text(item, style: textTheme.bodyMedium, overflow: TextOverflow.ellipsis),
+                  child: Text(
+                    item,
+                    style: textTheme.bodyMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 if (isOwner || isSelf)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: palette.surface,
                       borderRadius: BorderRadius.circular(AppRadii.pill),
                     ),
-                    child: Text(isOwner ? 'Admin' : 'Você', style: textTheme.bodySmall),
+                    child: Text(
+                      isOwner ? 'Admin' : 'Você',
+                      style: textTheme.bodySmall,
+                    ),
                   )
                 else
                   InkWell(
-                    onTap: () => context.read<SettingsBloc>().add(DeleteEmailEvent(email: item)),
+                    onTap: () => context.read<SettingsBloc>().add(
+                      DeleteEmailEvent(email: item),
+                    ),
                     borderRadius: BorderRadius.circular(AppRadii.pill),
                     child: Padding(
                       padding: const EdgeInsets.all(4),
-                      child: Icon(Icons.delete_outline_rounded, color: palette.danger),
+                      child: Icon(
+                        Icons.delete_outline_rounded,
+                        color: palette.danger,
+                      ),
                     ),
                   ),
               ],
@@ -815,7 +1107,9 @@ class _AccessList extends StatelessWidget {
           endIcon: Icons.send,
           endIconPressed: () {
             FocusManager.instance.primaryFocus?.unfocus();
-            context.read<SettingsBloc>().add(AddEmailEvent(email: usernameController.text));
+            context.read<SettingsBloc>().add(
+              AddEmailEvent(email: usernameController.text),
+            );
             usernameController.clear();
           },
           hint: 'exemplo@email.com',
@@ -832,11 +1126,14 @@ class _TimelineDetailsSection extends StatefulWidget {
   final TimeLine timeline;
 
   @override
-  State<_TimelineDetailsSection> createState() => _TimelineDetailsSectionState();
+  State<_TimelineDetailsSection> createState() =>
+      _TimelineDetailsSectionState();
 }
 
 class _TimelineDetailsSectionState extends State<_TimelineDetailsSection> {
-  late final TextEditingController _nameController = TextEditingController(text: widget.timeline.name);
+  late final TextEditingController _nameController = TextEditingController(
+    text: widget.timeline.name,
+  );
   late int? _accentColor = widget.timeline.accentColor;
 
   @override
@@ -848,16 +1145,23 @@ class _TimelineDetailsSectionState extends State<_TimelineDetailsSection> {
   void _save() {
     FocusScope.of(context).unfocus();
     context.read<SettingsBloc>().add(
-      UpdateTimeLineDetailsEvent(name: _nameController.text.trim(), accentColor: _accentColor),
+      UpdateTimeLineDetailsEvent(
+        name: _nameController.text.trim(),
+        accentColor: _accentColor,
+      ),
     );
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Linha do tempo atualizada.')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('História atualizada.')));
   }
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
     final textTheme = Theme.of(context).textTheme;
-    final accent = _accentColor != null ? Color(_accentColor!) : palette.primary;
+    final accent = _accentColor != null
+        ? Color(_accentColor!)
+        : palette.primary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -870,12 +1174,15 @@ class _TimelineDetailsSectionState extends State<_TimelineDetailsSection> {
           textCapitalization: TextCapitalization.sentences,
           onChanged: (_) => setState(() {}),
           decoration: const InputDecoration(
-            hintText: 'Nome da linha do tempo',
+            hintText: 'Nome da história',
             prefixIcon: Icon(Icons.drive_file_rename_outline),
           ),
         ),
         kSpacerHeight24,
-        Text('Cor de destaque', style: textTheme.titleSmall?.copyWith(color: palette.onSurfaceMuted)),
+        Text(
+          'Cor de destaque',
+          style: textTheme.titleSmall?.copyWith(color: palette.onSurfaceMuted),
+        ),
         kSpacerHeight12,
         Wrap(
           spacing: 12,
@@ -885,7 +1192,11 @@ class _TimelineDetailsSectionState extends State<_TimelineDetailsSection> {
               selected: _accentColor == null,
               background: palette.surfaceAlt,
               onTap: () => setState(() => _accentColor = null),
-              child: Icon(Icons.format_color_reset_outlined, size: 20, color: palette.onSurfaceMuted),
+              child: Icon(
+                Icons.format_color_reset_outlined,
+                size: 20,
+                color: palette.onSurfaceMuted,
+              ),
             ),
             ..._kAccentColors.map((color) {
               final value = color.toARGB32();
@@ -893,7 +1204,9 @@ class _TimelineDetailsSectionState extends State<_TimelineDetailsSection> {
                 selected: _accentColor == value,
                 background: color,
                 onTap: () => setState(() => _accentColor = value),
-                child: _accentColor == value ? const Icon(Icons.check, color: Colors.white, size: 20) : null,
+                child: _accentColor == value
+                    ? const Icon(Icons.check, color: Colors.white, size: 20)
+                    : null,
               );
             }),
           ],
@@ -939,7 +1252,10 @@ class _Swatch extends StatelessWidget {
         decoration: BoxDecoration(
           color: background,
           shape: BoxShape.circle,
-          border: Border.all(color: selected ? palette.onSurface : palette.outline, width: selected ? 3 : 1),
+          border: Border.all(
+            color: selected ? palette.onSurface : palette.outline,
+            width: selected ? 3 : 1,
+          ),
         ),
         child: child,
       ),
@@ -964,12 +1280,16 @@ class _RelationshipEndDateSection extends StatelessWidget {
       lastDate: DateTime.now(),
     );
     if (picked != null && context.mounted) {
-      context.read<SettingsBloc>().add(UpdateRelationshipEndDateEvent(date: picked));
+      context.read<SettingsBloc>().add(
+        UpdateRelationshipEndDateEvent(date: picked),
+      );
     }
   }
 
   void _clearDate(BuildContext context) {
-    context.read<SettingsBloc>().add(UpdateRelationshipEndDateEvent(date: null));
+    context.read<SettingsBloc>().add(
+      UpdateRelationshipEndDateEvent(date: null),
+    );
   }
 
   @override
@@ -983,7 +1303,9 @@ class _RelationshipEndDateSection extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          endDate == null ? 'Nenhuma data definida' : DateFormat('dd/MM/yyyy').format(endDate),
+          endDate == null
+              ? 'Nenhuma data definida'
+              : DateFormat('dd/MM/yyyy').format(endDate),
           style: textTheme.bodyMedium,
         ),
         const SizedBox(height: 4),
@@ -994,13 +1316,21 @@ class _RelationshipEndDateSection extends StatelessWidget {
         kSpacerHeight12,
         Row(
           children: [
-            Expanded(child: Text('Impedir momentos após essa data', style: textTheme.bodyMedium)),
+            Expanded(
+              child: Text(
+                'Impedir momentos após essa data',
+                style: textTheme.bodyMedium,
+              ),
+            ),
             Switch.adaptive(
               value: endDate != null && timeline.enforceEndDate,
               onChanged: endDate == null
                   ? null
                   : (value) => context.read<SettingsBloc>().add(
-                      UpdateRelationshipEndDateEvent(date: endDate, enforceEndDate: value),
+                      UpdateRelationshipEndDateEvent(
+                        date: endDate,
+                        enforceEndDate: value,
+                      ),
                     ),
             ),
           ],
@@ -1011,7 +1341,11 @@ class _RelationshipEndDateSection extends StatelessWidget {
           child: OutlinedButton.icon(
             onPressed: () => _pickDate(context),
             icon: const Icon(Icons.edit_calendar_outlined, size: 18),
-            label: Text(endDate == null ? 'Definir data de término' : 'Alterar data de término'),
+            label: Text(
+              endDate == null
+                  ? 'Definir data de término'
+                  : 'Alterar data de término',
+            ),
           ),
         ),
         if (endDate != null) ...[
@@ -1022,7 +1356,9 @@ class _RelationshipEndDateSection extends StatelessWidget {
               onPressed: () => _clearDate(context),
               icon: const Icon(Icons.close_rounded, size: 16),
               label: const Text('Remover data de término'),
-              style: TextButton.styleFrom(foregroundColor: palette.onSurfaceMuted),
+              style: TextButton.styleFrom(
+                foregroundColor: palette.onSurfaceMuted,
+              ),
             ),
           ),
         ],
@@ -1041,13 +1377,19 @@ class _AccentPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final onAccent = accent.computeLuminance() > 0.55 ? const Color(0xFF2B2330) : Colors.white;
+    final onAccent = accent.computeLuminance() > 0.55
+        ? const Color(0xFF2B2330)
+        : Colors.white;
     final secondary = Color.lerp(accent, Colors.white, 0.22) ?? accent;
 
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [accent, secondary]),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [accent, secondary],
+        ),
         borderRadius: BorderRadius.circular(AppRadii.card),
         boxShadow: AppShadows.soft(context),
       ),
@@ -1060,7 +1402,7 @@ class _AccentPreview extends StatelessWidget {
               kSpacerWidth8,
               Expanded(
                 child: Text(
-                  name.trim().isEmpty ? 'Sua linha do tempo' : name.trim(),
+                  name.trim().isEmpty ? 'Sua história' : name.trim(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.titleLarge?.copyWith(color: onAccent),
@@ -1077,7 +1419,10 @@ class _AccentPreview extends StatelessWidget {
             ),
             child: Text(
               'Prévia da cor',
-              style: textTheme.bodySmall?.copyWith(color: onAccent, fontWeight: FontWeight.w600),
+              style: textTheme.bodySmall?.copyWith(
+                color: onAccent,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -1091,7 +1436,11 @@ class _AccentPreview extends StatelessWidget {
 /// Owners can promote a member to owner or toggle editor/viewer; non-owners see
 /// the roles read-only.
 class _AccessLevelSection extends StatelessWidget {
-  const _AccessLevelSection({required this.timeline, required this.emails, required this.currentEmail});
+  const _AccessLevelSection({
+    required this.timeline,
+    required this.emails,
+    required this.currentEmail,
+  });
 
   final TimeLine timeline;
   final List<String> emails;
@@ -1101,7 +1450,10 @@ class _AccessLevelSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final palette = context.palette;
-    final canManage = TimelinePermissions.canManageMembers(timeline, currentEmail);
+    final canManage = TimelinePermissions.canManageMembers(
+      timeline,
+      currentEmail,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1110,8 +1462,10 @@ class _AccessLevelSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
-              'Somente um dono da linha do tempo pode alterar os níveis de acesso.',
-              style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+              'Somente um dono da história pode alterar os níveis de acesso.',
+              style: textTheme.bodySmall?.copyWith(
+                color: palette.onSurfaceMuted,
+              ),
             ),
           ),
         ...emails.map((email) {
@@ -1139,26 +1493,44 @@ class _AccessLevelSection extends StatelessWidget {
                   const SizedBox(height: 8),
                   SegmentedButton<String>(
                     segments: const [
-                      ButtonSegment(value: 'editor', label: Text('Editor'), icon: Icon(Icons.edit_outlined, size: 16)),
+                      ButtonSegment(
+                        value: 'editor',
+                        label: Text('Editor'),
+                        icon: Icon(Icons.edit_outlined, size: 16),
+                      ),
                       ButtonSegment(
                         value: 'viewer',
                         label: Text('Somente leitura'),
                         icon: Icon(Icons.visibility_outlined, size: 16),
                       ),
                     ],
-                    selected: {role == TimelineRole.viewer ? 'viewer' : 'editor'},
+                    selected: {
+                      role == TimelineRole.viewer ? 'viewer' : 'editor',
+                    },
                     onSelectionChanged: (selection) {
-                      context.read<SettingsBloc>().add(UpdateAccessLevelEvent(email: email, level: selection.first));
+                      context.read<SettingsBloc>().add(
+                        UpdateAccessLevelEvent(
+                          email: email,
+                          level: selection.first,
+                        ),
+                      );
                     },
                   ),
                   const SizedBox(height: 6),
                   TextButton.icon(
                     onPressed: () {
-                      context.read<SettingsBloc>().add(UpdateAccessLevelEvent(email: email, level: 'owner'));
+                      context.read<SettingsBloc>().add(
+                        UpdateAccessLevelEvent(email: email, level: 'owner'),
+                      );
                     },
-                    icon: const Icon(Icons.workspace_premium_outlined, size: 18),
+                    icon: const Icon(
+                      Icons.workspace_premium_outlined,
+                      size: 18,
+                    ),
                     label: const Text('Promover a dono'),
-                    style: TextButton.styleFrom(foregroundColor: palette.primary),
+                    style: TextButton.styleFrom(
+                      foregroundColor: palette.primary,
+                    ),
                   ),
                 ],
               ],
@@ -1173,7 +1545,10 @@ class _AccessLevelSection extends StatelessWidget {
 /// Shows who has approved a pending multi-owner deletion and lets the current
 /// owner approve or cancel it.
 class _PendingDeletionSection extends StatelessWidget {
-  const _PendingDeletionSection({required this.timeline, required this.currentEmail});
+  const _PendingDeletionSection({
+    required this.timeline,
+    required this.currentEmail,
+  });
 
   final TimeLine timeline;
   final String currentEmail;
@@ -1211,7 +1586,9 @@ class _PendingDeletionSection extends StatelessWidget {
                 ),
                 Text(
                   approved ? 'Aprovou' : 'Pendente',
-                  style: textTheme.bodySmall?.copyWith(color: approved ? palette.primary : palette.onSurfaceMuted),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: approved ? palette.primary : palette.onSurfaceMuted,
+                  ),
                 ),
               ],
             ),
@@ -1222,17 +1599,23 @@ class _PendingDeletionSection extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => context.read<SettingsBloc>().add(ApproveTimelineDeletionEvent()),
+              onPressed: () => context.read<SettingsBloc>().add(
+                ApproveTimelineDeletionEvent(),
+              ),
               icon: const Icon(Icons.check_rounded, size: 20),
               label: const Text('Aprovar deleção'),
-              style: ElevatedButton.styleFrom(backgroundColor: errorColor, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: errorColor,
+                foregroundColor: Colors.white,
+              ),
             ),
           ),
         if (!alreadyApproved) kSpacerHeight8,
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () => context.read<SettingsBloc>().add(RejectTimelineDeletionEvent()),
+            onPressed: () =>
+                context.read<SettingsBloc>().add(RejectTimelineDeletionEvent()),
             icon: const Icon(Icons.close_rounded, size: 20),
             label: const Text('Cancelar deleção'),
           ),
@@ -1253,15 +1636,29 @@ class _RoleBadge extends StatelessWidget {
     final palette = context.palette;
     final (String label, Color bg, Color fg) = switch (role) {
       TimelineRole.owner => ('Dono', palette.primarySoft, palette.primary),
-      TimelineRole.editor => ('Editor', palette.surfaceAlt, palette.onSurfaceMuted),
-      TimelineRole.viewer => ('Somente leitura', palette.surfaceAlt, palette.onSurfaceMuted),
+      TimelineRole.editor => (
+        'Editor',
+        palette.surfaceAlt,
+        palette.onSurfaceMuted,
+      ),
+      TimelineRole.viewer => (
+        'Somente leitura',
+        palette.surfaceAlt,
+        palette.onSurfaceMuted,
+      ),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(AppRadii.pill)),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AppRadii.pill),
+      ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(color: fg, fontWeight: FontWeight.w600),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

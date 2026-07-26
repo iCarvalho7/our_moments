@@ -25,6 +25,11 @@ class Moment {
   final String audioUrl;
   final String author;
 
+  /// Who can see this moment inside its (possibly shared) timeline:
+  /// - 'shared'  — every member of the timeline (default);
+  /// - 'private' — only the [author].
+  final String visibility;
+
   const Moment(
       {required this.id,
       required this.dateTime,
@@ -42,11 +47,14 @@ class Moment {
       this.latitude,
       this.longitude,
       this.audioUrl = '',
-      this.author = ''});
+      this.author = '',
+      this.visibility = 'shared'});
 
   bool get hasLocation => latitude != null && longitude != null;
 
   bool get hasAudio => audioUrl.isNotEmpty;
+
+  bool get isPrivate => visibility == 'private';
 
   Moment copyWith({
     String? id,
@@ -66,6 +74,7 @@ class Moment {
     double? longitude,
     String? audioUrl,
     String? author,
+    String? visibility,
   }) {
     return Moment(
       id: id ?? this.id,
@@ -85,6 +94,7 @@ class Moment {
       longitude: longitude ?? this.longitude,
       audioUrl: audioUrl ?? this.audioUrl,
       author: author ?? this.author,
+      visibility: visibility ?? this.visibility,
     );
   }
 

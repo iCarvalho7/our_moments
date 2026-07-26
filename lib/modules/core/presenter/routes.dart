@@ -7,6 +7,9 @@ import 'package:nossos_momentos/modules/time_line/presenter/page/all_timelines_m
 import 'package:nossos_momentos/modules/time_line/presenter/page/new_select_time_line_page.dart';
 import 'package:nossos_momentos/modules/time_line/presenter/page/select_time_line_page.dart';
 
+import 'page/privacy_explainer_page.dart';
+import '../../time_line/gamification/presenter/page/achievements_page.dart';
+import '../../time_line/gamification/presenter/page/personal_profile_page.dart';
 import '../../moment/presenter/page/add_moment_page.dart';
 import '../../moment/presenter/page/location_picker_page.dart';
 import '../../moment/presenter/page/share_moment_page.dart';
@@ -17,7 +20,6 @@ import '../../time_line/presenter/page/couple_features_hub_page.dart';
 import '../../time_line/presenter/page/couple_stats_page.dart';
 import '../../time_line/presenter/page/moments_map_page.dart';
 import '../../time_line/presenter/page/on_this_day_page.dart';
-import '../../time_line/presenter/page/time_line_page.dart';
 import '../../time_line/presenter/page/year_in_review_page.dart';
 import '../../time_line/special_dates/presenter/page/special_dates_page.dart';
 import '../../time_line/time_capsule/presenter/page/time_capsule_page.dart';
@@ -38,10 +40,6 @@ enum AppRoute {
   newSelectTimeLine(
     '//new_select_time_line',
     NewSelectTimeLinePage(),
-  ),
-  timeLine(
-    '//time_line',
-    TimeLinePage(),
   ),
   addMoment(
     '//add_moment',
@@ -106,6 +104,18 @@ enum AppRoute {
   locationPicker(
     '//location_picker',
     LocationPickerPage(),
+  ),
+  privacyExplainer(
+    '//privacy_explainer',
+    PrivacyExplainerPage(),
+  ),
+  achievements(
+    '//achievements',
+    AchievementsPage(),
+  ),
+  personalProfile(
+    '//personal_profile',
+    PersonalProfilePage(),
   );
 
   final String tag;

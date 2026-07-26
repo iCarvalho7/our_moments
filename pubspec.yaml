@@ -78,6 +78,8 @@ dependencies:
   purchases_ui_flutter: ^8.11.0
   firebase_remote_config: ^5.4.0
   cached_network_image: ^3.4.1
+  confetti: ^0.8.0
+  flutter_animate: ^4.5.2
 
 dev_dependencies:
   flutter_test:

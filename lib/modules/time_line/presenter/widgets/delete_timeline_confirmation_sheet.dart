@@ -174,7 +174,7 @@ class _Step1 extends StatelessWidget {
             kSpacerWidth12,
             Expanded(
               child: Text(
-                'Deletar linha do tempo?',
+                'Deletar história?',
                 style: textTheme.titleLarge,
               ),
             ),
@@ -182,7 +182,7 @@ class _Step1 extends StatelessWidget {
         ),
         kSpacerHeight16,
         Text(
-          'Esta ação é permanente e irrecuperável. Todos os momentos, fotos e dados desta linha do tempo serão perdidos.',
+          'Esta ação é permanente e irrecuperável. Todos os momentos, fotos e dados desta história serão perdidos.',
           style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
         ),
         kSpacerHeight24,
@@ -281,7 +281,7 @@ class _Step2 extends StatelessWidget {
         ),
         kSpacerHeight16,
         Text(
-          'Para confirmar, digite o nome exato da linha do tempo:',
+          'Para confirmar, digite o nome exato da história:',
           style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
         ),
         kSpacerHeight12,
@@ -337,7 +337,7 @@ class _Step2 extends StatelessWidget {
               foregroundColor: Colors.white,
               disabledBackgroundColor: errorColor.withValues(alpha: 0.38),
             ),
-            child: const Text('Deletar linha do tempo'),
+            child: const Text('Deletar história'),
           ),
         ),
         kSpacerHeight8,

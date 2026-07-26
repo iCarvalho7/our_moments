@@ -28,6 +28,7 @@ class MomentModel extends Moment {
     this.longitude,
     this.audioUrl = '',
     this.author = '',
+    this.visibility = 'shared',
   }) : super(
           dateTime: dateTime,
           type: type,
@@ -38,6 +39,7 @@ class MomentModel extends Moment {
           longitude: longitude,
           audioUrl: audioUrl,
           author: author,
+          visibility: visibility,
         );
 
   @override
@@ -76,7 +78,21 @@ class MomentModel extends Moment {
   @JsonKey(name: 'author', defaultValue: '')
   final String author;
 
+  @override
+  @JsonKey(name: 'visibility', fromJson: _visibilityFromJson, toJson: _visibilityToJson)
+  final String visibility;
+
   static double? _doubleFromJson(dynamic value) => (value as num?)?.toDouble();
+
+  // Tolerant like MomentType: legacy docs have no `visibility` field, so a
+  // missing/unknown value falls back to 'shared' and never breaks the query.
+  static String _visibilityFromJson(dynamic value) {
+    final v = value?.toString().toLowerCase().trim();
+    return v == 'private' ? 'private' : 'shared';
+  }
+
+  static String _visibilityToJson(String value) =>
+      value == 'private' ? 'private' : 'shared';
 
   static _fromJsonDate(String dateTime) {
     return DateFormat(DateFormat.YEAR_MONTH_DAY).parse(dateTime);
@@ -125,6 +141,7 @@ class MomentModel extends Moment {
       longitude: longitude,
       audioUrl: audioUrl,
       author: author,
+      visibility: visibility,
     );
   }
 
@@ -146,6 +163,7 @@ class MomentModel extends Moment {
       longitude: moment.longitude,
       audioUrl: moment.audioUrl,
       author: moment.author,
+      visibility: moment.visibility,
     );
   }
 }

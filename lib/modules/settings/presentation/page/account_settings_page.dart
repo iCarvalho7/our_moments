@@ -37,13 +37,21 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
       child: BlocListener<SettingsBloc, SettingsState>(
         listener: (context, state) {
           if (state is SettingsAccountDeleted || state is SettingsLoggedOut) {
-            Navigator.of(context).pushNamedAndRemoveUntil(AppRoute.login.tag, (_) => false);
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil(AppRoute.login.tag, (_) => false);
           } else if (state is SettingsReauthRequired) {
             _promptReauth(context);
           } else if (state is SettingsAccountDeleteError) {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
-              ..showSnackBar(const SnackBar(content: Text('Não foi possível excluir a conta. Tente novamente.')));
+              ..showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Não foi possível excluir a conta. Tente novamente.',
+                  ),
+                ),
+              );
           }
         },
         child: Stack(
@@ -52,14 +60,19 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
             Scaffold(
               backgroundColor: Colors.transparent,
               appBar: PrimaryAppBar(title: 'Minha conta'),
-              body: BlocBuilder<SettingsBloc, SettingsState>(
-                builder: (context, state) {
-                  if (state is SettingsLoading) return const _LoadingPlaceholder();
-                  if (state is SettingsSuccess) {
-                    return _AccountContent(email: state.email ?? '');
-                  }
-                  return const SizedBox.shrink();
-                },
+              body: SafeArea(
+                top: false,
+                child: BlocBuilder<SettingsBloc, SettingsState>(
+                  builder: (context, state) {
+                    if (state is SettingsLoading) {
+                      return const _LoadingPlaceholder();
+                    }
+                    if (state is SettingsSuccess) {
+                      return _AccountContent(email: state.email ?? '');
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
               ),
             ),
           ],
@@ -97,6 +110,8 @@ class _AccountContent extends StatelessWidget {
             child: _EmailRow(email: email),
           ),
           kSpacerHeight16,
+          const _PrivacyExplainerLink(),
+          kSpacerHeight16,
           const _Section(
             icon: Icons.notifications_active_outlined,
             title: 'Lembrete "Neste dia"',
@@ -122,6 +137,70 @@ class _AccountContent extends StatelessWidget {
   }
 }
 
+/// Tappable row that opens the privacy explainer — makes the app's access
+/// model a stated, discoverable feature instead of something buried in the
+/// access controls.
+class _PrivacyExplainerLink extends StatelessWidget {
+  const _PrivacyExplainerLink();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: () =>
+          Navigator.of(context).pushNamed(AppRoute.privacyExplainer.tag),
+      borderRadius: BorderRadius.circular(AppRadii.card),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: palette.surface,
+          borderRadius: BorderRadius.circular(AppRadii.card),
+          border: Border.all(color: palette.outline),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: palette.primarySoft,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.shield_outlined,
+                color: palette.primary,
+                size: 22,
+              ),
+            ),
+            kSpacerWidth12,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Entenda sua privacidade', style: textTheme.titleMedium),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Quem vê seus momentos e como você controla isso',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: palette.onSurfaceMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: palette.onSurfaceMuted,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _EmailRow extends StatelessWidget {
   const _EmailRow({required this.email});
 
@@ -135,12 +214,21 @@ class _EmailRow extends StatelessWidget {
         Container(
           width: 36,
           height: 36,
-          decoration: BoxDecoration(color: palette.primarySoft, shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: palette.primarySoft,
+            shape: BoxShape.circle,
+          ),
           alignment: Alignment.center,
-          child: Icon(Icons.alternate_email_rounded, color: palette.primary, size: 18),
+          child: Icon(
+            Icons.alternate_email_rounded,
+            color: palette.primary,
+            size: 18,
+          ),
         ),
         kSpacerWidth12,
-        Expanded(child: Text(email, style: Theme.of(context).textTheme.bodyMedium)),
+        Expanded(
+          child: Text(email, style: Theme.of(context).textTheme.bodyMedium),
+        ),
       ],
     );
   }
@@ -175,16 +263,23 @@ class _ReminderToggleState extends State<_ReminderToggle> {
   Future<void> _onChanged(bool value) async {
     final service = getIt<NotificationService>();
     if (value && !getIt<PremiumService>().can(PremiumFeature.onThisDayPush)) {
-      final unlocked = await showPremiumPlaceholder(context, PremiumFeature.onThisDayPush);
+      final unlocked = await showPremiumPlaceholder(
+        context,
+        PremiumFeature.onThisDayPush,
+      );
       if (!unlocked) return;
     }
     if (value) {
       final granted = await service.enableReminder();
       if (!mounted) return;
       if (!granted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Ative as notificações nas configurações do aparelho.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Ative as notificações nas configurações do aparelho.',
+            ),
+          ),
+        );
       }
       setState(() => _enabled = granted);
     } else {
@@ -203,7 +298,11 @@ class _ReminderToggleState extends State<_ReminderToggle> {
     if (_loading) {
       return const Align(
         alignment: Alignment.centerLeft,
-        child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)),
+        child: SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
       );
     }
 
@@ -219,7 +318,9 @@ class _ReminderToggleState extends State<_ReminderToggle> {
                 isPremium
                     ? 'Toque na notificação para reviver suas memórias.'
                     : 'Recurso premium — desbloqueie para ativar.',
-                style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+                style: textTheme.bodySmall?.copyWith(
+                  color: palette.onSurfaceMuted,
+                ),
               ),
             ],
           ),
@@ -236,22 +337,44 @@ class _SubscriptionButton extends StatelessWidget {
 
   Future<void> _open(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
-    final result = await getIt<PresentCustomerCenterUseCase>().call(NoParams.instance);
+    final result = await getIt<PresentCustomerCenterUseCase>().call(
+      NoParams.instance,
+    );
     if (result.isError) {
       messenger
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('Não foi possível abrir o gerenciamento da assinatura.')));
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Não foi possível abrir o gerenciamento da assinatura.',
+            ),
+          ),
+        );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: () => _open(context),
-        icon: const Icon(Icons.settings_outlined, size: 20),
-        label: const Text('Abrir gerenciamento'),
+    final palette = context.palette;
+    return InkWell(
+      onTap: () => _open(context),
+      borderRadius: BorderRadius.circular(8),
+      child: Row(
+        children: [
+          Icon(Icons.open_in_new_rounded, size: 18, color: palette.primary),
+          kSpacerWidth12,
+          Expanded(
+            child: Text(
+              'Abrir gerenciamento',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+          Icon(
+            Icons.chevron_right_rounded,
+            size: 18,
+            color: palette.onSurfaceMuted,
+          ),
+        ],
       ),
     );
   }
@@ -263,13 +386,33 @@ class _LogoutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () => context.read<SettingsBloc>().add(LogoutEvent()),
-        icon: Icon(Icons.logout_rounded, size: 20),
-        label: Text('Sair da conta'),
-        style: OutlinedButton.styleFrom(side: BorderSide(color: palette.outline)),
+    return InkWell(
+      onTap: () => context.read<SettingsBloc>().add(LogoutEvent()),
+      borderRadius: BorderRadius.circular(AppRadii.card),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: palette.surface,
+          borderRadius: BorderRadius.circular(AppRadii.card),
+          border: Border.all(color: palette.outline),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.logout_rounded, size: 20, color: palette.onSurfaceMuted),
+            kSpacerWidth12,
+            Expanded(
+              child: Text(
+                'Sair da conta',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: palette.onSurfaceMuted,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -284,7 +427,9 @@ class _DangerZone extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => DeleteAccountConfirmationSheet(onConfirm: () => bloc.add(DeleteAccountEvent())),
+      builder: (_) => DeleteAccountConfirmationSheet(
+        onConfirm: () => bloc.add(DeleteAccountEvent()),
+      ),
     );
   }
 
@@ -313,7 +458,11 @@ class _DangerZone extends StatelessWidget {
                   color: errorColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.warning_amber_outlined, color: errorColor, size: 22),
+                child: Icon(
+                  Icons.warning_amber_outlined,
+                  color: errorColor,
+                  size: 22,
+                ),
               ),
               kSpacerWidth12,
               Expanded(
@@ -324,7 +473,9 @@ class _DangerZone extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       'Ações permanentes e irreversíveis',
-                      style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: palette.onSurfaceMuted,
+                      ),
                     ),
                   ],
                 ),
@@ -332,22 +483,42 @@ class _DangerZone extends StatelessWidget {
             ],
           ),
           kSpacerHeight16,
-          Text('Excluir conta', style: textTheme.titleSmall),
-          const SizedBox(height: 2),
-          Text(
-            'Apaga sua conta e os dados que pertencem só a você.',
-            style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
-          ),
-          kSpacerHeight12,
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _openDeleteAccountSheet(context),
-              icon: const Icon(Icons.person_off_outlined, size: 20, color: Colors.white),
-              label: const Text('Excluir minha conta', style: TextStyle(color: Colors.white)),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: errorColor,
-                side: BorderSide(color: errorColor.withValues(alpha: 0.6)),
+          InkWell(
+            onTap: () => _openDeleteAccountSheet(context),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                children: [
+                  Icon(Icons.person_off_outlined, color: errorColor, size: 20),
+                  kSpacerWidth12,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Excluir minha conta',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: errorColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Apaga sua conta e dados que pertencem só a você',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: errorColor.withValues(alpha: 0.65),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 18,
+                    color: errorColor.withValues(alpha: 0.6),
+                  ),
+                ],
               ),
             ),
           ),
@@ -358,7 +529,12 @@ class _DangerZone extends StatelessWidget {
 }
 
 class _Section extends StatelessWidget {
-  const _Section({required this.icon, required this.title, required this.subtitle, required this.child});
+  const _Section({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.child,
+  });
 
   final IconData icon;
   final String title;
@@ -385,7 +561,10 @@ class _Section extends StatelessWidget {
               Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(color: palette.primarySoft, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: palette.primarySoft,
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Icon(icon, color: palette.primary, size: 22),
               ),
               kSpacerWidth12,
@@ -395,7 +574,12 @@ class _Section extends StatelessWidget {
                   children: [
                     Text(title, style: textTheme.titleMedium),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted)),
+                    Text(
+                      subtitle,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: palette.onSurfaceMuted,
+                      ),
+                    ),
                   ],
                 ),
               ),

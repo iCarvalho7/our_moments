@@ -53,11 +53,11 @@ class CreateTimeLineUseCase
     final display = user.displayName;
     if (display != null && display.trim().isNotEmpty) {
       final firstName = display.trim().split(' ').first;
-      return 'Linha do tempo de $firstName';
+      return 'História de $firstName';
     }
     final localPart = (user.email ?? '').split('@').first;
-    if (localPart.isEmpty) return 'Minha linha do tempo';
+    if (localPart.isEmpty) return 'Minha história';
     final capitalized = localPart[0].toUpperCase() + localPart.substring(1);
-    return 'Linha do tempo de $capitalized';
+    return 'História de $capitalized';
   }
 }

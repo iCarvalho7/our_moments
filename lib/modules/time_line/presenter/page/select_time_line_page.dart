@@ -72,7 +72,7 @@ class _SelectTimeLinePageState extends State<SelectTimeLinePage> {
               Scaffold(
                 backgroundColor: Colors.transparent,
                 appBar: PrimaryAppBar(
-                  title: 'Linhas do tempo',
+                  title: 'Histórias',
                   back: IconButton(
                     tooltip: 'Sair',
                     onPressed: () {
@@ -187,7 +187,7 @@ class _SelectTimeLinePageState extends State<SelectTimeLinePage> {
         const _CreateTimeLineCard(),
         kSpacerHeight16,
         Text(
-          'Para ver uma linha do tempo existente, peça acesso a quem a criou.',
+          'Para ver uma história existente, peça acesso a quem a criou.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: context.palette.onSurfaceMuted,
               ),
@@ -207,7 +207,7 @@ class _SelectTimeLinePageState extends State<SelectTimeLinePage> {
           .pushNamedAndRemoveUntil(AppRoute.login.tag, (Route<dynamic> route) => false);
     }
     if (state is SelectTimeLineError) {
-      final msm = kDebugMode ? state.error : 'Erro ao criar sua linha do tempo';
+      final msm = kDebugMode ? state.error : 'Erro ao criar sua história';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(backgroundColor: Colors.red, content: Text(msm)),
       );
@@ -236,7 +236,7 @@ class _Intro extends StatelessWidget {
         Row(
           children: [
             Text(
-              count == 1 ? '1 linha do tempo' : '$count linhas do tempo',
+              count == 1 ? '1 história' : '$count histórias',
               style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
             ),
             kSpacerWidth12,
@@ -333,13 +333,13 @@ class _SelectTimeLineItem extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final palette = context.palette;
     final accent = item.accentColor != null ? Color(item.accentColor!) : palette.primary;
-    final name = item.name.isNotEmpty ? item.name : 'Nossa linha do tempo';
+    final name = item.name.isNotEmpty ? item.name : 'Nossa história';
     final members = _membersLabel();
     final hasCover = item.coverPhotoUrl.isNotEmpty;
 
     void onTap() {
       final bloc = context.read<SelectTimeLineBloc>();
-      Navigator.pushNamed(context, AppRoute.timeLine.tag, arguments: item.id)
+      Navigator.pushNamed(context, AppRoute.newSelectTimeLine.tag, arguments: item.id)
           .then((e) => bloc.add(SelectTimeLineEventFetchAll()));
     }
 
@@ -770,7 +770,7 @@ class _CreateTimeLineCard extends StatelessWidget {
     );
     if (policy == null) return;
     await navigator.pushNamed(
-      AppRoute.timeLine.tag,
+      AppRoute.newSelectTimeLine.tag,
       arguments: (timeLineId: null, momentEditPolicy: policy),
     );
     bloc.add(SelectTimeLineEventFetchAll());
@@ -804,7 +804,7 @@ class _CreateTimeLineCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Criar nova linha do tempo',
+                    'Criar nova história',
                     style: textTheme.titleMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -860,7 +860,7 @@ class _MomentEditPolicySheetState extends State<_MomentEditPolicySheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Nova linha do tempo', style: textTheme.titleLarge),
+          Text('Nova história', style: textTheme.titleLarge),
           kSpacerHeight8,
           Text(
             'Como vocês vão editar os momentos um do outro?',
@@ -889,7 +889,7 @@ class _MomentEditPolicySheetState extends State<_MomentEditPolicySheet> {
             width: double.infinity,
             child: FilledButton(
               onPressed: () => Navigator.of(context).pop(_policy),
-              child: const Text('Criar linha do tempo'),
+              child: const Text('Criar história'),
             ),
           ),
         ],
@@ -980,7 +980,7 @@ class _EmptyHero extends StatelessWidget {
           Text('Comece sua história', style: textTheme.headlineMedium, textAlign: TextAlign.center),
           kSpacerHeight8,
           Text(
-            'Crie sua primeira linha do tempo para guardar e reviver os momentos de vocês.',
+            'Crie sua primeira história para guardar e reviver os momentos de vocês.',
             style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
             textAlign: TextAlign.center,
           ),
@@ -1010,7 +1010,7 @@ class _HelpNote extends StatelessWidget {
           kSpacerWidth12,
           Flexible(
             child: Text(
-              'Perdeu acesso à sua linha do tempo? Fale com: contato.lutestudios@gmail.com',
+              'Perdeu acesso à sua história? Fale com: contato.lutestudios@gmail.com',
               style: textTheme.bodySmall?.copyWith(color: palette.onSurfaceMuted),
             ),
           ),

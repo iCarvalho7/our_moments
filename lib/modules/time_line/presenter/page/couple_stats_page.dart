@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:nossos_momentos/di/injection.dart';
 
+import '../../../core/feature_toggles/feature_toggle_manager.dart';
 import '../../../core/presenter/widgets/background_gradient.dart';
 import '../../../core/presenter/widgets/primary_app_bar.dart';
 import '../../../core/utils/theme/app_theme.dart';
 import '../../../moment/domain/entities/moment.dart';
 import '../../../moment/domain/entities/moment_type.dart';
+import '../../gamification/domain/entity/momentum_progress.dart';
 import '../utils/moment_counts.dart';
 
 /// Couple-only statistics over the timeline's moments. Pure read/count widget:
@@ -31,6 +34,11 @@ class CoupleStatsPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _TotalCard(total: moments.length),
+                        if (getIt<FeatureToggleManager>()
+                            .isEnabled(AppFeatureToggle.gamification)) ...[
+                          kSpacerHeight12,
+                          _GamificationSummary(moments: moments),
+                        ],
                         kSpacerHeight24,
                         _SectionTitle(title: 'Por tipo de momento'),
                         kSpacerHeight12,
@@ -124,6 +132,51 @@ class _TotalCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Compact gamification line: couple level, points and current streak, derived
+/// from the same moments the stats screen already counts.
+class _GamificationSummary extends StatelessWidget {
+  const _GamificationSummary({required this.moments});
+
+  final List<Moment> moments;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textTheme = Theme.of(context).textTheme;
+    final progress = MomentumProgress.from(moments);
+
+    Widget chip(IconData icon, String label) => Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+            decoration: BoxDecoration(
+              color: palette.surface,
+              borderRadius: BorderRadius.circular(AppRadii.card),
+              border: Border.all(color: palette.outline),
+            ),
+            child: Column(
+              children: [
+                Icon(icon, color: palette.primary, size: 20),
+                kSpacerHeight8,
+                Text(label,
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700)),
+              ],
+            ),
+          ),
+        );
+
+    return Row(
+      children: [
+        chip(Icons.military_tech_rounded, 'Nível ${progress.level}'),
+        kSpacerWidth8,
+        chip(Icons.stars_rounded, '${progress.points} pts'),
+        kSpacerWidth8,
+        chip(Icons.local_fire_department_rounded, '${progress.currentStreakDays} dias'),
+      ],
     );
   }
 }

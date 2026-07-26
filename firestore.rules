@@ -64,7 +64,22 @@ service cloud.firestore {
         let role = timelineData().roles.get(userEmail(), 'editor');
         return role in ['owner', 'editor'];
       }
-      allow read: if isMemberOfTimeline();
+      // A moment is private when visibility == 'private'; only its author may
+      // read it. Legacy docs have no `visibility` field, so a missing value
+      // defaults to 'shared' (mirrors MomentModel._visibilityFromJson).
+      function isVisibleToMe() {
+        return resource.data.get('visibility', 'shared') != 'private'
+          || resource.data.get('author', '') == userEmail();
+      }
+      // Split get/list on purpose: a single-doc `get` enforces per-moment
+      // privacy, so another member can't fetch someone's private moment by id.
+      // `list` stays member-scoped because adding the privacy predicate here
+      // would reject the whole feed query whenever it spans a private moment
+      // authored by someone else; the client filters those out (see
+      // NewFeedCubit). Full list-level enforcement would need a backfill of
+      // `visibility` on every doc plus an OR-filtered query.
+      allow get: if isMemberOfTimeline() && isVisibleToMe();
+      allow list: if isMemberOfTimeline();
       allow create: if isSignedIn() && isMemberOfTimeline() && canEditInTimeline();
       allow update, delete: if isMemberOfTimeline() && canEditInTimeline();
 

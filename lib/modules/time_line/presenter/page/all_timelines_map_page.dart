@@ -24,67 +24,83 @@ class _AllTimelinesMapPageState extends State<AllTimelinesMapPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<AllTimelinesMapBloc>(
-      create: (_) => getIt<AllTimelinesMapBloc>()..add(FetchAllTimelinesMapEvent()),
+      create: (_) =>
+          getIt<AllTimelinesMapBloc>()..add(FetchAllTimelinesMapEvent()),
       child: Stack(
         children: [
           const BackgroundGradient(),
           Scaffold(
             backgroundColor: Colors.transparent,
             appBar: PrimaryAppBar(title: 'Todos os momentos'),
-            body: BlocBuilder<AllTimelinesMapBloc, AllTimelinesMapState>(
-              builder: (context, state) {
-                if (state is AllTimelinesMapLoading) {
-                  return const _LoadingBody();
-                }
-                if (state is AllTimelinesMapEmpty) {
-                  return const _EmptyBody();
-                }
-                if (state is AllTimelinesMapSuccess) {
-                  final colors = {
-                    for (final e in state.timelineAccentColors.entries)
-                      if (e.value != null) e.key: Color(e.value!),
-                  };
-                  final names = {for (final t in state.timelines) t.id: t.name};
-                  final filtered = _activeTimelineId == null
-                      ? state.moments
-                      : state.moments
-                          .where((m) => m.timelineId == _activeTimelineId)
-                          .toList();
-                  return Column(
-                    children: [
-                      _TimelineFilterRow(
-                        timelines: state.timelines,
-                        accentColors: colors,
-                        activeId: _activeTimelineId,
-                        onSelect: (id) => setState(() => _activeTimelineId = id),
-                      ),
-                      Expanded(
-                        child: filtered.isEmpty
-                            ? const _EmptyFilterBody()
-                            : RoadTimeline(
-                                moments: filtered,
-                                timelineColors: colors,
-                                timelineNames: names,
-                                onMomentTap: (moment) {
-                                  final accentColor =
-                                      state.timelineAccentColors[moment.timelineId];
-                                  final mapBloc = context.read<AllTimelinesMapBloc>();
-                                  context
-                                      .read<AddOrEditMomentBloc>()
-                                      .add(SetupEditMomentEvent(moment: moment));
-                                  Navigator.pushNamed(
-                                    context,
-                                    AppRoute.addMoment.tag,
-                                    arguments: (accentColor: accentColor, endDate: null),
-                                  ).then((_) => mapBloc.add(FetchAllTimelinesMapEvent()));
-                                },
-                              ),
-                      ),
-                    ],
-                  );
-                }
-                return const SizedBox.shrink();
-              },
+            body: SafeArea(
+              top: false,
+              child: BlocBuilder<AllTimelinesMapBloc, AllTimelinesMapState>(
+                builder: (context, state) {
+                  if (state is AllTimelinesMapLoading) {
+                    return const _LoadingBody();
+                  }
+                  if (state is AllTimelinesMapEmpty) {
+                    return const _EmptyBody();
+                  }
+                  if (state is AllTimelinesMapSuccess) {
+                    final colors = {
+                      for (final e in state.timelineAccentColors.entries)
+                        if (e.value != null) e.key: Color(e.value!),
+                    };
+                    final names = {
+                      for (final t in state.timelines) t.id: t.name,
+                    };
+                    final filtered = _activeTimelineId == null
+                        ? state.moments
+                        : state.moments
+                              .where((m) => m.timelineId == _activeTimelineId)
+                              .toList();
+                    return Column(
+                      children: [
+                        _TimelineFilterRow(
+                          timelines: state.timelines,
+                          accentColors: colors,
+                          activeId: _activeTimelineId,
+                          onSelect: (id) =>
+                              setState(() => _activeTimelineId = id),
+                        ),
+                        Expanded(
+                          child: filtered.isEmpty
+                              ? const _EmptyFilterBody()
+                              : RoadTimeline(
+                                  moments: filtered,
+                                  timelineColors: colors,
+                                  timelineNames: names,
+                                  onMomentTap: (moment) {
+                                    final accentColor =
+                                        state.timelineAccentColors[moment
+                                            .timelineId];
+                                    final mapBloc = context
+                                        .read<AllTimelinesMapBloc>();
+                                    context.read<AddOrEditMomentBloc>().add(
+                                      SetupEditMomentEvent(moment: moment),
+                                    );
+                                    Navigator.pushNamed(
+                                      context,
+                                      AppRoute.addMoment.tag,
+                                      arguments: (
+                                        accentColor: accentColor,
+                                        endDate: null,
+                                      ),
+                                    ).then(
+                                      (_) => mapBloc.add(
+                                        FetchAllTimelinesMapEvent(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
           ),
         ],
@@ -126,7 +142,7 @@ class _TimelineFilterRow extends StatelessWidget {
           ),
           ...timelines.map((tl) {
             final accent = accentColors[tl.id] ?? palette.primary;
-            final name = tl.name.isNotEmpty ? tl.name : 'Linha';
+            final name = tl.name.isNotEmpty ? tl.name : 'História';
             return _FilterChip(
               label: name,
               accent: accent,
@@ -219,13 +235,19 @@ class _EmptyBody extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.auto_awesome_outlined, size: 52, color: palette.onSurfaceMuted),
+          Icon(
+            Icons.auto_awesome_outlined,
+            size: 52,
+            color: palette.onSurfaceMuted,
+          ),
           const SizedBox(height: 16),
           Text('Nenhum momento ainda', style: textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
-            'Crie momentos nas suas linhas do tempo.',
-            style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
+            'Crie momentos nas suas histórias.',
+            style: textTheme.bodyMedium?.copyWith(
+              color: palette.onSurfaceMuted,
+            ),
           ),
         ],
       ),
@@ -244,13 +266,19 @@ class _EmptyFilterBody extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.filter_list_off_rounded, size: 52, color: palette.onSurfaceMuted),
+          Icon(
+            Icons.filter_list_off_rounded,
+            size: 52,
+            color: palette.onSurfaceMuted,
+          ),
           const SizedBox(height: 16),
-          Text('Nenhum momento nesta linha', style: textTheme.titleMedium),
+          Text('Nenhum momento nesta história', style: textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
-            'Selecione outra linha do tempo ou "Todas".',
-            style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
+            'Selecione outra história ou "Todas".',
+            style: textTheme.bodyMedium?.copyWith(
+              color: palette.onSurfaceMuted,
+            ),
           ),
         ],
       ),

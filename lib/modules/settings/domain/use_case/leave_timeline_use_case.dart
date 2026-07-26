@@ -44,7 +44,7 @@ class LeaveTimelineUseCase extends AsyncUseCase<void, LeaveTimelineParams> {
 
     if (isOwner && !hasOtherOwners && hasOtherMembers) {
       throw Exception(
-        'Você é o único dono desta timeline. Promova outro membro a dono antes de sair.',
+        'Você é o único dono desta história. Promova outro membro a dono antes de sair.',
       );
     }
 

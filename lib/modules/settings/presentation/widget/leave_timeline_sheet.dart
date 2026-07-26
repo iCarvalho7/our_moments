@@ -71,14 +71,14 @@ class _LeaveTimelineSheetState extends State<LeaveTimelineSheet> {
               ),
               kSpacerWidth12,
               const Expanded(
-                child: Text('Sair da timeline?'),
+                child: Text('Sair da história?'),
               ),
             ],
           ),
           kSpacerHeight16,
           Text(
             name.isEmpty
-                ? 'Você deixará de ter acesso a esta linha do tempo. Os demais membros continuarão com ela.'
+                ? 'Você deixará de ter acesso a esta história. Os demais membros continuarão com ela.'
                 : 'Você deixará de ter acesso a "$name". Os demais membros continuarão com ela.',
             style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
           ),
@@ -110,7 +110,7 @@ class _LeaveTimelineSheetState extends State<LeaveTimelineSheet> {
                     child: Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
-                        'Excluir os momentos que criei nesta timeline',
+                        'Excluir os momentos que criei nesta história',
                         style: textTheme.bodyMedium,
                       ),
                     ),
@@ -156,7 +156,7 @@ class _LeaveTimelineSheetState extends State<LeaveTimelineSheet> {
                 backgroundColor: errorColor,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Sair da timeline'),
+              child: const Text('Sair da história'),
             ),
           ),
           kSpacerHeight8,

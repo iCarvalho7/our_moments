@@ -25,6 +25,9 @@ MomentModel _$MomentModelFromJson(Map<String, dynamic> json) => MomentModel(
   longitude: MomentModel._doubleFromJson(json['longitude']),
   audioUrl: json['audio_url'] as String? ?? '',
   author: json['author'] as String? ?? '',
+  visibility: json['visibility'] == null
+      ? 'shared'
+      : MomentModel._visibilityFromJson(json['visibility']),
 );
 
 Map<String, dynamic> _$MomentModelToJson(MomentModel instance) =>
@@ -45,4 +48,5 @@ Map<String, dynamic> _$MomentModelToJson(MomentModel instance) =>
       'longitude': instance.longitude,
       'audio_url': instance.audioUrl,
       'author': instance.author,
+      'visibility': MomentModel._visibilityToJson(instance.visibility),
     };

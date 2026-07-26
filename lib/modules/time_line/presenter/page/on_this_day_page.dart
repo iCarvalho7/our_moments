@@ -23,12 +23,23 @@ class OnThisDayPage extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         title: const Text('Neste dia'),
       ),
-      body: moments.isEmpty ? _EmptyState(scopeLabel: scopeLabel) : _buildList(context, now, moments, scopeLabel),
+      body: SafeArea(
+        top: false,
+        child: moments.isEmpty
+            ? _EmptyState(scopeLabel: scopeLabel)
+            : _buildList(context, now, moments, scopeLabel),
+      ),
     );
   }
 
-  Widget _buildList(BuildContext context, DateTime now, List<Moment> moments, String? scopeLabel) {
-    final sorted = [...moments]..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+  Widget _buildList(
+    BuildContext context,
+    DateTime now,
+    List<Moment> moments,
+    String? scopeLabel,
+  ) {
+    final sorted = [...moments]
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
     // Flatten into [yearsAgo header, cards...] grouped by year.
     final items = <Object>[];
@@ -51,8 +62,8 @@ class OnThisDayPage extends StatelessWidget {
             child: Text(
               'Memórias de $scopeLabel',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: context.palette.onSurfaceMuted,
-                  ),
+                color: context.palette.onSurfaceMuted,
+              ),
             ),
           ),
         Expanded(
@@ -99,7 +110,11 @@ class _EmptyState extends StatelessWidget {
                 color: palette.primarySoft,
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.auto_awesome_rounded, color: palette.primary, size: 38),
+              child: Icon(
+                Icons.auto_awesome_rounded,
+                color: palette.primary,
+                size: 38,
+              ),
             ),
             kSpacerHeight24,
             Text(
@@ -112,7 +127,9 @@ class _EmptyState extends StatelessWidget {
               scopeLabel != null
                   ? 'Quando vocês registrarem momentos de $scopeLabel em outros anos, eles vão aparecer aqui para reviver. 💛'
                   : 'Quando vocês tiverem memórias deste dia em outros anos, elas vão aparecer aqui para reviver. 💛',
-              style: textTheme.bodyMedium?.copyWith(color: palette.onSurfaceMuted),
+              style: textTheme.bodyMedium?.copyWith(
+                color: palette.onSurfaceMuted,
+              ),
               textAlign: TextAlign.center,
             ),
           ],

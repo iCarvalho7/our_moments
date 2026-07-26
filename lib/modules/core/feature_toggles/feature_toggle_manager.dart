@@ -16,6 +16,21 @@ enum AppFeatureToggle {
   /// and [PremiumService] falls back to its own rules (debug → couple tier,
   /// release → free tier).
   revenueCat,
+
+  /// Gamification layer (couple + individual streaks, points, achievements).
+  ///
+  /// When disabled, no progress is computed or awarded on moment creation and
+  /// the streak/achievement surfaces are hidden — the app behaves as before.
+  gamification,
+
+  /// Celebration overlay (confetti + reward card) shown after a moment is
+  /// created. When disabled, creation just pops back silently as before.
+  momentCelebration,
+
+  /// Per-moment "private" visibility (only the author can see it inside a
+  /// shared timeline). When disabled, the private toggle is hidden and every
+  /// moment is treated as shared.
+  privateMoments,
 }
 
 @lazySingleton
@@ -27,12 +42,20 @@ class FeatureToggleManager {
   // Remote Config parameter names — must match the Firebase console.
   static const Map<AppFeatureToggle, String> _remoteKeys = {
     AppFeatureToggle.revenueCat: 'feature_revenue_cat',
+    AppFeatureToggle.gamification: 'feature_gamification',
+    AppFeatureToggle.momentCelebration: 'feature_moment_celebration',
+    AppFeatureToggle.privateMoments: 'feature_private_moments',
   };
 
   // Local fallback values used before the first successful fetch
   // and for any toggle absent from Remote Config.
   static const Map<AppFeatureToggle, bool> _defaults = {
     AppFeatureToggle.revenueCat: false,
+    // Purely local UI reward with no backend dependency — safe to ship on.
+    AppFeatureToggle.momentCelebration: true,
+    // Depend on Firestore data/rules being in place — off until provisioned.
+    AppFeatureToggle.gamification: false,
+    AppFeatureToggle.privateMoments: false,
   };
 
   /// Fetches and activates Remote Config values.

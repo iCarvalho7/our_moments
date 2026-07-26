@@ -51,6 +51,7 @@ workflows:
       - name: Build iOS
         script: |
           set -ex
+          flutter config --no-enable-swift-package-manager
           flutter build ipa --release \
             --dart-define-from-file=dart_defines.txt \
             --build-name=1.1.5 \

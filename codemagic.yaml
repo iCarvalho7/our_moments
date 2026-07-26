@@ -13,6 +13,7 @@ workflows:
         bundle_identifier: cc.gambiapps.nossosmomentos
       vars:
         GOOGLE_PLACES_API_KEY: changeme
+        FIREBASE_SERVICE_ACCOUNT: changeme
       flutter: 3.44.1
       xcode: latest
       cocoapods: default
@@ -23,6 +24,11 @@ workflows:
         - pattern: never-match
           include: false
     scripts:
+      - name: Set up Firebase service account
+        script: |
+          set -ex
+          echo -e "$FIREBASE_SERVICE_ACCOUNT" > $FCI_BUILD_DIR/firebase-sa.json
+          python3 -c "import json; d=json.load(open('$FCI_BUILD_DIR/firebase-sa.json')); print('JSON OK - project:', d['project_id'])"
       - name: Set up iOS signing
         script: |
           set -ex
@@ -63,7 +69,7 @@ workflows:
       - build/app/outputs/bundle/release/app-release.aab
     publishing:
       firebase:
-        firebase_service_account: ./scripts/nossosmomentos-22-064115481422.json
+        firebase_service_account: $FCI_BUILD_DIR/firebase-sa.json
         android:
           app_id: 1:258810302381:android:14a0ee32c7f504a6481b24
           artifact_type: aab

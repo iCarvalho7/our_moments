@@ -13,7 +13,6 @@ workflows:
         bundle_identifier: cc.gambiapps.nossosmomentos
       vars:
         GOOGLE_PLACES_API_KEY: changeme
-        FIREBASE_SERVICE_ACCOUNT: changeme
       flutter: 3.44.1
       xcode: latest
       cocoapods: default

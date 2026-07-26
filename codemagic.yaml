@@ -9,9 +9,7 @@ workflows:
       cocoapods: default
       vars:
         GOOGLE_PLACES_API_KEY: Encrypted(...)
-      groups:
-        - firebase_creds
-        - apple_creds
+        FIREBASE_SERVICE_ACCOUNT: Encrypted(...)
     triggering:
       events:
         - push
